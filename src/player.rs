@@ -1,8 +1,8 @@
-use cgmath::Vector3;
 use cgmath::prelude::*;
+use cgmath::Vector3;
 
 use camera::Camera;
-use physics::Movable;
+use physics::{Movable, LIGHT_SPEED};
 
 type Vec3 = Vector3<f32>;
 type Point3 = cgmath::Point3<f32>;
@@ -45,7 +45,7 @@ impl Default for Player {
       pitch: 0.0,
       movement_speed: 2.5,
       mouse_sensitivity: 0.1,
-      zoom: 45.0
+      zoom: 45.0,
     };
     cam.update_camera_vectors();
     cam
@@ -66,7 +66,12 @@ impl Movable for Player {
     self.position = v;
   }
   fn set_velocity(&mut self, v: Vec3) {
-    self.velocity = v;
+    if v.magnitude() > LIGHT_SPEED {
+      let dir = v.normalize_to(LIGHT_SPEED - 0.01);
+      self.velocity = dir;
+    } else {
+      self.velocity = v;
+    }
   }
   fn set_acceleration(&mut self, v: Vec3) {
     self.acceleration = v;
@@ -77,18 +82,64 @@ impl Camera for Player {
   fn position(&self) -> Point3 {
     Point3::new(self.position.x, self.position.y, self.position.z)
   }
-  fn front(&self) -> Vec3 {self.front}
-  fn set_front(&mut self, v: Vec3) {self.front = v;}
-  fn up(&self) -> Vec3 {self.up}
-  fn set_up(&mut self, v: Vec3) {self.up = v;}
-  fn right(&self) -> Vec3 {self.right}
-  fn set_right(&mut self, v: Vec3) {self.right = v;}
-  fn world_up(&self) -> Vec3 {Vec3::unit_y()}
-  fn yaw(&self) -> f32 {self.yaw}
-  fn set_yaw(&mut self, v: f32) {self.yaw = v;}
-  fn pitch(&self) -> f32 {self.pitch}
-  fn set_pitch(&mut self, v: f32) {self.pitch = v;}
-  fn camera_speed(&self) -> f32 {self.movement_speed}
-  fn mouse_sensitivity(&self) -> f32 {self.mouse_sensitivity}
-  fn zoom(&self) -> f32 {self.zoom}
+  fn front(&self) -> Vec3 {
+    self.front
+  }
+  fn set_front(&mut self, v: Vec3) {
+    self.front = v;
+  }
+  fn up(&self) -> Vec3 {
+    self.up
+  }
+  fn set_up(&mut self, v: Vec3) {
+    self.up = v;
+  }
+  fn right(&self) -> Vec3 {
+    self.right
+  }
+  fn set_right(&mut self, v: Vec3) {
+    self.right = v;
+  }
+  fn world_up(&self) -> Vec3 {
+    Vec3::unit_y()
+  }
+  fn yaw(&self) -> f32 {
+    self.yaw
+  }
+  fn set_yaw(&mut self, v: f32) {
+    self.yaw = v;
+  }
+  fn pitch(&self) -> f32 {
+    self.pitch
+  }
+  fn set_pitch(&mut self, v: f32) {
+    self.pitch = v;
+  }
+  fn camera_speed(&self) -> f32 {
+    self.movement_speed
+  }
+  fn mouse_sensitivity(&self) -> f32 {
+    self.mouse_sensitivity
+  }
+  fn zoom(&self) -> f32 {
+    self.zoom
+  }
+}
+
+impl Player {
+  pub fn velocity_basis_matrix(&self) -> cgmath::Matrix3<f32> {
+    if self.beta() == 0.0 {
+      cgmath::Matrix3::<f32>::identity()
+    } else {
+      let vel_norm = self.velocity().normalize();
+      let right = vel_norm.cross(self.world_up()).normalize();
+      let up = right.cross(vel_norm);
+      cgmath::Matrix3::<f32>::from_cols(vel_norm, right, up).transpose()
+    }
+  }
+
+  pub fn velocity_inverse_basis_matrix(&self) -> cgmath::Matrix3<f32> {
+    let ret: cgmath::Matrix3<f32> = self.velocity_basis_matrix().invert().expect("Could not invert matrix");
+    ret
+  }
 }

@@ -108,7 +108,7 @@ impl Mesh {
 
         // draw mesh
         gl::BindVertexArray(self.vao);
-        gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
+        gl::DrawElements(gl::PATCHES, self.indices.len() as i32, gl::UNSIGNED_INT, ptr::null());
         gl::BindVertexArray(0);
 
         // always good practice to set everything back to defaults once configured.

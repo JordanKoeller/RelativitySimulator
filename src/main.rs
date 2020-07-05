@@ -10,6 +10,8 @@ extern crate cgmath;
 extern crate gl;
 extern crate image;
 extern crate tobj;
+extern crate regex;
+
 
 
 mod macros;
@@ -51,11 +53,12 @@ pub fn main() {
   glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
   #[cfg(target_os = "macos")]
   glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
+  glfw.window_hint(glfw::WindowHint::Samples(Some(4)));
 
   // glfw window creation
   // --------------------
   let (mut window, events) = glfw
-    .create_window(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfw::WindowMode::Windowed)
+    .create_window(SCR_WIDTH, SCR_HEIGHT, "Special Relativity Simulation", glfw::WindowMode::Windowed)
     .expect("Failed to create GLFW window");
 
   window.make_current();
@@ -70,7 +73,7 @@ pub fn main() {
   // ---------------------------------------
   gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
   unsafe {
-    gl::Enable(gl::CULL_FACE);
+    // gl::Enable(gl::CULL_FACE);
     gl::Enable(gl::DEPTH_TEST);
     gl::Enable(gl::MULTISAMPLE);
     gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);

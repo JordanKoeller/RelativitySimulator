@@ -1,6 +1,5 @@
 use std::time::SystemTime;
-use std::fmt::Display;
-use cgmath::Vector3;
+
 #[allow(dead_code)]
 pub fn elapsed(start_time: &SystemTime) -> String {
     let elapsed = start_time.elapsed().unwrap();

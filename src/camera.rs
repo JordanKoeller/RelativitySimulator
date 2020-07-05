@@ -23,6 +23,10 @@ pub trait Camera {
   fn mouse_sensitivity(&self) -> f32;
   fn zoom(&self) -> f32;
 
+  fn vec_pos(&self) -> Vec3 {
+    Vec3{x: self.position().x, y: self.position().y, z: self.position().z}
+  }
+
   fn get_view_matrix(&self) -> Matrix4 {
     Matrix4::look_at(self.position(), self.position() + self.front(), self.up())
   }
@@ -55,4 +59,7 @@ pub trait Camera {
     self.set_right(self.front().cross(self.world_up()).normalize()); // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     self.set_up(self.right().cross(self.front()).normalize());
   }
+
+
+
 }

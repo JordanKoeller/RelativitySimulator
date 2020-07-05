@@ -125,7 +125,7 @@ impl Drawable for Skybox {
 
   fn draw(&self, shader: &ShaderManager) {
     let s = shader.get_shader(self.shader_name());
-    s.use_program();
+    // s.use_program();
     unsafe {
       gl::DepthFunc(gl::LEQUAL);
     }
