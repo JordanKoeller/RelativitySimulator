@@ -2,8 +2,14 @@
 uniform float beta;
 uniform float gamma;
 
+uniform int lorentzFlag;
+// If 0, no relativity at all
+// If 1, enable lorentz transform
+// If 2, enable lorentz transform and light travel time considerations
+
 
 uniform vec3 cameraPos;
+uniform vec3 frustum;
 
 
 uniform mat3 changeOfBasis;
@@ -33,11 +39,24 @@ vec3 lorentzTransform(vec3 pos)
   return changeOfBasisInverse * transformed + cameraPos;
 }
 
+vec3 abberration(vec3 pos)
+{
+    vec2 angPos = pos.xy * frustum.xy / 2.0;
+    float theta = length(angPos);
+    float cosPsiPrime = (cos(theta) + beta) / (1.0 + beta * cos(theta));
+    float psiPrime = acos(cosPsiPrime);
+    return vec3(psiPrime*normalize(angPos), pos.z);
+    // cos psi` = (cos psi + beta)/(1 + beta cos psi)
+}
+
 vec3 transformRelativistic(vec3 pos)
 {
-    vec3 ret = lorentzTransform(pos);
-    if (beta > 0.01) {
+  vec3 ret = pos;
+  if (lorentzFlag != 0) {
+    ret = lorentzTransform(ret);
+    if (lorentzFlag == 2 && beta > 0.01) {
         ret = timeTransform(ret);
     }
-    return ret;
+  }
+  return ret;
 }

@@ -58,7 +58,6 @@ pub trait Movable {
       //1 - gamma^-2 = v^2/c^2
       // (1 - gamma^-2)*c^2 = v^2
       let new_v = new_velocity.normalize_to(((1.0 - needed_gamma.powf(-2.0)) * LIGHT_SPEED * LIGHT_SPEED).sqrt());
-      println!("Renormalized to gamma={} from {}", self.gamma_helper(self.beta_helper(&new_v)), new_gamma);
       self.set_velocity(new_v);
     } else {
       self.set_velocity(new_velocity);
@@ -66,9 +65,4 @@ pub trait Movable {
     self.set_position(self.position() + self.velocity()*dt + self.acceleration()*dt*dt/2.0);
   }
 
-
-
-  // fn posInVelocityBasis(&self) -> cgmath::Vector3<f32> {
-  //   self.velocityBasisMatrix() * self.vecPos()
-  // }
 }

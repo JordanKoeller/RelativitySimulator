@@ -35,4 +35,5 @@ void main()
 
     WorldPos_FS_in = transformRelativistic(WorldPos_FS_in);
     gl_Position = projection * view * vec4(WorldPos_FS_in, 1.0);
+    // gl_Position = vec4(abberration(gl_Position.xyz), 1.0);
 }

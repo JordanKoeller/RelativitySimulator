@@ -6,8 +6,10 @@ pub mod drawable;
 pub mod model;
 pub mod text_overlay;
 pub mod skybox;
+pub mod grid;
 
 pub use self::drawable::Drawable;
 pub use self::model::Model;
 pub use self::text_overlay::TextOverlay;
 pub use self::skybox::Skybox;
+pub use self::grid::Grid;

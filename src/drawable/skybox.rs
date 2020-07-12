@@ -7,8 +7,6 @@ use image;
 use image::DynamicImage::*;
 use image::GenericImage;
 
-use cgmath::Zero;
-
 use gl;
 
 use drawable::Drawable;
@@ -27,8 +25,6 @@ pub struct Skybox {
   texture_id: u32,
   vao: u32,
   vbo: u32,
-  view_matrix: cgmath::Matrix4<f32>,
-  proj_matrix: cgmath::Matrix4<f32>
 }
 
 fn init_skybox() -> (u32, u32) {
@@ -102,20 +98,11 @@ impl Skybox {
     let tex = init_texture(faces);
     Skybox {
       vao: vao,
-      vbo: vbo,
       texture_id: tex,
-      view_matrix: cgmath::Matrix4::<f32>::zero(),
-      proj_matrix: cgmath::Matrix4::<f32>::zero()
+      vbo
     }
   }
 
-  pub fn set_matrices(&mut self, view_matrix: &cgmath::Matrix4<f32>, projec_matrix: &cgmath::Matrix4<f32>) {
-    self.view_matrix = view_matrix.clone();
-    self.proj_matrix = projec_matrix.clone();
-    self.view_matrix.w[0] = 0.0;
-    self.view_matrix.w[1] = 0.0;
-    self.view_matrix.w[2] = 0.0;
-  }
 }
 
 impl Drawable for Skybox {
@@ -123,15 +110,19 @@ impl Drawable for Skybox {
     "skybox".to_string()
   }
 
-  fn draw(&self, shader: &ShaderManager) {
+  fn pre_draw(&self, shader: &ShaderManager) {
     let s = shader.get_shader(self.shader_name());
-    // s.use_program();
+    s.use_program();
     unsafe {
       gl::DepthFunc(gl::LEQUAL);
     }
+  }
+
+  fn draw(&self, shader: &ShaderManager) {
+    let s = shader.get_shader(self.shader_name());
+    // s.use_program();
+
     s.set_int(c_str!("skybox"), 0);
-    s.set_mat4(c_str!("viewMatrix"), &self.view_matrix);
-    s.set_mat4(c_str!("projectionMatrix"), &self.proj_matrix);
     unsafe {
       gl::BindVertexArray(self.vao);
       gl::ActiveTexture(gl::TEXTURE0);

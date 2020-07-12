@@ -4,7 +4,10 @@ use std::cmp::Ordering;
 
 pub trait Drawable {
   fn draw(&self, shader: &ShaderManager);
-
+  fn pre_draw(&self, shader: &ShaderManager) {
+    let s = shader.get_shader(self.shader_name());
+    s.use_program();
+  }
   fn shader_name(&self) -> String;
 
 

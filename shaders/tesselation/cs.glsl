@@ -22,8 +22,8 @@ void main()
     WorldPos_ES_in[gl_InvocationID] = WorldPos_CS_in[gl_InvocationID];
 
     // Calculate the tessellation levels
-    gl_TessLevelOuter[0] = 16;
-    gl_TessLevelOuter[1] = 16;
-    gl_TessLevelOuter[2] = 16;
-    gl_TessLevelInner[0] = 16;
+    gl_TessLevelOuter[0] = 10;
+    gl_TessLevelOuter[1] = 10;
+    gl_TessLevelOuter[2] = 10;
+    gl_TessLevelInner[0] = 10;
 }

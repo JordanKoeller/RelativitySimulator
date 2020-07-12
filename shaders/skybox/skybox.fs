@@ -10,15 +10,13 @@ uniform mat3 changeOfBasisInverse;
 
 
 uniform float gamma;
-uniform float beta;
-uniform float t;
-uniform float c;
 
 void main()
 {
-  vec3 based = changeOfBasis * TexCoords;
-  vec3 transformed = vec3(gamma*(based.x - beta * c * t), based.y, based.z);
-  vec3 res = changeOfBasisInverse * transformed;
-  FragColor = texture(skybox, res);
+  // vec3 based = changeOfBasis * TexCoords;
+  // vec3 transformed = vec3(gamma*based.x, based.y, based.z);
+  // vec3 res = changeOfBasisInverse * transformed;
+  // FragColor = vec4(1.0, 1.0, 1.0, 1.0);//texture(skybox, res);
+  FragColor = texture(skybox, TexCoords);
   // FragColor = vec4(gl_FraagCoord.xyz - 600.0, 1.0);//vec4(TexCoords.x + 1, 0.0, 0.0, 1.0);
 }

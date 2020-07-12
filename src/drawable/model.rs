@@ -1,4 +1,4 @@
-use cgmath::{vec2, vec3, Matrix4};
+use cgmath::{vec2, vec3, Matrix4, Transform, Matrix};
 use gl;
 use image;
 use image::DynamicImage::*;
@@ -17,19 +17,17 @@ pub struct Model {
   /*  Model Data */
   pub meshes: vec::Vec<Mesh>,
   pub textures_loaded: vec::Vec<Texture>, // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-  shader_name: String,
-  model_matrix: Matrix4<f32>,
+  pub model_matrix: Matrix4<f32>,
   directory: String,
 }
 
 impl Model {
   /// constructor, expects a filepath to a 3D model.
-  pub fn new(path: &str, matrix: Matrix4<f32>, shader_name: String) -> Model {
+  pub fn new(path: &str, matrix: Matrix4<f32>) -> Model {
     let mut model = Model {
       meshes: Vec::default(),
       textures_loaded: Vec::default(),
       model_matrix: matrix,
-      shader_name: shader_name,
       directory: String::default(),
     };
     model.load_model(path);
@@ -116,6 +114,11 @@ impl Drawable for Model {
   fn draw(&self, shader: &ShaderManager) {
     let s = shader.get_shader(self.shader_name());
     s.set_mat4(c_str!("model"), &self.model_matrix);
+    let norm_matrix = self.model_matrix
+      .inverse_transform()
+      .expect("Could not invert model matrix")
+      .transpose();
+    s.set_mat4(c_str!("normalMatrix"), &norm_matrix);
     for mesh in &self.meshes {
       unsafe {
         mesh.draw(s);

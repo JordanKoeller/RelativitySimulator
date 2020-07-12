@@ -31,11 +31,10 @@ mod shader;
 mod utils;
 mod physics;
 mod player;
+mod scene;
 // settings
 const SCR_WIDTH: u32 = 1600;
 const SCR_HEIGHT: u32 = 1200;
-
-const LISTEN_FOR_KEYS: [Key; 6] = [Key::W, Key::A, Key::S, Key::D, Key::Q, Key::LeftShift];
 
 pub fn main() {
   let mut first_move = true;
@@ -65,6 +64,7 @@ pub fn main() {
   window.set_framebuffer_size_polling(true);
   window.set_cursor_pos_polling(true);
   window.set_scroll_polling(true);
+  window.set_key_polling(true);
 
   // tell GLFW to capture our mouse
   window.set_cursor_mode(glfw::CursorMode::Disabled);
@@ -82,6 +82,9 @@ pub fn main() {
 
   let mut game = game::Game::new(SCR_HEIGHT, SCR_WIDTH);
 
+  // Render wireframe
+  // unsafe { gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE) };
+
   // render loop
   // -----------
   while !window.should_close() {
@@ -93,18 +96,14 @@ pub fn main() {
 
     // events
     // -----
-    process_window_events(&events, &mut first_move, &mut last_x, &mut last_y, &mut game);
-    // process_events(&events, &mut first_move, &mut last_x, &mut last_y, &mut camera);
+    process_window_events(&events, &mut window, &mut first_move, &mut last_x, &mut last_y, &mut game);
 
     // // input
     // // -----
-    // process_input(&mut window, delta_time, &mut camera);
-    process_key_actions(&mut window, &mut game);
-
     // render
     // ------
     unsafe {
-      gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+      gl::ClearColor(0.0, 0.0, 0.0, 1.0);
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
 
@@ -120,17 +119,9 @@ pub fn main() {
   }
 }
 
-fn process_key_actions(window: &mut glfw::Window, game: &mut game::Game) {
-  if window.get_key(Key::Escape) == Action::Press {
-    window.set_should_close(true)
-  }
-  for k in &LISTEN_FOR_KEYS {
-    game.key_action(*k, window.get_key(*k));
-  }
-}
-
 fn process_window_events(
   events: &Receiver<(f64, glfw::WindowEvent)>,
+  window: &mut glfw::Window,
   first_mouse: &mut bool,
   last_x: &mut f32,
   last_y: &mut f32,
@@ -159,7 +150,12 @@ fn process_window_events(
 
         game.mouse_moved(xoffset, yoffset);
       }
-
+      glfw::WindowEvent::Key(key_code, _, key_action, _) => {
+        if key_code == Key::Escape && key_action == Action::Press {
+          window.set_should_close(true);
+        }
+        game.key_action(key_code, key_action);
+      }
       _ => {}
     }
   }
