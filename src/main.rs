@@ -32,6 +32,7 @@ mod utils;
 mod physics;
 mod player;
 mod scene;
+mod city_scene;
 // settings
 const SCR_WIDTH: u32 = 1600;
 const SCR_HEIGHT: u32 = 1200;
@@ -60,6 +61,10 @@ pub fn main() {
     .create_window(SCR_WIDTH, SCR_HEIGHT, "Special Relativity Simulation", glfw::WindowMode::Windowed)
     .expect("Failed to create GLFW window");
 
+    // let (mut window2, events2) = glfw
+    // .create_window(SCR_WIDTH, SCR_HEIGHT, "Helper Window", glfw::WindowMode::Windowed)
+    // .expect("Failed to create GLFW window");
+
   window.make_current();
   window.set_framebuffer_size_polling(true);
   window.set_cursor_pos_polling(true);
@@ -79,7 +84,6 @@ pub fn main() {
     gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
 
   }
-
   let mut game = game::Game::new(SCR_HEIGHT, SCR_WIDTH);
 
   // Render wireframe

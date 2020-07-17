@@ -39,15 +39,6 @@ vec3 lorentzTransform(vec3 pos)
   return changeOfBasisInverse * transformed + cameraPos;
 }
 
-vec3 abberration(vec3 pos)
-{
-    vec2 angPos = pos.xy * frustum.xy / 2.0;
-    float theta = length(angPos);
-    float cosPsiPrime = (cos(theta) + beta) / (1.0 + beta * cos(theta));
-    float psiPrime = acos(cosPsiPrime);
-    return vec3(psiPrime*normalize(angPos), pos.z);
-    // cos psi` = (cos psi + beta)/(1 + beta cos psi)
-}
 
 vec3 transformRelativistic(vec3 pos)
 {

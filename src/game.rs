@@ -10,6 +10,7 @@ use shader::Shader;
 use shader_manager::ShaderManager;
 
 use scene::Scene;
+use city_scene::procedure_scene;
 
 extern crate glfw;
 use self::glfw::{Action, Key};
@@ -28,15 +29,16 @@ impl Game {
     let text_shader = Shader::new("shaders/text/text.vs", "shaders/text/text.fs");
     let mut shader_manager = ShaderManager::new();
     shader_manager.add_shader("text".to_string(), text_shader);
-    let (scene, camera) = Scene::city_scene(&mut shader_manager, width as f32, height as f32);
+    // let (scene, camera) = Scene::city_scene(&mut shader_manager, width as f32, height as f32);
     // let (scene, camera) = Scene::grid_scene(&mut shader_manager, width as f32, height as f32);
     // let (scene, camera) = Scene::colorbox_scene(&mut shader_manager, width as f32, height as f32);
+    let (scene, camera) = procedure_scene(&mut shader_manager, width as f32, height as f32);
     Game {
       player: camera,
       scene: scene,
       shader_manager: shader_manager,
       text_overlay: [TextOverlay::new(), TextOverlay::new(), TextOverlay::new(), TextOverlay::new()],
-      lorentz_flag: 2,
+      lorentz_flag: 0,
       pressed_keys: [false; 512],
     }
   }
