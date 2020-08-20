@@ -1,7 +1,7 @@
 // use cgmath::{Matrix4, Vector3};
 use cgmath::{Matrix4, Vector3};
 
-use shader_manager::ShaderManager;
+use renderer::shader_manager::ShaderManager;
 use std::ffi::CStr;
 
 use gl;

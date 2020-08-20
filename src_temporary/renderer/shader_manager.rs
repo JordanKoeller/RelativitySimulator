@@ -1,4 +1,4 @@
-use shader::Shader;
+use renderer::shader::Shader;
 use std::collections::HashMap;
 
 pub struct ShaderManager {

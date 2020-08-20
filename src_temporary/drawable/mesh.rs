@@ -7,7 +7,7 @@ use cgmath::{ Vector3, Vector2 };
 use cgmath::prelude::*;
 use gl;
 
-use shader::Shader;
+use renderer::shader::Shader;
 
 // NOTE: without repr(C) the compiler may reorder the fields or use different padding/alignment than C.
 // Depending on how you pass the data to OpenGL, this may be bad. In this case it's not strictly

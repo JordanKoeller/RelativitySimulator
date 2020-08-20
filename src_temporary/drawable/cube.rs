@@ -14,8 +14,8 @@ use gl;
 use drawable::mesh::{Mesh, Texture};
 use drawable::Drawable;
 use drawable::Model;
-use shader::Shader;
-use shader_manager::ShaderManager;
+use renderer::shader::Shader;
+use renderer::shader_manager::ShaderManager;
 use common::load_texture;
 
 struct VaoVbo {
