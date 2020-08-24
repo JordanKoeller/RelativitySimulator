@@ -7,7 +7,7 @@ pub enum Texture {
     HeightMap(u32),
     Texture1D(u32),
     Texture2D(u32),
-    Texture3D(u32),
+    CubeMap(u32),
 }
 
 #[derive(Clone, Eq, PartialEq)]
@@ -19,7 +19,7 @@ pub enum TextureType {
     HeightMap,
     Texture1D,
     Texture2D,
-    Texture3D,
+    CubeMap,
 }
 
 impl TextureType {
@@ -32,7 +32,7 @@ impl TextureType {
             TextureType::HeightMap => Texture::HeightMap(value),
             TextureType::Texture1D => Texture::Texture1D(value),
             TextureType::Texture2D => Texture::Texture2D(value),
-            TextureType::Texture3D => Texture::Texture3D(value),
+            TextureType::CubeMap => Texture::CubeMap(value),
         }
     }
 
@@ -45,7 +45,7 @@ impl TextureType {
             TextureType::HeightMap => "heightMap".to_string(),
             TextureType::Texture1D => "texture1D".to_string(),
             TextureType::Texture2D => "texture2D".to_string(),
-            TextureType::Texture3D => "texture3D".to_string(),
+            TextureType::CubeMap => "texture3D".to_string(),
         }
     }
 }
@@ -60,7 +60,7 @@ impl Texture {
             Texture::HeightMap(_) => TextureType::HeightMap,
             Texture::Texture1D(_) => TextureType::Texture1D,
             Texture::Texture2D(_) => TextureType::Texture2D,
-            Texture::Texture3D(_) => TextureType::Texture3D,
+            Texture::CubeMap(_) => TextureType::CubeMap,
         }
     }
 
@@ -73,7 +73,7 @@ impl Texture {
             Texture::HeightMap(v) => v.clone(),
             Texture::Texture1D(v) => v.clone(),
             Texture::Texture2D(v) => v.clone(),
-            Texture::Texture3D(v) => v.clone(),
+            Texture::CubeMap(v) => v.clone(),
         }
     }
 }

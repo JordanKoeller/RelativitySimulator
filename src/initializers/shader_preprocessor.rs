@@ -44,6 +44,9 @@ pub fn shader_preprocessor(shader_path: &str) -> (String, HashSet<(String, Unifo
             "bool" => {
                 uniforms.insert((name, UniformType::Bool));
             }
+            "samplerCube" => {
+                uniforms.insert((name, UniformType::Int));
+            }
             _ => panic!(
                 "Shader contains unrecognized uniform 'uniform {} {};",
                 &uniform[1], &uniform[2]
