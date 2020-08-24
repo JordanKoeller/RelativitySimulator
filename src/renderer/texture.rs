@@ -1,4 +1,4 @@
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Copy)]
 pub enum Texture {
     DiffuseMap(u32),
     NormalMap(u32),
@@ -19,7 +19,7 @@ pub enum TextureType {
     HeightMap,
     Texture1D,
     Texture2D,
-    Texture3D
+    Texture3D,
 }
 
 impl TextureType {
@@ -35,6 +35,19 @@ impl TextureType {
             TextureType::Texture3D => Texture::Texture3D(value),
         }
     }
+
+    pub fn get_name(&self) -> String {
+        match self {
+            TextureType::DiffuseMap => "diffuseMap".to_string(),
+            TextureType::NormalMap => "normalMap".to_string(),
+            TextureType::SpecularMap => "specularMap".to_string(),
+            TextureType::ParallaxMap => "parallaxMap".to_string(),
+            TextureType::HeightMap => "heightMap".to_string(),
+            TextureType::Texture1D => "texture1D".to_string(),
+            TextureType::Texture2D => "texture2D".to_string(),
+            TextureType::Texture3D => "texture3D".to_string(),
+        }
+    }
 }
 
 impl Texture {
@@ -48,6 +61,19 @@ impl Texture {
             Texture::Texture1D(_) => TextureType::Texture1D,
             Texture::Texture2D(_) => TextureType::Texture2D,
             Texture::Texture3D(_) => TextureType::Texture3D,
+        }
+    }
+
+    pub fn value(&self) -> u32 {
+        match self {
+            Texture::DiffuseMap(v) => v.clone(),
+            Texture::NormalMap(v) => v.clone(),
+            Texture::SpecularMap(v) => v.clone(),
+            Texture::ParallaxMap(v) => v.clone(),
+            Texture::HeightMap(v) => v.clone(),
+            Texture::Texture1D(v) => v.clone(),
+            Texture::Texture2D(v) => v.clone(),
+            Texture::Texture3D(v) => v.clone(),
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use initializers::{AssetSpec, Factory, GLBufferFactory, ShaderFactory};
+use initializers::{AssetSpec, Factory, GLBufferFactory, ShaderFactory, TextureFactory};
 use renderer::{Asset, GLBuffer, Shader, Texture};
 
 pub struct ResourceManger<F: Factory + Default> {
@@ -40,7 +40,7 @@ impl<F: Factory + Default> ResourceManger<F> {
 pub struct AssetManager {
     shader_mgr: ResourceManger<ShaderFactory>,
     gl_buff_mgr: ResourceManger<GLBufferFactory>,
-    // pub texture_mgr: ResourceManger<Texture>,
+    texture_mgr: ResourceManger<TextureFactory>,
     asset_name_map: HashMap<String, usize>,
     asset_library: Vec<Asset>,
 }
@@ -48,8 +48,9 @@ pub struct AssetManager {
 impl Default for AssetManager {
     fn default() -> Self {
         AssetManager {
-            shader_mgr: ResourceManger::<ShaderFactory>::default(),
-            gl_buff_mgr: ResourceManger::<GLBufferFactory>::default(),
+            shader_mgr: ResourceManger::default(),
+            gl_buff_mgr: ResourceManger::default(),
+            texture_mgr: ResourceManger::default(),
             asset_name_map: HashMap::new(),
             asset_library: Vec::new(),
         }
@@ -75,7 +76,15 @@ impl AssetManager {
             let model_id = self.gl_buff_mgr.add_resource(&spec.mesh.0, spec.mesh.1);
             let shader = *self.shader_mgr.get_resource(shader_id);
             let model = *self.gl_buff_mgr.get_resource(model_id);
-            self.asset_library.push(Asset::new_textureless(shader,model));
+            let textures: Vec<Texture> = spec.textures.iter().map(|tex_spec| {
+                let tex_id = self.texture_mgr.add_resource(&tex_spec.0, tex_spec.1.clone());
+                *self.texture_mgr.get_resource(tex_id)
+            }).collect();
+            if textures.len() == 0 {
+                self.asset_library.push(Asset::new_textureless(shader,model));
+            } else {
+                self.asset_library.push(Asset::new(shader, model, textures));
+            }
             let ind = self.asset_library.len() - 1;
             self.asset_name_map.insert(name.to_string(), ind);
             ind

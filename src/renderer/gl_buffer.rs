@@ -2,6 +2,7 @@ use std::ptr;
 
 use gl;
 
+
 #[derive(Copy, Clone)]
 pub struct GLBuffer {
     pub vao: u32,

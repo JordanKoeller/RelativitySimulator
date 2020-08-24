@@ -18,7 +18,7 @@ pub fn window_init(width: u32, height: u32, title: &str) -> (glfw::Window, Input
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
     #[cfg(target_os = "macos")]
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-    glfw.window_hint(glfw::WindowHint::Samples(Some(4)));
+    glfw.window_hint(glfw::WindowHint::Samples(Some(8)));
     // glfw window creation
     // --------------------
     let (mut window, events) = glfw
@@ -46,9 +46,9 @@ pub fn window_init(width: u32, height: u32, title: &str) -> (glfw::Window, Input
     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
     unsafe {
         // gl::Enable(gl::CULL_FACE);
-        // gl::Enable(gl::DEPTH_TEST);
-        // gl::Enable(gl::MULTISAMPLE);
-        // gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
+        gl::Enable(gl::DEPTH_TEST);
+        gl::Enable(gl::MULTISAMPLE);
+        gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
     }
     
     (window, events, glfw)

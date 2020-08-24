@@ -8,6 +8,8 @@ pub mod shader_spec;
 pub mod mesh_spec;
 pub mod resource_manager;
 pub mod asset_spec;
+pub mod texture_factory;
+pub mod texture_spec;
 
 use self::factory::Factory;
 use self::shader_factory::ShaderFactory;
@@ -19,3 +21,5 @@ pub use self::mesh_spec::{GLSpec, AttributeTypes};
 pub use self::shader_spec::{ShaderSpec, NormalShaderSpec};
 pub use self::resource_manager::{ResourceManger, AssetManager};
 pub use self::asset_spec::AssetSpec;
+pub use self::texture_factory::TextureFactory;
+pub use self::texture_spec::TextureSpec;

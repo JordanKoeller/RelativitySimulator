@@ -6,6 +6,7 @@ use cgmath::prelude::*;
 use cgmath::{Matrix, Matrix3, Matrix4, Vector3};
 
 use renderer::uniform::{UniformType, UniformValue};
+use renderer::Texture;
 
 /// NOTE: mixture of `shader_s.h` and `shader_m.h` (the latter just contains
 /// a few more setters for uniforms)
@@ -90,6 +91,11 @@ pub trait IShader {
       UniformValue::Mat4(f) => self.set_mat4(&cstring, f),
       _ => println!("Shader does not support uniform of type {:?}", uniform),
     }
+  }
+
+  fn set_texture(&self, texture: &Texture) {
+    let unif_value = UniformValue::Int(0);
+    self.set_uniform(&texture.to_type().get_name(), &unif_value);
   }
 }
 

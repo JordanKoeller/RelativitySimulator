@@ -1,6 +1,6 @@
 use initializers::{AssetManager, AssetSpec, GLSpec, NormalShaderSpec, AttributeTypes};
 use renderer::Asset;
-use renderer::{UniformManager, UniformValue, Shader, IRenderable, BaseRenderable};
+use renderer::{UniformManager, UniformValue, BaseRenderable};
 use utils::{translate, Color, Vec3F};
 
 const CUBE_VERTICES: [f32; 24] = [
@@ -46,22 +46,14 @@ impl ColoredCube {
         mgr.set("color", UniformValue::Vec3(color));
         mgr.set("model", UniformValue::Mat4(translate(position)));
         let asset_spec = AssetSpec::new(
-            ("world".to_string(),Box::new(NormalShaderSpec::new("shaders/1.model_loading.vs", "shaders/1.model_loading.fs"))),
-            ("cube".to_string(), GLSpec::new(CUBE_VERTICES.to_vec(), CUBE_INDICES.to_vec(), vec![AttributeTypes::Points]))); 
-        let asset_id = library.add_resource("cube", asset_spec);
+            (file!().to_string(),Box::new(NormalShaderSpec::new("shaders/1.model_loading.vs", "shaders/1.model_loading.fs"))),
+            (file!().to_string(), GLSpec::new(CUBE_VERTICES.to_vec(), CUBE_INDICES.to_vec(), vec![AttributeTypes::Points]))); 
+        let asset_id = library.add_resource(file!(), asset_spec);
 
         ColoredCube {
             asset: library.get_resource(asset_id),
             uniforms: mgr
         }
-    }
-
-    pub fn draw(&mut self) {
-        self.asset.draw(&mut self.uniforms);
-    }
-
-    pub fn shader(&mut self) -> &mut Shader {
-        &mut self.asset.shader
     }
 }
 

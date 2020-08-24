@@ -25,6 +25,7 @@ mod stateful;
 
 mod common;
 mod utils;
+// mod debug;
 
 use mechanics::user_input::EventListener;
 use renderer::{Camera, IShader};
@@ -63,7 +64,7 @@ pub fn main() {
     // ------
     unsafe {
       gl::ClearColor(0.1, 0.2, 0.3, 1.0);
-      gl::Clear(gl::COLOR_BUFFER_BIT);
+      gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
     renderer.render(&scene);
     // don't forget to enable shader before setting uniforms
