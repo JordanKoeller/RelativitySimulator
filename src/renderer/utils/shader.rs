@@ -5,8 +5,8 @@ use gl;
 use cgmath::prelude::*;
 use cgmath::{Matrix, Matrix3, Matrix4, Vector3};
 
-use renderer::uniform::{UniformType, UniformValue};
-use renderer::Texture;
+use renderer::utils::{UniformType, UniformValue};
+use renderer::utils::Texture;
 
 /// NOTE: mixture of `shader_s.h` and `shader_m.h` (the latter just contains
 /// a few more setters for uniforms)
@@ -114,47 +114,3 @@ impl Shader {
     Shader { id: id}
   }
 }
-
-// pub struct DebugShader {
-//   pub shader: Shader,
-//   expected_uniforms: std::collections::HashSet<(String, UniformType)>,
-//   set_uniforms: std::collections::HashSet<(String, UniformType)>,
-// }
-
-// impl IShader for DebugShader {
-//   fn id(&self) -> u32 {
-//     self.shader.id()
-//   }
-
-//   fn use_program(&mut self) {
-//     self.set_uniforms = std::collections::HashSet::new();
-//   }
-
-//   fn close_program(&mut self) {
-//     if self.set_uniforms != self.expected_uniforms {
-//       let delta: Vec<(String, UniformType)> = self.expected_uniforms.difference(&self.set_uniforms).cloned().collect();
-//       panic!("Tried to run shader missing {} uniforms {:?}", delta.len(), delta);
-//     }
-//   }
-
-//   fn set_uniform(&self, name: &String, uniform: &UniformValue) {
-//     let uniform_type = UniformType::from_value(uniform);
-//     let uniform_pair = (name.clone(), uniform_type);
-//     if self.expected_uniforms.contains(&uniform_pair) {
-//       // self.set_uniforms.insert(uniform_pair);
-//       self.set_uniform(name, uniform);
-//     } else {
-//       panic!("Tried to set uniform {} on shader not expecting that uniform", name);
-//     }
-//   }
-// }
-
-// impl DebugShader {
-//   pub fn new(shader: Shader, uniforms: std::collections::HashSet<(String, UniformType)>) -> DebugShader {
-//     DebugShader {
-//       shader: shader,
-//       expected_uniforms: uniforms,
-//       set_uniforms: std::collections::HashSet::new(),
-//     }
-//   }
-// }

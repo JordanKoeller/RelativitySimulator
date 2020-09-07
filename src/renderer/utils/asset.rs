@@ -1,4 +1,4 @@
-use renderer::{Shader, IShader, GLBuffer, Texture, UniformManager};
+use renderer::utils::{Shader, IShader, GLBuffer, Texture, UniformManager};
 
 
 #[derive(Clone)]

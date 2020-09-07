@@ -38,9 +38,9 @@ impl<F: Factory + Default> ResourceManger<F> {
 }
 
 pub struct AssetManager {
-    shader_mgr: ResourceManger<ShaderFactory>,
-    gl_buff_mgr: ResourceManger<GLBufferFactory>,
-    texture_mgr: ResourceManger<TextureFactory>,
+    pub shader_mgr: ResourceManger<ShaderFactory>,
+    pub gl_buff_mgr: ResourceManger<GLBufferFactory>,
+    pub texture_mgr: ResourceManger<TextureFactory>,
     asset_name_map: HashMap<String, usize>,
     asset_library: Vec<Asset>,
 }

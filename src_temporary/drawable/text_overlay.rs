@@ -178,7 +178,7 @@ impl Drawable for TextOverlay {
     let mut pos_x = self.x;
     shader.use_program();
     let projection: cgmath::Matrix4<f32> = cgmath::ortho(0.0, 1600.0, 0.0, 1200.0, 0.0, 1.0);
-    shader.set_mat4(c_str!("projection"), &projection);
+    // shader.set_mat4(c_str!("projection"), &projection);
     shader.set_vec3(c_str!("textColor"), 0.0, 0.0, 1.0);
     unsafe {
       gl::Enable(gl::BLEND);

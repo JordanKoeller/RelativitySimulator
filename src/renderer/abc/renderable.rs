@@ -8,8 +8,8 @@ use renderer::{Asset, UniformManager, UniformValue, Shader};
 pub trait IRenderable {
     fn uniform_manager(&self) -> &UniformManager;
     fn uniform_manager_mut(&mut self) -> &mut UniformManager;
-    fn render(&self);
     fn shader(&self) -> &Shader;
+    fn render(&self);
 
     fn update_uniforms(&mut self, unifs:Box<dyn Iterator<Item = (String, UniformValue)>>) {
         for (u_name, u_value) in unifs {

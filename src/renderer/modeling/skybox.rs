@@ -1,7 +1,6 @@
 use initializers::{AssetManager, AssetSpec, AttributeTypes, GLSpec, NormalShaderSpec, TextureSpec};
 use renderer::Asset;
-use renderer::{BaseRenderable, IRenderable, Shader, Texture, TextureType, UniformManager, UniformValue};
-use utils::{translate, Color, Vec3F};
+use renderer::{BaseRenderable, IRenderable, Shader, TextureType, UniformManager, UniformValue};
 
 use gl;
 

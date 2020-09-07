@@ -16,12 +16,19 @@ impl CubeScene {
         let crate_block = renderer::modeling::TexturedBlock::new(
             utils::Vec3F::new(6.0, 0.0, -10.0),
             "resources/textures/crate.png",
-            asset_manager);
+            asset_manager,
+        );
         let skybox = renderer::modeling::Skybox::new("resources/textures/skybox", asset_manager);
         let player_pos = utils::Vec3F::new(3.0, 3.0, 0.0);
         let player_facing = utils::Vec3F::unit_z();
-        Scene::new(vec![Box::new(cube),
-                        Box::new(crate_block),
-                        Box::new(skybox)], player_pos, player_facing)
+        Scene::new(
+            vec![
+                Box::new(cube),
+                Box::new(skybox),
+                Box::new(crate_block),
+            ],
+            player_pos,
+            player_facing,
+        )
     }
 }

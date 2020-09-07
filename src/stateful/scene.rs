@@ -2,6 +2,7 @@ use utils::Vec3F;
 
 use mechanics::Player;
 use renderer::IRenderable;
+use renderer::modeling::TextOverlay;
 
 pub struct Scene {
     world: Vec<Box<dyn IRenderable>>,
