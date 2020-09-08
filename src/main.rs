@@ -17,18 +17,15 @@ mod macros;
 #[macro_use]
 extern crate lazy_static;
 
-mod initializers;
 mod mechanics;
+mod initializers;
 mod renderer;
-mod scenes;
-mod stateful;
 
 mod common;
 mod utils;
 // mod debug;
 
 use mechanics::user_input::EventListener;
-use renderer::{Camera, IShader};
 use utils::{Color, Vec3F};
 
 // settings
@@ -40,15 +37,15 @@ pub fn main() {
   // ------------------------------
   let (mut window, events, mut glfw) = initializers::window_init(SCR_WIDTH, SCR_HEIGHT, "Relativity Simulation");
   // let mut game = game::Game::new(SCR_HEIGHT, SCR_WIDTH);
-  let mut asset_manager = initializers::AssetManager::default();
+  // let mut asset_manager = initializers::AssetManager::default();
 
   // Initialize the scene
-  let mut scene = scenes::CubeScene::get_scene(&mut asset_manager);
+  // let mut scene = scenes::CubeScene::get_scene(&mut asset_manager);
 
-  // Bind the scene to the renderer and the mechanics engine
-  let renderer = renderer::Renderer::new();
+  // // Bind the scene to the renderer and the mechanics engine
+  // let renderer = renderer::Renderer::new();
   let listener = mechanics::EventListener::default();
-  let mut engine = mechanics::MechanicsEngine::new(&scene, listener);
+  // let mut engine = mechanics::MechanicsEngine::new(&scene, listener);
   // Render wireframe
   // unsafe { gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE) };
   // render loop
@@ -58,15 +55,15 @@ pub fn main() {
     // --------------------
     // events
     // -----
-    engine.listener.process_events(&events, &mut window);
-    engine.update(&mut scene);
+    // engine.listener.process_events(&events, &mut window);
+    // engine.update(&mut scene);
     // render
     // ------
     unsafe {
       gl::ClearColor(0.1, 0.2, 0.3, 1.0);
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
-    renderer.render(&scene);
+    // renderer.render(&scene);
     // don't forget to enable shader before setting uniforms
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
