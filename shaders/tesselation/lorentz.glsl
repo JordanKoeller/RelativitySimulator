@@ -9,7 +9,6 @@ uniform int lorentzFlag;
 
 
 uniform vec3 cameraPos;
-uniform vec3 frustum;
 
 
 uniform mat3 changeOfBasis;
