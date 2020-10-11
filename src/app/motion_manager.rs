@@ -2,7 +2,7 @@ use utils::*;
 use cgmath::prelude::*;
 use renderer::LIGHT_SPEED;
 
-const MAX_ACCELERATION: f32 = 0.2;
+const MAX_ACCELERATION: f32 = 6f32;
 
 pub struct PlayerMotionDelegate {
     max_beta: f32,

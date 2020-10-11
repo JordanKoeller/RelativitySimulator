@@ -1,15 +1,14 @@
-use std::cell::{RefCell, RefMut};
 use utils::*;
-use renderer::{Window, Drawable, Renderer, Camera, RenderCommand};
+use renderer::{Window, Drawable, Renderer, Camera, RenderCommand, OverlayLine};
 use app::Player;
-use events::WindowEventManager;
-
-pub type Scene = Vec<Ref<dyn Drawable>>;
+use events::{WindowEventManager, EventDispatcher};
+use scene::Scene;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct GameLoop {
   window: Window,
   listener: MutRef<WindowEventManager>,
-  player: Player,
   renderer: Renderer,
   scene: Scene
 }
@@ -24,21 +23,51 @@ impl GameLoop {
       let delta_time = curr_time - last_time;
       last_time = curr_time;
 
-      self.window.frame_start();
       self.listener.borrow_mut().process_events(&mut self.window);
+      self.scene.update(delta_time);
+      self.window.frame_start();
+      self.renderer.start_scene(self.scene.player() as &dyn Camera);
 
-      self.player.update(delta_time);
-
-      self.renderer.start_scene(&self.player as &dyn Camera);
-
-      for asset in self.scene.iter() {
-        self.renderer.submit(RenderCommand::from(Ref::clone(&asset)));
+      // Debug UI ///////////////////////
+      self.debug_panel(delta_time);
+      // //////////////////////////////
+      let buff = self.scene.draw();
+      for asset in buff.iter() {
+        self.renderer.submit(asset.clone());
       }
-
       self.renderer.draw_scene(&mut self.window);
-
       self.window.frame_end();
     }
+  }
+
+
+  fn debug_panel(&mut self, dt: f32) {
+    let mut debug_ui = self.renderer.ui_box("Debug");
+    debug_ui.push(OverlayLine::LabelText(
+      "Frame Time".to_string(),
+      format!("{0:.2} ms", dt * 1000f32)
+    ));
+
+    let listener = self.listener.borrow();
+    for (evt, _) in listener.global_subscribed_events().iter() {
+      let evt_box = listener.global_event_inbox().get(evt);
+      if let Some(payload) = evt_box {
+          debug_ui.push(OverlayLine::LabelText(
+            format!("{:?}", evt),
+            match payload {
+              Some(payload) => format!("{:?}", payload),
+              None => "ACTIVE".to_string()
+            }
+          ));
+      } else {
+        debug_ui.push(OverlayLine::LabelText(
+          format!("{:?}", evt),
+          "UNACTIVE".to_string()
+        ));
+      }
+    }
+
+    self.renderer.submit_2d(debug_ui);
   }
 }
 
@@ -48,14 +77,12 @@ impl GameLoop {
   pub fn new(
     window: Window,
     listener: MutRef<WindowEventManager>,
-    player: Player,
     renderer: Renderer,
     scene: Scene
   ) -> GameLoop {
     GameLoop {
       window,
       listener,
-      player,
       renderer,
       scene
     }

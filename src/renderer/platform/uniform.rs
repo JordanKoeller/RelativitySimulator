@@ -1,8 +1,9 @@
 use utils::*;
 
+use renderer::{Texture, CubeMap};
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Uniform {
     Int(i32),
     IntArray(Vec<i32>),
@@ -13,6 +14,8 @@ pub enum Uniform {
     Mat3(Mat3F),
     Mat4(Mat4F),
     Bool(bool),
+    Texture(Texture),
+    CubeMap(CubeMap),
 }
 
 #[derive(Clone)]

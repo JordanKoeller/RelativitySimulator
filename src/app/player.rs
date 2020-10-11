@@ -139,29 +139,29 @@ impl Player {
 
 impl Player {
   pub fn set_events(&mut self) {
-    self.subscribe_to(Event::KeyPressed(KeyCode::W), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::W), |player, _| {
       let facing = player.front();
       player.motion.apply_user_acceleration(facing.normalize_to(1.0));
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::S), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::S), |player, _| {
       let facing = player.front();
       player.motion.apply_user_acceleration(facing.normalize_to(-1.0));
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::A), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::A), |player, _| {
       let facing = player.right();
       player.motion.apply_user_acceleration(facing.normalize_to(-1.0));
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::D), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::D), |player, _| {
       let facing = player.right();
       player.motion.apply_user_acceleration(facing.normalize_to(1.0));
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::F), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::F), |player, _| {
       player.motion.apply_brakes();
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::LeftShift), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::LeftShift), |player, _| {
       player.apply_user_shift(-Vec3F::unit_y().normalize_to(0.05));
     });
-    self.subscribe_to(Event::KeyPressed(KeyCode::Space), |player, _| {
+    self.subscribe_to(Event::KeyDown(KeyCode::Space), |player, _| {
       player.apply_user_shift(Vec3F::unit_y().normalize_to(0.05));
     });
     self.subscribe_to(Event::MouseMoved, |player, data| {

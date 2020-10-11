@@ -42,12 +42,25 @@ pub trait EventDispatcher {
     if self.global_subscribed_events_mut().contains_key(&event) {
       self.global_event_inbox_mut().insert(event.clone(), payload);
     }
-    if let Some(opposite_event) = event.event_inverse() {
-      if self.global_subscribed_events_mut().contains_key(&opposite_event) {
-        // self.global_event_inbox_mut().insert(event.clone(), payload);
-        self.global_event_inbox_mut().remove(&opposite_event);
+    match &event {
+      Event::KeyReleased(k) => {
+        self.global_event_inbox_mut().remove(&Event::KeyDown(k.clone()));
+      },
+      Event::MouseReleased(b) => {
+        self.global_event_inbox_mut().remove(&Event::MouseDown(b.clone()));
       }
+      _ => {}
     }
+  }
+
+  fn refresh(&mut self) {
+    self.global_event_inbox_mut().retain(|evt, _| {
+      match evt {
+        Event::KeyDown(_) => true,
+        Event::MouseDown(_) => true,
+        _ => false
+      }
+    });
   }
 
   // Unsubscribe a receiver from an event

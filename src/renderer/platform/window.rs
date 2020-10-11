@@ -1,8 +1,12 @@
+use std::ptr;
+
 use glfw::Context;
 use imgui::Context as ImContext;
 use imgui_glfw_rs::glfw;
 use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
+
+use debug::gl_debug_output;
 
 pub type InputEvent = std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>;
 pub type GLFW = glfw::Glfw;
@@ -23,6 +27,7 @@ impl Window {
     #[cfg(target_os = "macos")]
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
     glfw.window_hint(glfw::WindowHint::Samples(Some(8)));
+
     // glfw window creation
     // --------------------
     let (mut window, events) = glfw
@@ -30,16 +35,30 @@ impl Window {
       .expect("Failed to create GLFW window");
 
     window.make_current();
-    // window.set
+
     window.set_cursor_pos_polling(true);
-    // window.set_cursor_enter_polling(true);
+
     window.set_key_polling(true);
     window.set_scroll_polling(true);
+    window.set_framebuffer_size_polling(true);
 
     // gl: load all OpenGL function pointers
     // ---------------------------------------
     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
     unsafe {
+      let mut flags = 0;
+      gl::GetIntegerv(gl::CONTEXT_FLAGS, &mut flags);
+      if flags as u32 & gl::CONTEXT_FLAG_DEBUG_BIT != 0 {
+          gl::Enable(gl::DEBUG_OUTPUT);
+          gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS); // makes sure errors are displayed synchronously
+          gl::DebugMessageCallback(gl_debug_output, ptr::null());
+          gl::DebugMessageControl(gl::DONT_CARE, gl::DONT_CARE, gl::DONT_CARE, 0, ptr::null(), gl::TRUE);
+      }
+      else {
+          println!("======================================================================");
+          println!("Debug Context not active! Check if your driver supports the extension.");
+          println!("======================================================================");
+      }
       // gl::Enable(gl::CULL_FACE);
       // gl::Enable(gl::DEPTH_TEST);
       // gl::Enable(gl::MULTISAMPLE);
@@ -50,6 +69,7 @@ impl Window {
       gl::DepthFunc(gl::LESS);
       gl::ClearColor(0.1, 0.1, 0.1, 1.0);
     }
+
 
     let mut im_ctx = ImContext::create();
 

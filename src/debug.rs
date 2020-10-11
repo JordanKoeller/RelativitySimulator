@@ -7,7 +7,7 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ffi::CStr;
 
-unsafe fn glCheckError_(file: &str, line: u32) -> u32 {
+pub unsafe fn glCheckError_(file: &str, line: u32) -> u32 {
     let mut errorCode = gl::GetError();
     while errorCode != gl::NO_ERROR {
         let error = match errorCode {
@@ -34,13 +34,14 @@ macro_rules! glCheckError {
     )
 }
 
-extern "system" fn glDebugOutput(source: gl::types::GLenum,
+#[allow(dead_code)]
+pub extern "system" fn gl_debug_output(source: gl::types::GLenum,
                                  type_: gl::types::GLenum,
                                  id: gl::types::GLuint,
                                  severity: gl::types::GLenum,
                                  _length: gl::types::GLsizei,
                                  message: *const gl::types::GLchar,
-                                 _userParam: *mut c_void)
+                                 _user_param: *mut c_void)
 {
     if id == 131_169 || id == 131_185 || id == 131_218 || id == 131_204 {
         // ignore these non-significant error codes

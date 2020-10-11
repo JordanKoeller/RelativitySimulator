@@ -6,14 +6,14 @@ use std::os::raw::c_void;
 /// BUFFER OBJECTS
 ////////////////////
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VertexBuffer {
   id: u32,
   pub layout: BufferLayout,
   data: Vec<f32>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct IndexBuffer {
   id: u32,
   data: Vec<u32>,
@@ -119,7 +119,7 @@ impl Drop for IndexBuffer {
 //////////////////////////////////
 /// BUFFER LAYOUT ////////////////
 //////////////////////////////////
-#[derive(Clone, Eq, PartialEq, Copy)]
+#[derive(Clone, Eq, PartialEq, Copy, Debug)]
 pub enum AttributeType {
   Float,
   Float2,
@@ -152,7 +152,7 @@ impl AttributeType {
   }
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct BufferLayout(Vec<AttributeType>);
 
 impl BufferLayout {

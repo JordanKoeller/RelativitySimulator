@@ -1,5 +1,5 @@
 pub mod scene;
-pub mod updatable;
+pub mod ecs;
 
 pub use self::scene::*;
-pub use self::updatable::*;
+pub use self::ecs::*;

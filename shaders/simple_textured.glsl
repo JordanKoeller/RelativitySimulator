@@ -3,9 +3,11 @@
 
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoords;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoords;
 
 out vec2 uv;
+out vec3 normal;
 
 #include "shaders/tesselation/lorentz.glsl"
 
@@ -16,8 +18,9 @@ void main()
 {
     // gl_Position = model * vec4(aPos, 1.0);
     uv = aTexCoords;
-    vec4 pos = model * vec4(aPos, 1.0f);
-    gl_Position = projection * view * vec4(transformRelativistic(pos.xyz), 1.0f);
+    normal = aNormal;
+    vec4 pos = vec4(aPos, 1.0f);
+    gl_Position = projection * view * model * vec4(transformRelativistic(pos.xyz), 1.0f);
 
 }
 #shader fragment
@@ -25,10 +28,12 @@ void main()
 out vec4 FragColor;
 
 in vec2 uv;
+in vec3 normal;
 
-uniform sampler2D diffuseMap;
+uniform sampler2D diffuse_texture;
 
 void main()
 {
-	FragColor = texture(diffuseMap, uv);
+	// FragColor = vec4(normal / 2.0 + 1.0, 1.0);
+	FragColor = texture(diffuse_texture, uv);
 }

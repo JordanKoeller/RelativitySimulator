@@ -5,24 +5,25 @@ use glfw::Key as GLKey;
 #[derive(Clone, Hash, Eq, PartialEq, Debug)]
 pub enum Event {
   KeyPressed(KeyCode),
-  KeyHeld(KeyCode),
+  KeyDown(KeyCode),
   KeyReleased(KeyCode),
-  MouseClicked(MouseButton),
   MousePressed(MouseButton),
   MouseReleased(MouseButton),
+  MouseDown(MouseButton),
   MouseScrolled,
   MouseMoved,
   MouseDragged,
+  WindowResized,
 }
 
 impl Event {
   pub fn event_inverse(self) -> Option<Event> {
     match self {
-      Event::KeyPressed(k)    => Some(Event::KeyReleased(k)),
-      Event::KeyReleased(k)   => Some(Event::KeyPressed(k)),
-      Event::MousePressed(k)  => Some(Event::MouseReleased(k)),
+      Event::KeyDown(k) => Some(Event::KeyReleased(k)),
+      Event::KeyReleased(k) => Some(Event::KeyDown(k)),
+      Event::MousePressed(k) => Some(Event::MouseReleased(k)),
       Event::MouseReleased(k) => Some(Event::MousePressed(k)),
-      _ => None
+      _ => None,
     }
   }
 }
@@ -32,6 +33,7 @@ pub enum EventPayload {
   MouseScroll(i32),
   MouseMove(Vec2F),
   Duration(f32),
+  WindowSize(Vec2F)
 }
 
 #[derive(Clone, Hash, Eq, PartialEq, Debug)]
@@ -142,6 +144,7 @@ impl KeyCode {
       GLKey::Z => KeyCode::Z,
       GLKey::LeftShift => KeyCode::LeftShift,
       GLKey::Space => KeyCode::Space,
+      GLKey::Tab => KeyCode::Tab,
 
       _ => panic!(format!("Could not parse code {:?}", code)),
     }

@@ -5,6 +5,7 @@ use std::ptr;
 
 use super::{IndexBuffer, VertexBuffer};
 
+#[derive(Debug)]
 pub struct VertexArray {
   id: u32,
   vertex_buffers: Vec<VertexBuffer>,
