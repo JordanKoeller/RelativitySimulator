@@ -1,11 +1,12 @@
 
 use utils::*;
 
-use renderer::modeling::DrawableMemo;
+use ecs::components::DrawableMemo;
 
 #[derive(Clone, Debug)]
 pub enum RenderCommand {
   SingleDrawable(DrawableMemo),
+   
   // MultiDrawable(Ref<Vec<Ref<dyn Drawable>>>),
 }
 

@@ -5,7 +5,7 @@ use std::ptr;
 
 use super::{IndexBuffer, VertexBuffer};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VertexArray {
   id: u32,
   vertex_buffers: Vec<VertexBuffer>,
@@ -64,10 +64,10 @@ impl VertexArray {
     self.vertex_buffers.push(buff);
   }
 
-  pub fn draw(&self) {
+  pub fn draw(&self, elem_type: &gl::types::GLenum) {
     unsafe {
       gl::DrawElements(
-        gl::TRIANGLES,
+        *elem_type,
         self.index_buffer.len() as i32,
         gl::UNSIGNED_INT,
         ptr::null(),
@@ -76,11 +76,11 @@ impl VertexArray {
   }
 }
 
-impl Drop for VertexArray {
-  fn drop(&mut self) {
-    self.unbind();
-    unsafe {
-      gl::DeleteVertexArrays(1, &mut self.id);
-    }
-  }
-}
+// impl Drop for VertexArray {
+//   fn drop(&mut self) {
+//     self.unbind();
+//     unsafe {
+//       gl::DeleteVertexArrays(1, &mut self.id);
+//     }
+//   }
+// }

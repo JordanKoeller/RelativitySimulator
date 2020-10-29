@@ -9,7 +9,7 @@ layout (location = 2) in vec2 aTexCoords;
 out vec2 uv;
 out vec3 normal;
 
-#include "shaders/tesselation/lorentz.glsl"
+#include "shaders/lorentz_helper.glsl"
 
 uniform mat4 model;
 uniform mat4 view;
@@ -36,4 +36,5 @@ void main()
 {
 	// FragColor = vec4(normal / 2.0 + 1.0, 1.0);
 	FragColor = texture(diffuse_texture, uv);
+  if (FragColor.a < 0.5) discard;
 }

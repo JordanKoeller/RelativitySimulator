@@ -16,10 +16,3 @@ macro_rules! to_string {
     format!("<{0:.2}, {1:.2}, {2:.2}>", $v.x, $v.y, $v.z)
   };
 }
-
-
-macro_rules! cast_entity {
-  ($v:expr, $t:ty) => {
-    unsafe { &*($v as *const MutRef<dyn Entity> as *const c_void as *const MutRef<$t>) }
-  };
-}

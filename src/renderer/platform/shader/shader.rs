@@ -1,12 +1,13 @@
-use std::cell::RefCell;
 use std::ffi::{CStr, CString};
 use std::ptr;
 use std::str;
+use std::sync::RwLock;
 
 use cgmath::prelude::*;
 use gl;
 
 use renderer::platform::{TextureLike, Uniform};
+use debug::*;
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum ShaderStep {
@@ -51,11 +52,12 @@ pub struct ShaderState {
   pub id: u32,
   pub name: String,
   pub program_source: String,
-  pub uniforms: RefCell<std::collections::HashMap<CString, i32>>,
+  pub element_type: gl::types::GLenum,
+  pub uniforms: RwLock<std::collections::HashMap<CString, i32>>,
 }
 
 pub struct SimpleShader {
-  state: ShaderState
+  state: ShaderState,
 }
 
 impl Shader for SimpleShader {
@@ -70,16 +72,23 @@ impl Shader for SimpleShader {
 impl SimpleShader {
   pub fn new(name: &str, shader_body: &str) -> Self {
     let shader_steps = decompress(shader_body.to_string());
+    let element_type = if shader_steps.iter().any(|s| {
+      match s {
+        ShaderStep::TessControlShader(_) => true,
+        ShaderStep::TessEvalShader(_) => true,
+        _ => false
+      }
+    }) {gl::PATCHES} else {gl::TRIANGLES};
     let program_id = compile_program(shader_steps);
     let state = ShaderState {
       id: program_id,
       name: name.to_string(),
       program_source: shader_body.to_string(),
-      uniforms: RefCell::new(std::collections::HashMap::new()),
+      uniforms: RwLock::new(std::collections::HashMap::new()),
+      element_type,
     };
-    SimpleShader {
-      state,
-    }
+    glCheckError!();
+    SimpleShader { state }
   }
   pub fn from_file(name: &str, shader_path: &str) -> Self {
     let file_body = super::shader_preprocessor::file_includer(shader_path);
@@ -88,7 +97,7 @@ impl SimpleShader {
 }
 
 pub struct SkyboxShader {
-  state: ShaderState
+  state: ShaderState,
 }
 
 impl Shader for SkyboxShader {
@@ -116,16 +125,22 @@ impl Shader for SkyboxShader {
 impl SkyboxShader {
   pub fn new(name: &str, shader_body: &str) -> Self {
     let shader_steps = decompress(shader_body.to_string());
+    let element_type = if shader_steps.iter().any(|s| {
+      match s {
+        ShaderStep::TessControlShader(_) => true,
+        ShaderStep::TessEvalShader(_) => true,
+        _ => false
+      }
+    }) {gl::PATCHES} else {gl::TRIANGLES};
     let program_id = compile_program(shader_steps);
     let state = ShaderState {
       id: program_id,
       name: name.to_string(),
       program_source: shader_body.to_string(),
-      uniforms: RefCell::new(std::collections::HashMap::new()),
+      uniforms: RwLock::new(std::collections::HashMap::new()),
+      element_type
     };
-    SkyboxShader {
-      state,
-    }
+    SkyboxShader { state }
   }
   pub fn from_file(name: &str, shader_path: &str) -> Self {
     let file_body = super::shader_preprocessor::file_includer(shader_path);
@@ -133,10 +148,9 @@ impl SkyboxShader {
   }
 }
 
-pub trait Shader {
+pub trait Shader: Sync + Send {
   fn shader_state(&self) -> &ShaderState;
   fn shader_state_mut(&mut self) -> &mut ShaderState;
-
 
   fn bind(&self) {
     unsafe {
@@ -155,14 +169,30 @@ pub trait Shader {
 
   fn set_uniform(&self, name: &CStr, unif: &Uniform) {
     // println!("Setting shader {:?}", name);
-    let mut unif_mgr = self.shader_state().uniforms.borrow_mut();
-    if let Some(&loc) = unif_mgr.get(name.clone()) {
+    let some_loc = {
+      let opt = self.shader_state().uniforms.read().unwrap();
+      let op = opt.get(name.clone());
+      if let Some(internal) = op {
+        Some(internal.clone())
+      } else {
+        None
+      }
+    };
+    if let Some(loc) = some_loc {
       set_unif_helper(unif, loc);
     } else {
       let loc = unsafe { gl::GetUniformLocation(self.shader_state().id, name.as_ptr()) };
-      unif_mgr.insert(name.to_owned(), loc);
+      self
+        .shader_state()
+        .uniforms
+        .write()
+        .unwrap()
+        .insert(name.to_owned(), loc);
       set_unif_helper(unif, loc);
     }
+    // if let Some(&loc) = self.shader_state().uniforms.read().unwrap().get(name.clone()) {
+    // } else {
+    // }
   }
 
   fn set_texture(&self, slot: u32, name: &CStr, texture: &dyn TextureLike) {
@@ -189,8 +219,11 @@ fn decompress(body: String) -> Vec<ShaderStep> {
     .map(|s| {
       let mut lines: Vec<&str> = s.lines().collect();
       let first_line = lines.remove(0);
+      println!("SHADER LINE {}", first_line);
       match first_line {
         "vertex" => ShaderStep::VertexShader(lines.join("\n")),
+        "tesscontrol" => ShaderStep::TessControlShader(lines.join("\n")),
+        "tesseval" => ShaderStep::TessEvalShader(lines.join("\n")),
         "fragment" => ShaderStep::FragmentShader(lines.join("\n")),
         _ => panic!("Could not determine shader type from label"),
       }
@@ -201,7 +234,7 @@ fn compile_program(steps: Vec<ShaderStep>) -> u32 {
   unsafe {
     let mut program = gl::CreateProgram();
     for step in steps.into_iter() {
-      compile_shader(&mut program, step);
+      compile_shader(&program, step);
     }
     gl::LinkProgram(program);
     // Error checking
@@ -224,7 +257,7 @@ fn compile_program(steps: Vec<ShaderStep>) -> u32 {
     program
   }
 }
-unsafe fn compile_shader(program: &mut u32, shader: ShaderStep) {
+unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
   let shader_c_code = CString::new(shader.text().as_bytes()).unwrap();
   let shader_id = gl::CreateShader(shader.glEnum());
   gl::ShaderSource(shader_id, 1, &shader_c_code.as_ptr(), ptr::null());
@@ -269,7 +302,7 @@ fn set_unif_helper(unif: &Uniform, loc: i32) {
   // gl::Uniform1i(lo, )
 }
 
-const SHADER_OPTIONS: [&str; 2] = ["vertex", "fragment"];
+const SHADER_OPTIONS: [&str; 4] = ["vertex", "fragment", "tesseval", "tesscontrol"];
 
 // pub struct ShaderLibrary {
 

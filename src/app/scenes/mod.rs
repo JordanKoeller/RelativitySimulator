@@ -1,5 +1,5 @@
+pub mod grid;
 pub mod scene;
-pub mod ecs;
 
 pub use self::scene::*;
-pub use self::ecs::*;
+pub use self::grid::*;

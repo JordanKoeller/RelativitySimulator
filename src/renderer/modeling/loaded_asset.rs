@@ -7,7 +7,6 @@ use renderer::{
   WHITE_TEXTURE, Uniform
 };
 use utils::*;
-use scene::{Entity, Scene, Renderable};
 
 // struct Mesh {
 //   vertex_array: VertexArray,
@@ -30,9 +29,9 @@ impl Model {
     let meshes = model_vec.into_iter().map(move |model| {
       let vert_arr = get_vertex_array(&model.mesh);
       if let Some(mat_id) = model.mesh.material_id {
-        Box::from(DefaultDrawable::new_textured(vert_arr, Ref::clone(&my_materials[mat_id]), transform))
+        Box::from(DefaultDrawable::new_textured(vert_arr, my_materials[mat_id].clone()))
       } else {
-        Box::from(DefaultDrawable::new_textured(vert_arr, Ref::from(Material::new()), transform))
+        Box::from(DefaultDrawable::new_textured(vert_arr, Material::new()))
       }
     }).collect();
     Model {
@@ -43,16 +42,6 @@ impl Model {
   }
 }
 
-impl Entity for Model {
-  
-  fn register(self: Box<Self>, scene: &mut Scene) {
-    self.meshes.into_iter().for_each(|mesh| {
-      let mr = GetMutRef(mesh as Box<dyn Renderable>);
-      scene.register_renderable(mr);
-    });
-  }
-
-}
 
 fn get_vertex_array(mesh: &tobj::Mesh) -> VertexArray {
   let mut atts: Vec<AttributeType> = vec![AttributeType::Float3];
@@ -96,7 +85,7 @@ fn tex_or_default(dirpath: &str, relpath: &str) -> Texture {
   }
 }
 
-fn get_materials(mats: &Vec<tobj::Material>, dirpath: String) -> Vec<Ref<Material>> {
+fn get_materials(mats: &Vec<tobj::Material>, dirpath: String) -> Vec<Material> {
   mats
     .into_iter()
     .map(|mat| {
@@ -114,7 +103,7 @@ fn get_materials(mats: &Vec<tobj::Material>, dirpath: String) -> Vec<Ref<Materia
       ret.normal_texture(tex_or_default(&dirpath, &mat.normal_texture));
       ret.shininess_texture(tex_or_default(&dirpath, &mat.shininess_texture));
       ret.dissolve_texture(tex_or_default(&dirpath, &mat.dissolve_texture));
-      Ref::from(ret)
+      ret
     })
     .collect()
 }

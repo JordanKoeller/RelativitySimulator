@@ -1,12 +1,5 @@
 extern crate glfw;
 
-// use self::glfw::Context;
-// use self::glfw::{Action, Key};
-use std::cell::{RefCell, RefMut};
-use std::rc::Rc;
-// use std::sync::mpsc::Receiver;
-use std::ffi::{CStr, CString};
-
 extern crate cgmath;
 extern crate gl;
 extern crate image;
@@ -14,6 +7,9 @@ extern crate imgui;
 extern crate imgui_glfw_rs;
 extern crate imgui_opengl_renderer;
 extern crate regex;
+extern crate serde;
+extern crate serde_json;
+extern crate specs;
 extern crate tobj;
 
 mod macros;
@@ -24,19 +20,22 @@ extern crate lazy_static;
 #[macro_use]
 mod debug;
 mod common;
+mod ecs;
 mod events;
-mod physics;
-mod renderer;
-mod scene;
-mod utils;
 mod game_loop;
+mod renderer;
+mod utils;
 
 mod app;
 
-use events::{EventDispatcher, WindowEventManager};
-use renderer::{Model};
-use scene::{Scene, Entity, Renderable};
-use utils::{MutRef, Ref, Vec3F, GetMutRef};
+use events::{Event, EventChannel, KeyCode, WindowEvent, WindowEventChannel};
+use renderer::Drawable;
+use utils::{Vec2F, Vec3F};
+
+use specs::{Builder, DispatcherBuilder, World, WorldExt};
+
+use ecs::components::*;
+use ecs::systems::player_events::PlayerEvents;
 
 // settings
 pub const SCR_WIDTH: u32 = 1600;
@@ -48,14 +47,15 @@ pub fn main() {
 
   // Initialize high-level "singleton" structures
   // --------------------------------------------
-  let listener: MutRef<WindowEventManager> = Ref::new(RefCell::new(WindowEventManager::default()));
-  let window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
-  let mut render = renderer::Renderer::new(utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32), MutRef::clone(&listener) as MutRef<dyn EventDispatcher>);
-
-  
+  let mut window_event_receiver = WindowEventChannel::default();
+  let mut window_event_channel = EventChannel::<WindowEvent>::default();
+  let mut window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
+  let mut render = renderer::Renderer::new(
+    utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32),
+    &mut window_event_channel,
+  );
   // Initialize the player/camera and the respective event handling
   // --------------------------------------------------------------
-  let player = app::Player::default(Ref::clone(&listener) as MutRef<dyn EventDispatcher>);
 
   // Initialize assets/shaders
   // -------------------------
@@ -67,41 +67,48 @@ pub fn main() {
   render.submit_shader(Box::from(shader));
   let shader = renderer::SkyboxShader::from_file("skybox", "shaders/skybox.glsl");
   render.submit_shader(Box::from(shader));
+  let shader = renderer::SimpleShader::from_file("lorentz", "shaders/lorentz.glsl");
+  render.submit_shader(Box::from(shader));
 
-  let resources = [
-    "resources/textures/awesomeface.png",
-    "resources/textures/brickwall.jpg",
-    "resources/textures/container.jpg",
-    "resources/textures/marble.jpg",
-    "resources/textures/wood.png",
-    "resources/textures/checkerboard.png",
-  ];
-  let mut cubes: Vec<Box<dyn Entity>> = (0..36)
-    .map(|x| {
-      let tex_id = x % 6;
-      let angle = (x as f32 / 36.0) * 2f32 * std::f32::consts::PI;
-      let pos = Vec3F::new(angle.cos() * 5f32, 0.0 + (x as f32 / 100f32), angle.sin() * 5f32);
-      let tex_cube = app::TexturedCube::new(pos, resources[tex_id]);
-      Box::new(tex_cube) as Box<dyn Entity>
-    })
-    .collect();
+  let mut g_loop = game_loop::GameLoop::new(window_event_channel.register_with_subs(&[
+    WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
+    WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
+  ]));
 
-    let skybox =  Box::new(app::Skybox::new("resources/skybox"));
-    cubes.push(skybox);
+  let mut world = World::new();
 
+  let mut dispatcher = app::setup_dispatcher();
 
-    cubes.push(Box::new(Model::new(
-      "resources/objects/Camellia City/OBJ/Camellia_City.obj",
-      utils::scale(0.01),
-      "default_texture")) as Box<dyn Entity>);
-  let scene = Scene::new(cubes, player);
+  dispatcher.setup(&mut world);
 
-    let mut game_loop = game_loop::GameLoop::new(
-      window,
-      listener,
-      render,
-      scene
-    );
+  // let resources = [
+  //   "resources/textures/awesomeface.png",
+  //   "resources/textures/brickwall.jpg",
+  //   "resources/textures/container.jpg",
+  //   "resources/textures/marble.jpg",
+  //   "resources/textures/wood.png",
+  //   "resources/textures/checkerboard.png",
+  // ];
+  // (0..36).for_each(|x| {
+  //   let tex_id = x % 6;
+  //   let angle = (x as f32 / 36.0) * 2f32 * std::f32::consts::PI;
+  //   let pos = Vec3F::new(angle.cos() * 5f32, 0.0 + (x as f32 / 100f32), angle.sin() * 5f32);
+  //   let tex_cube = app::TexturedCube::new(resources[tex_id]);
+  //   let transform = utils::translate(pos);
+  //   world
+  //     .create_entity()
+  //     .with(tex_cube.renderable())
+  //     .with(Transform(transform))
+  //     .build();
+  // });
+  // world
+  //   .create_entity()
+  //   .with(app::Skybox::new("resources/skybox").renderable())
+  //   .build();
 
-    game_loop.run();
+  world.insert(window_event_channel);
+  world.insert(utils::Timestep(0.016));
+  world.insert(render);
+  app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
+  g_loop.run(&mut dispatcher, &mut world, &mut window, &mut window_event_receiver);
 }

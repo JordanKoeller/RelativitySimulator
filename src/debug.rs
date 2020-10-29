@@ -7,7 +7,8 @@ use std::os::raw::c_void;
 use std::path::Path;
 use std::ffi::CStr;
 
-pub unsafe fn glCheckError_(file: &str, line: u32) -> u32 {
+pub fn glCheckError_(file: &str, line: u32) -> u32 {
+  unsafe {
     let mut errorCode = gl::GetError();
     while errorCode != gl::NO_ERROR {
         let error = match errorCode {
@@ -26,6 +27,7 @@ pub unsafe fn glCheckError_(file: &str, line: u32) -> u32 {
         errorCode = gl::GetError();
     }
     errorCode
+  }
 }
 
 macro_rules! glCheckError {

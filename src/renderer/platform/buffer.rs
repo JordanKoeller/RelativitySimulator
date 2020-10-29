@@ -57,14 +57,14 @@ impl VertexBuffer {
   }
 }
 
-impl Drop for VertexBuffer {
-  fn drop(&mut self) {
-    self.unbind();
-    unsafe {
-      gl::DeleteBuffers(1, &mut self.id);
-    }
-  }
-}
+// impl Drop for VertexBuffer {
+//   fn drop(&mut self) {
+//     self.unbind();
+//     unsafe {
+//       gl::DeleteBuffers(1, &mut self.id);
+//     }
+//   }
+// }
 
 ////////////////////
 /// INDEX BUFFER
@@ -107,14 +107,14 @@ impl IndexBuffer {
   }
 }
 
-impl Drop for IndexBuffer {
-  fn drop(&mut self) {
-    self.unbind();
-    unsafe {
-      gl::DeleteBuffers(1, &mut self.id);
-    }
-  }
-}
+// impl Drop for IndexBuffer {
+//   fn drop(&mut self) {
+//     self.unbind();
+//     unsafe {
+//       gl::DeleteBuffers(1, &mut self.id);
+//     }
+//   }
+// }
 
 //////////////////////////////////
 /// BUFFER LAYOUT ////////////////

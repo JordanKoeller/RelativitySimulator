@@ -2,24 +2,28 @@ use std::clone::Clone;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use utils::*;
+use debug::*;
 
 use cgmath::prelude::*;
 
+use ecs::components::DrawableMemo;
 use renderer::platform::VertexArray;
-use renderer::Camera;
-use renderer::DrawableMemo;
-use renderer::RenderCommand;
-use renderer::Shader;
-use renderer::Window;
-use renderer::{Drawable, Overlay, OverlayLine, RendererConfig};
-use renderer::{Uniform, UniformLifecycle};
+use renderer::*;
 
-use events::{Event, EventDispatcher, EventPayload, EventReceiver, EventReceiverState, KeyCode, WithEventReceiver};
+use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
 type ShaderLibrary = HashMap<String, Box<dyn Shader>>;
 
+struct Screen {
+  pub screen_quad: VertexArray,
+  pub shader: SimpleShader,
+  pub framebuffer: Framebuffer,
+
+}
+
 pub struct Renderer {
-  screen_dims: Vec2F,
+  // Screen
+  screen: Screen,
   // Shader/Uniform Management
   shader_library: ShaderLibrary,
   config_uniforms: HashMap<CString, Uniform>, // Long-term uniforms
@@ -31,31 +35,46 @@ pub struct Renderer {
 
   // Config
   config: RendererConfig,
-  event_receiver: EventReceiverState<Self>,
+  receiver_id: ReceiverID,
 }
 
-impl Renderer {
-  // Constructor
-  pub fn new(screen_dims: Vec2F, dispatcher: MutRef<dyn EventDispatcher>) -> Renderer {
-    let evts = EventReceiverState::new(dispatcher, 1);
-    let mut ret = Renderer {
-      screen_dims,
+impl Default for Renderer {
+  fn default() -> Self {
+    Renderer {
+      screen: create_screen(1600, 900),
       shader_library: ShaderLibrary::new(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       queued_drawables: MultiMap::new(),
       queued_overlays: Vec::new(),
       config: RendererConfig::default(),
-      event_receiver: evts,
-    };
+      receiver_id: 0,
+    }
+  }
+}
 
-    ret.set_events();
-    ret
+impl Renderer {
+  // Constructor
+  pub fn new(screen_dims: Vec2F, channel: &mut EventChannel<WindowEvent>) -> Renderer {
+    let receiver_id = channel.register_with_subs(&[
+      WindowEvent::new(Event::WindowResized),
+      WindowEvent::new(Event::KeyPressed(KeyCode::Tab))
+      ]);
+    Renderer {
+      screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
+      shader_library: ShaderLibrary::new(),
+      config_uniforms: HashMap::new(),
+      common_uniforms: HashMap::new(),
+      queued_drawables: MultiMap::new(),
+      queued_overlays: Vec::new(),
+      config: RendererConfig::default(),
+      receiver_id,
+    }
   }
 
   // Some general getters/setters
   pub fn set_dims(&mut self, dims: Vec2F) {
-    self.screen_dims = dims;
+    self.screen.framebuffer.resize(Vec2I::new(dims.x as i32, dims.y as i32));
   }
 
   pub fn submit_common_uniform(&mut self, name: CString, uniform: Uniform, lifecycle: UniformLifecycle) {
@@ -65,7 +84,6 @@ impl Renderer {
       }
       UniformLifecycle::Runtime => {
         self.config_uniforms.insert(name, uniform);
-        // TODO: Do something to send the uniform to all the shaders
       }
     }
   }
@@ -77,11 +95,7 @@ impl Renderer {
   pub fn submit(&mut self, cmd: RenderCommand) {
     match cmd {
       RenderCommand::SingleDrawable(drawable) => self.queued_drawables.push(drawable.shader_name.clone(), drawable),
-      // RenderCommand::MultiDrawable(drawables) => for d in drawables.iter() {
-      //   self.queued_drawables.push(d.shader_name().to_string(), Ref::clone(d));
-      // }
     }
-    // self.queued_drawables.push(cmd.drawable.shader_name().to_string(), cmd);
   }
 
   pub fn ui_box(&self, title: &str) -> Overlay {
@@ -103,17 +117,17 @@ impl Renderer {
 
   // Methods that do something instead of just get/set things
 
-  pub fn start_scene(&mut self, camera: &dyn Camera) {
-    self.process_all_events();
-    self.extract_camera_uniforms(camera);
+  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, fps: f32) {
+    // self.process_all_events();
+    self.extract_camera_uniforms(&camera);
 
     let mut overlay = self.ui_box("Camera Uniforms");
     overlay.push(OverlayLine::HLine);
     overlay.push(OverlayLine::LabelText(
       "Position".to_string(),
-      to_string!(camera.position()),
+      to_string!(camera.position),
     ));
-    overlay.push(OverlayLine::LabelText("Front".to_string(), to_string!(camera.front())));
+    // overlay.push(OverlayLine::LabelText("Front".to_string(), to_string!(camera.front())));
     overlay.push(OverlayLine::LabelText(
       "Beta:".to_string(),
       format!("{0:.3}", camera.beta()),
@@ -126,7 +140,37 @@ impl Renderer {
       "Render Mode".to_string(),
       format!("{:?}", self.config.mode),
     ));
+    overlay.push(OverlayLine::LabelText(
+      "Frame Time".to_string(),
+      format!("{0:.4}", fps),
+    ));
     self.submit_2d(overlay);
+  }
+
+  pub fn init_frame(&mut self, window: &mut Window) {
+    self.screen.framebuffer.bind();
+    unsafe {
+      gl::Enable(gl::DEPTH_TEST);
+    }
+    window.clear_framebuffer();
+  }
+
+  pub fn end_frame(&mut self, window: &mut Window) {
+    self.screen.framebuffer.unbind();
+    
+    unsafe {
+      gl::Disable(gl::DEPTH_TEST);
+          // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+
+    }
+    window.clear_framebuffer();
+    self.screen.shader.bind();
+    self.screen.shader.set_texture(1, c_str!("tex"), &self.screen.framebuffer.texture());
+    self.screen.screen_quad.bind();
+    self.screen.screen_quad.draw(&self.screen.shader.shader_state().element_type);
+    self.screen.shader.unbind();
+
+    window.swap_buffers();
   }
 
   pub fn draw_scene(&mut self, window: &mut Window) {
@@ -153,14 +197,20 @@ impl Renderer {
           _ => active_shader.set_uniform(&unif_name, &unif),
         }
       }
-      active_shader.set_uniform(c_str!("model"), &Uniform::Mat4(*drawable.transform));
+      if let Some(transform) = drawable.transform {
+        active_shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform));
+      }
       drawable.vertex_array.bind();
-      drawable.vertex_array.draw();
+      drawable.vertex_array.draw(&active_shader.shader_state().element_type);
     }
     self.draw_imgui(window);
     self.queued_overlays.clear();
     self.queued_drawables.clear();
     self.common_uniforms.clear();
+
+    
+
+
   }
 
   // Private helper functions
@@ -179,19 +229,20 @@ impl Renderer {
     shader.bind();
     for (unif_name, unif_value) in self.config_uniforms.iter() {
       shader.set_uniform(&unif_name, unif_value);
-    }
+  }
     for (unif_name, unif_value) in self.common_uniforms.iter() {
       shader.set_uniform(&unif_name, unif_value);
     }
   }
 
-  fn extract_camera_uniforms(&mut self, camera: &dyn Camera) {
+  fn extract_camera_uniforms<'a>(&mut self, camera: &Camera<'a>) {
     self
       .common_uniforms
       .insert(CString::new("view").unwrap(), Uniform::Mat4(camera.view_matrix()));
+    let f32_dims = Vec2F::new(self.screen.framebuffer.spec.dims.x as f32, self.screen.framebuffer.spec.dims.y as f32);
     self.common_uniforms.insert(
       CString::new("projection").unwrap(),
-      Uniform::Mat4(camera.projection_matrix(&self.screen_dims)),
+      Uniform::Mat4(camera.projection_matrix(&f32_dims)),
     );
     self
       .common_uniforms
@@ -201,7 +252,7 @@ impl Renderer {
       .insert(CString::new("gamma").unwrap(), Uniform::Float(camera.gamma()));
     self.common_uniforms.insert(
       CString::new("cameraPos").unwrap(),
-      Uniform::Vec3(camera.position().clone()),
+      Uniform::Vec3(camera.position.clone()),
     );
     self.common_uniforms.insert(
       CString::new("changeOfBasis").unwrap(),
@@ -213,29 +264,51 @@ impl Renderer {
     );
   }
 
-  fn set_events(&mut self) {
-    self.subscribe_to(Event::KeyPressed(KeyCode::Tab), |renderer, _| {
-      let mut config = renderer.config.clone();
-      config.mode = config.mode.rotate();
-      renderer.submit_config(config);
-    });
-    self.subscribe_to(Event::WindowResized, |renderer, (_, payload)| {
-      match payload {
-        Some(EventPayload::WindowSize(dims)) => {
-          renderer.set_dims(dims);
+  pub fn process_events(&mut self, chanel: &mut EventChannel<WindowEvent>) {
+    chanel
+      .read(&self.receiver_id)
+      .for_each(move |window_event: &WindowEvent| match &window_event.code {
+        Event::WindowResized => {
+          if let Some(payload) = &window_event.payload {
+            match payload {
+              EventPayload::WindowSize(new_sz) => self.set_dims(new_sz.clone()),
+              _ => {}
+            }
+          }
+        },
+        Event::KeyPressed(KeyCode::Tab) => {
+          let new_config = RendererConfig::new(
+            self.config.clone().mode.rotate()
+          );
+          self.submit_config(new_config);
         }
         _ => {}
-      }
-      // renderer.submit_config(config);
-    });
+      });
   }
 }
 
-impl WithEventReceiver for Renderer {
-  fn state(&self) -> &EventReceiverState<Self> {
-    &self.event_receiver
-  }
-  fn state_mut(&mut self) -> &mut EventReceiverState<Self> {
-    &mut self.event_receiver
+
+fn create_screen(w: i32, h: i32) -> Screen {
+  let verts = vec![
+    // Positions  // uv
+    -1f32,  1f32,  0f32, 1f32,
+    -1f32, -1f32,  0f32, 0f32,
+     1f32, -1f32,  1f32, 0f32,
+    -1f32,  1f32,  0f32, 1f32,
+     1f32, -1f32,  1f32, 0f32,
+     1f32,  1f32,  1f32, 1f32,
+  ];
+
+  let inds = vec![0, 1, 2, 3,4,5];
+  let screen_quad = VertexArray::new(
+    vec![VertexBuffer::create(verts, BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]))],
+    IndexBuffer::create(inds)
+  );
+  let shader = SimpleShader::from_file("renderer_screen", "shaders/screen_shader.glsl");
+
+  Screen {
+    framebuffer: Framebuffer::dims(w, h),
+    shader,
+    screen_quad
   }
 }

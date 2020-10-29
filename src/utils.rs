@@ -32,8 +32,8 @@ pub type Color = Vec3F;
 pub type Ref<T> = Rc<T>;
 pub type MutRef<T> = Rc<RefCell<T>>;
 
-#[allow(dead_code)]
-pub type Timestep = f32;
+#[derive(Default)]
+pub struct Timestep(pub f32);
 
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
   Rc::new(RefCell::new(v))
@@ -49,6 +49,12 @@ pub fn translate(pos: Vec3F) -> Mat4F {
 pub fn scale(factor: f32) -> Mat4F {
   Mat4F::from_scale(factor)
 }
+
+#[allow(dead_code)]
+pub fn nonunif_scale(factor: Vec3F) -> Mat4F {
+  Mat4F::from_nonuniform_scale(factor.x, factor.y, factor.z)
+}
+
 
 // MultiMap
 

@@ -8,6 +8,7 @@ use lazy_static;
 enum TextureSource {
   File(String),
   Empty((u32, u32)),
+  Null,
 }
 
 type TextureBuffer = (Vec<u8>, u32, u32, gl::types::GLenum);
@@ -16,9 +17,7 @@ pub trait TextureLike {
   fn bind(&self, slot: u32) {
     unsafe {
       gl::ActiveTexture(gl::TEXTURE0 + slot);
-      glCheckError!();
       gl::BindTexture(self.texture_type(), self.id());
-      glCheckError!();
     }
   }
 
@@ -46,6 +45,15 @@ impl Texture {
       id: id,
     }
   }
+
+  pub fn pre_made(id: u32, width: u32, height: u32) -> Texture {
+    Texture {
+      source_data: TextureSource::Null,
+      width,
+      height,
+      id
+    }
+  }
 }
 
 impl TextureLike for Texture {
@@ -57,13 +65,13 @@ impl TextureLike for Texture {
   }
 }
 
-impl Drop for Texture {
-  fn drop(&mut self) {
-    unsafe {
-      gl::DeleteTextures(1, &self.id);
-    }
-  }
-}
+// impl Drop for Texture {
+//   fn drop(&mut self) {
+//     unsafe {
+//       gl::DeleteTextures(1, &self.id);
+//     }
+//   }
+// }
 
 #[derive(Clone, Debug)]
 pub struct CubeMap {

@@ -22,11 +22,13 @@ pub struct Window {
 impl Window {
   pub fn new(width: u32, height: u32, title: &str) -> Window {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
-    glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
+    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
+    // glfw.window_hint(glfw::WindowHint::OpenGlDebugContext(true)); // comment this line in a release build!
+
     #[cfg(target_os = "macos")]
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-    glfw.window_hint(glfw::WindowHint::Samples(Some(8)));
+    glfw.window_hint(glfw::WindowHint::Samples(Some(2)));
 
     // glfw window creation
     // --------------------
@@ -61,8 +63,8 @@ impl Window {
       }
       // gl::Enable(gl::CULL_FACE);
       // gl::Enable(gl::DEPTH_TEST);
-      // gl::Enable(gl::MULTISAMPLE);
-      // gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
+      gl::Enable(gl::MULTISAMPLE);
+      gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
       gl::Enable(gl::BLEND);
       gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
       gl::Enable(gl::DEPTH_TEST);
@@ -116,12 +118,7 @@ impl Window {
     self.window.swap_buffers();
   }
 
-  pub fn frame_end(&mut self) {
-    self.swap_buffers();
-  }
-
-  pub fn frame_start(&mut self) {
-    self.poll_events();
+  pub fn clear_framebuffer(&mut self) {
     unsafe {
       gl::ClearColor(0.1, 0.2, 0.3, 1.0);
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

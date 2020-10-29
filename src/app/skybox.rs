@@ -6,7 +6,6 @@ use utils::*;
 use renderer::{Drawable, Material, Texture, CubeMap};
 use renderer::{AttributeType, BufferLayout, IndexBuffer, Shader, Uniform, VertexArray, VertexBuffer};
 
-use scene::{Entity, Renderable, Scene};
 
 static SKYBOX_VERTICES: [f32; 108] = [
     // positions       // normals        // texture coords
@@ -61,7 +60,6 @@ static SKYBOX_INDICES: [u32; 36] = [
 pub struct Skybox {
   vertex_array: Ref<VertexArray>,
   material: Ref<Material>,
-  transform: Ref<Mat4F>
 }
 
 impl Skybox {
@@ -75,33 +73,19 @@ impl Skybox {
     Skybox {
       vertex_array: Ref::from(vertex_array),
       material: Ref::from(material),
-      transform: Ref::from(translate(Vec3F::new(0f32, 0f32, 0f32))),
     }
   }
 }
 
 impl Drawable for Skybox {
-  fn vertex_array(&self) -> &Ref<VertexArray> {
+  fn vertex_array(&self) -> &VertexArray {
     &self.vertex_array
   }
-  fn material(&self) -> &Ref<Material> {
+  fn material(&self) -> &Material {
     &self.material
-  }
-
-  fn transform(&self) -> &Ref<Mat4F> {
-    &self.transform
   }
 
   fn shader_name(&self) -> String {
     "skybox".to_string()
-  }
-}
-
-
-impl Entity for Skybox {
-  fn register(self: Box<Self>, scene: &mut Scene) {
-    let rend = self as Box<dyn Renderable>;
-    let mr = GetMutRef(rend);
-    scene.register_renderable(mr);
   }
 }

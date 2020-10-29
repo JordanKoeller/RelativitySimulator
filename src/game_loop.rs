@@ -1,91 +1,73 @@
-use utils::*;
-use renderer::{Window, Drawable, Renderer, Camera, RenderCommand, OverlayLine};
-use app::Player;
-use events::{WindowEventManager, EventDispatcher};
-use scene::Scene;
-use std::rc::Rc;
-use std::cell::RefCell;
+use specs::prelude::*;
+
+use events::{Event, EventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventChannel};
+use renderer::{Renderer, Window};
+use utils::Timestep;
 
 pub struct GameLoop {
-  window: Window,
-  listener: MutRef<WindowEventManager>,
-  renderer: Renderer,
-  scene: Scene
+  receiver_id: ReceiverID,
+  running: bool,
 }
 
 impl GameLoop {
-  pub fn run(&mut self) {
-    // let mut delta_time = 0f32;
-    let mut last_time = 0f32;
+  pub fn new(receiver_id: ReceiverID) -> GameLoop {
+    GameLoop {
+      receiver_id,
+      running: false,
+    }
+  }
 
-    while self.window.is_open() {
-      let curr_time = self.window.glfw_token.get_time() as f32;
+  pub fn run(
+    &mut self,
+    dispatcher: &mut Dispatcher,
+    world: &mut World,
+    window: &mut Window,
+    window_event_receiver: &mut WindowEventChannel,
+  ) {
+    let mut last_time = window.glfw_token.get_time() as f32;
+    self.running = true;
+    while self.running && window.is_open() {
+      let curr_time = window.glfw_token.get_time() as f32;
       let delta_time = curr_time - last_time;
       last_time = curr_time;
-
-      self.listener.borrow_mut().process_events(&mut self.window);
-      self.scene.update(delta_time);
-      self.window.frame_start();
-      self.renderer.start_scene(self.scene.player() as &dyn Camera);
-
-      // Debug UI ///////////////////////
-      self.debug_panel(delta_time);
-      // //////////////////////////////
-      let buff = self.scene.draw();
-      for asset in buff.iter() {
-        self.renderer.submit(asset.clone());
+      {
+        window.poll_events();
+        let mut listener = world.write_resource::<EventChannel<WindowEvent>>();
+        window_event_receiver.process_events(&mut listener, window);
+        let mut renderer = world.write_resource::<Renderer>();
+        renderer.process_events(&mut listener);
+        self.handle_loop_events(&mut listener);
       }
-      self.renderer.draw_scene(&mut self.window);
-      self.window.frame_end();
-    }
-  }
-
-
-  fn debug_panel(&mut self, dt: f32) {
-    let mut debug_ui = self.renderer.ui_box("Debug");
-    debug_ui.push(OverlayLine::LabelText(
-      "Frame Time".to_string(),
-      format!("{0:.2} ms", dt * 1000f32)
-    ));
-
-    let listener = self.listener.borrow();
-    for (evt, _) in listener.global_subscribed_events().iter() {
-      let evt_box = listener.global_event_inbox().get(evt);
-      if let Some(payload) = evt_box {
-          debug_ui.push(OverlayLine::LabelText(
-            format!("{:?}", evt),
-            match payload {
-              Some(payload) => format!("{:?}", payload),
-              None => "ACTIVE".to_string()
-            }
-          ));
-      } else {
-        debug_ui.push(OverlayLine::LabelText(
-          format!("{:?}", evt),
-          "UNACTIVE".to_string()
-        ));
+      world.insert(Timestep(delta_time));
+      {
+        let mut renderer = world.write_resource::<Renderer>();
+        renderer.init_frame(window);
       }
-    }
-
-    self.renderer.submit_2d(debug_ui);
-  }
-}
-
-
-// Constructors
-impl GameLoop {
-  pub fn new(
-    window: Window,
-    listener: MutRef<WindowEventManager>,
-    renderer: Renderer,
-    scene: Scene
-  ) -> GameLoop {
-    GameLoop {
-      window,
-      listener,
-      renderer,
-      scene
+      dispatcher.dispatch(&world);
+      {
+        let mut renderer = world.write_resource::<Renderer>();
+        renderer.draw_scene(window);
+        renderer.end_frame(window);
+      }
+      // window.frame_end();
     }
   }
 
+  pub fn stop(&mut self) {
+    self.running = false;
+  }
+
+  pub fn handle_loop_events(&mut self, channel: &mut EventChannel<WindowEvent>) {
+    channel
+      .read(&self.receiver_id)
+      .for_each(|window_evt| match window_evt.code {
+        Event::KeyPressed(KeyCode::Control) => {
+          self.stop();
+        },
+        Event::KeyPressed(KeyCode::Esc) => {
+          self.stop();
+        }
+        _ => {}
+      });
+  }
 }

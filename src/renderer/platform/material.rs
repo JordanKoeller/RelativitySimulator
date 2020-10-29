@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use utils::*;
 
-use renderer::{Uniform, Texture};
+use renderer::{Uniform, Texture, WHITE_TEXTURE};
 
 #[derive(Clone, Debug)]
 pub struct Material {
@@ -69,9 +69,19 @@ impl Material {
   }
   
   pub fn new() -> Material {
-    Material {
+    let mut ret = Material {
       uniforms: Vec::new()
-    }
+    };
+    ret.diffuse_texture(WHITE_TEXTURE.clone());
+    ret.ambient_texture(WHITE_TEXTURE.clone());
+    ret.specular_texture(WHITE_TEXTURE.clone());
+
+    ret.diffuse(Vec3F::new(1f32, 1f32, 1f32));
+    ret.ambient(Vec3F::new(1f32, 1f32, 1f32));
+    ret.specular(Vec3F::new(1f32, 1f32, 1f32));
+    
+    ret.normal_texture(WHITE_TEXTURE.clone());
+    ret
   }
   
   
