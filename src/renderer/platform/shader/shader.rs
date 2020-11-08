@@ -219,7 +219,6 @@ fn decompress(body: String) -> Vec<ShaderStep> {
     .map(|s| {
       let mut lines: Vec<&str> = s.lines().collect();
       let first_line = lines.remove(0);
-      println!("SHADER LINE {}", first_line);
       match first_line {
         "vertex" => ShaderStep::VertexShader(lines.join("\n")),
         "tesscontrol" => ShaderStep::TessControlShader(lines.join("\n")),
@@ -232,7 +231,7 @@ fn decompress(body: String) -> Vec<ShaderStep> {
 }
 fn compile_program(steps: Vec<ShaderStep>) -> u32 {
   unsafe {
-    let mut program = gl::CreateProgram();
+    let program = gl::CreateProgram();
     for step in steps.into_iter() {
       compile_shader(&program, step);
     }
@@ -304,6 +303,3 @@ fn set_unif_helper(unif: &Uniform, loc: i32) {
 
 const SHADER_OPTIONS: [&str; 4] = ["vertex", "fragment", "tesseval", "tesscontrol"];
 
-// pub struct ShaderLibrary {
-
-// }

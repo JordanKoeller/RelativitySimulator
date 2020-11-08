@@ -14,6 +14,7 @@ out vec3 worldPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+
 void main()
 {
     uv = aTexCoords;

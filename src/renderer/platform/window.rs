@@ -61,8 +61,6 @@ impl Window {
           println!("Debug Context not active! Check if your driver supports the extension.");
           println!("======================================================================");
       }
-      // gl::Enable(gl::CULL_FACE);
-      // gl::Enable(gl::DEPTH_TEST);
       gl::Enable(gl::MULTISAMPLE);
       gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
       gl::Enable(gl::BLEND);

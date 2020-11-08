@@ -16,6 +16,7 @@ pub enum Uniform {
     Bool(bool),
     Texture(Texture),
     CubeMap(CubeMap),
+    UniformBuffer(UniformBuffer),
 }
 
 #[derive(Clone)]
@@ -30,10 +31,20 @@ pub enum UniformType {
     Mat4,
     Bool,
     Texture,
+    UniformBuffer
 }
 
 pub enum UniformLifecycle {
   Frame,
   Runtime,
+
+}
+
+#[derive(Clone, Debug)]
+pub struct UniformBuffer {
+
+}
+
+impl UniformBuffer {
 
 }
