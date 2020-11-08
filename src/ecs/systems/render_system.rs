@@ -16,9 +16,11 @@ impl <'a> System<'a> for RenderSystem {
   fn run(&mut self, (drawables, transforms, mut renderer): Self::SystemData) {
     for (drawable, maybe_transform) in (&drawables, (&transforms).maybe()).join() {
       if let Some(transform) = maybe_transform {
-        renderer.submit(drawable.clone().with_transform(transform.0).command());
+        let mut c = drawable.clone();
+        c.with_transform(transform.0);
+        renderer.submit(c);
       } else {
-        renderer.submit(drawable.command());
+        renderer.submit(drawable.clone());
 
       }
     }

@@ -2,11 +2,11 @@ use specs::{Component, VecStorage};
 use specs::prelude::*;
 
 use events::ReceiverID;
-use renderer::{Material, VertexArray, RenderCommand};
+use renderer::{Material, VertexArray};
 use utils::*;
 
 use cgmath::prelude::*;
-
+use std::sync::RwLock;
 
 #[derive(Debug)]
 pub struct Position(pub Vec3F);
@@ -108,13 +108,13 @@ pub struct EventReceiver(pub ReceiverID);
 pub struct DrawableMemo {
   pub vertex_array: VertexArray,
   pub material: Material,
-  pub shader_name: String,
+  pub shader_id: String/*  */,
   pub transform: Option<Mat4F>
 }
 
 impl DrawableMemo {
-  pub fn command(&self) -> RenderCommand {
-    RenderCommand::from(self.clone())
+  pub fn command(&self) -> &Self {
+    &self
   }
 
   pub fn with_transform(&mut self, t: Mat4F) -> &Self {

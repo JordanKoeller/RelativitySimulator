@@ -1,10 +1,8 @@
-use renderer::{Material, RenderCommand, Texture, Uniform, VertexArray};
+use renderer::{Material, Texture, Uniform, VertexArray};
 use std::ffi::CString;
 use utils::*;
 
 use ecs::components::DrawableMemo;
-
-// pub type Material = Vec<(CString, Uniform)>;
 
 pub trait Drawable {
   fn shader_name(&self) -> String {
@@ -17,7 +15,7 @@ pub trait Drawable {
     DrawableMemo {
       vertex_array: self.vertex_array().clone(),
       material: self.material().clone(),
-      shader_name: self.shader_name(),
+      shader_id: self.shader_name(),
       transform: None,
     }
   }

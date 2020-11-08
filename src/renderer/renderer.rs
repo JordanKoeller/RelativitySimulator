@@ -1,6 +1,7 @@
 use std::clone::Clone;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use std::sync::Arc;
 use utils::*;
 use debug::*;
 
@@ -12,7 +13,6 @@ use renderer::*;
 
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
-type ShaderLibrary = HashMap<String, Shader>;
 
 struct Screen {
   pub screen_quad: VertexArray,
@@ -42,7 +42,7 @@ impl Default for Renderer {
   fn default() -> Self {
     Renderer {
       screen: create_screen(1600, 900),
-      shader_library: ShaderLibrary::new(),
+      shader_library: ShaderLibrary::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       queued_drawables: MultiMap::new(),
@@ -62,7 +62,7 @@ impl Renderer {
       ]);
     Renderer {
       screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
-      shader_library: ShaderLibrary::new(),
+      shader_library: ShaderLibrary::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       queued_drawables: MultiMap::new(),
@@ -89,13 +89,14 @@ impl Renderer {
   }
 
   pub fn submit_shader(&mut self, shader: Shader) {
-    self.shader_library.insert(shader.name.clone(), shader);
+    self.shader_library.add(shader);
   }
 
-  pub fn submit(&mut self, cmd: RenderCommand) {
-    match cmd {
-      RenderCommand::SingleDrawable(drawable) => self.queued_drawables.push(drawable.shader_name.clone(), drawable),
-    }
+  pub fn submit(&mut self, cmd: DrawableMemo) {
+    self.queued_drawables.push(cmd.shader_id.clone(), cmd);
+    // match cmd {
+    //   RenderCommand::SingleDrawable(drawable) => ,
+    // }
   }
 
   pub fn ui_box(&self, title: &str) -> Overlay {
@@ -174,12 +175,12 @@ impl Renderer {
   }
 
   pub fn draw_scene(&mut self, window: &mut Window) {
-    let mut shader_name = "".to_string();
-    for (s_name, drawable) in self.queued_drawables.iter() {
-      let active_shader = self.shader_library.get(s_name).unwrap();
-      let tmp_name = s_name.clone();
-      if tmp_name != shader_name {
-        shader_name = tmp_name;
+    let mut shader_id = "".to_string();
+    for (s_id, drawable) in self.queued_drawables.iter() {
+      let active_shader = self.shader_library.get(&s_id);
+      let tmp_id = s_id.clone();
+      if tmp_id != shader_id {
+        shader_id = tmp_id;
         self.switch_shader(active_shader);
       }
       let material = &drawable.material;
