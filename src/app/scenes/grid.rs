@@ -1,14 +1,13 @@
 use app::{
-  entities::{create_player, Floor},
+  entities::{create_player},
   Cube,
 };
-use cgmath::prelude::*;
 use ecs::components::*;
 use ecs::entity::EntityConstructor;
 use specs::prelude::*;
 use utils::*;
 
-use renderer::{Drawable, Material, Texture};
+use renderer::{Drawable, Material,};
 
 pub fn build_grid_scene(center: Vec3F, world: &mut World) {
   let player_pos = Vec3F::new(0f32, 0f32, 0f32);

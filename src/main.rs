@@ -61,14 +61,14 @@ pub fn main() {
   // -------------------------
   // let cube = app::ColoredCube::new(Vec3F::new(2.0, 0.0, -10.0), Color::new(0.5, 0.2, 0.8));
   // let cube: Ref<dyn renderer::Drawable> = Ref::new(cube);
-  let shader = renderer::SimpleShader::from_file("default", "shaders/simple_shader.glsl");
-  render.submit_shader(Box::from(shader));
-  let shader = renderer::SimpleShader::from_file("default_texture", "shaders/simple_textured.glsl");
-  render.submit_shader(Box::from(shader));
-  let shader = renderer::SkyboxShader::from_file("skybox", "shaders/skybox.glsl");
-  render.submit_shader(Box::from(shader));
-  let shader = renderer::SimpleShader::from_file("lorentz", "shaders/lorentz.glsl");
-  render.submit_shader(Box::from(shader));
+  let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
+  render.submit_shader(shader);
+  let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");
+  render.submit_shader(shader);
+  let shader = renderer::Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
+  render.submit_shader(shader);
+  let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
+  render.submit_shader(shader);
 
   let mut g_loop = game_loop::GameLoop::new(window_event_channel.register_with_subs(&[
     WindowEvent::new(Event::KeyPressed(KeyCode::Control)),

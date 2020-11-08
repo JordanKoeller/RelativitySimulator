@@ -39,9 +39,9 @@ fn file_includer_helper(shader_path: &str, included_files: &mut HashSet<String>)
   ret
 }
 
-fn identify_uniforms(shader: &dyn Shader) -> HashMap<String, UniformType> {
+fn identify_uniforms(shader: &Shader) -> HashMap<String, UniformType> {
   let mut uniforms = HashMap::new();
-  for uniform in UNIFORM_MATCHER.captures_iter(&shader.shader_state().program_source) {
+  for uniform in UNIFORM_MATCHER.captures_iter(&shader.program_source) {
     let name = String::from(&uniform[2]);
     match &uniform[1] {
       "vec3" => uniforms.insert(name, UniformType::Vec3),

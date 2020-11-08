@@ -12,11 +12,11 @@ use renderer::*;
 
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
-type ShaderLibrary = HashMap<String, Box<dyn Shader>>;
+type ShaderLibrary = HashMap<String, Shader>;
 
 struct Screen {
   pub screen_quad: VertexArray,
-  pub shader: SimpleShader,
+  pub shader: Shader,
   pub framebuffer: Framebuffer,
 
 }
@@ -88,8 +88,8 @@ impl Renderer {
     }
   }
 
-  pub fn submit_shader(&mut self, shader: Box<dyn Shader>) {
-    self.shader_library.insert(shader.name().to_string(), shader);
+  pub fn submit_shader(&mut self, shader: Shader) {
+    self.shader_library.insert(shader.name.clone(), shader);
   }
 
   pub fn submit(&mut self, cmd: RenderCommand) {
@@ -167,7 +167,7 @@ impl Renderer {
     self.screen.shader.bind();
     self.screen.shader.set_texture(1, c_str!("tex"), &self.screen.framebuffer.texture());
     self.screen.screen_quad.bind();
-    self.screen.screen_quad.draw(&self.screen.shader.shader_state().element_type);
+    self.screen.screen_quad.draw(&self.screen.shader.element_type);
     self.screen.shader.unbind();
 
     window.swap_buffers();
@@ -201,7 +201,7 @@ impl Renderer {
         active_shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform));
       }
       drawable.vertex_array.bind();
-      drawable.vertex_array.draw(&active_shader.shader_state().element_type);
+      drawable.vertex_array.draw(&active_shader.element_type);
     }
     self.draw_imgui(window);
     self.queued_overlays.clear();
@@ -225,7 +225,7 @@ impl Renderer {
     }
   }
 
-  fn switch_shader(&self, shader: &Box<dyn Shader>) {
+  fn switch_shader(&self, shader: &Shader) {
     shader.bind();
     for (unif_name, unif_value) in self.config_uniforms.iter() {
       shader.set_uniform(&unif_name, unif_value);
@@ -304,7 +304,7 @@ fn create_screen(w: i32, h: i32) -> Screen {
     vec![VertexBuffer::create(verts, BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]))],
     IndexBuffer::create(inds)
   );
-  let shader = SimpleShader::from_file("renderer_screen", "shaders/screen_shader.glsl");
+  let shader = Shader::from_file("renderer_screen", "shaders/screen_shader.glsl");
 
   Screen {
     framebuffer: Framebuffer::dims(w, h),

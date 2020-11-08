@@ -31,10 +31,13 @@ pub type Color = Vec3F;
 
 pub type Ref<T> = Rc<T>;
 pub type MutRef<T> = Rc<RefCell<T>>;
+#[allow(dead_code)]
+pub type Mut<T> = RefCell<T>;
 
 #[derive(Default)]
 pub struct Timestep(pub f32);
 
+#[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
   Rc::new(RefCell::new(v))
 }
