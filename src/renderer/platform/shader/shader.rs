@@ -9,8 +9,6 @@ use gl;
 use debug::*;
 use renderer::platform::{TextureLike, Uniform};
 
-use utils::Mut;
-
 #[derive(Clone, Eq, PartialEq)]
 pub enum ShaderStep {
   VertexShader(String),
