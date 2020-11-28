@@ -3,7 +3,7 @@ use std::path::Path;
 use tobj;
 
 use renderer::{
-  AttributeType, BufferLayout, DefaultDrawable, Drawable, IndexBuffer, Material, Texture, VertexArray, VertexBuffer,
+  AttributeType, BufferLayout, DrawableState, Drawable, IndexBuffer, Material, Texture, VertexArray, VertexBuffer,
   WHITE_TEXTURE, Uniform
 };
 use utils::*;
@@ -16,7 +16,7 @@ use utils::*;
 pub struct Model {
   filename: String,
   shader: String,
-  pub meshes: Vec<Box<DefaultDrawable>>,
+  pub meshes: Vec<Box<DrawableState>>,
 }
 
 impl Model {
@@ -29,9 +29,9 @@ impl Model {
     let meshes = model_vec.into_iter().map(move |model| {
       let vert_arr = get_vertex_array(&model.mesh);
       if let Some(mat_id) = model.mesh.material_id {
-        Box::from(DefaultDrawable::new_textured(vert_arr, my_materials[mat_id].clone()))
+        Box::from(DrawableState::new_textured(vert_arr, my_materials[mat_id].clone()))
       } else {
-        Box::from(DefaultDrawable::new_textured(vert_arr, Material::new()))
+        Box::from(DrawableState::new_textured(vert_arr, Material::new()))
       }
     }).collect();
     Model {

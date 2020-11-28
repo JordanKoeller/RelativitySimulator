@@ -104,31 +104,7 @@ pub struct Player;
 #[storage(VecStorage)]
 pub struct EventReceiver(pub ReceiverID);
 
-#[derive(Clone, Debug)]
-pub struct DrawableMemo {
-  pub vertex_array: VertexArray,
-  pub material: Material,
-  pub shader_id: String/*  */,
-  pub transform: Option<Mat4F>
-}
 
-impl DrawableMemo {
-  pub fn command(&self) -> &Self {
-    &self
-  }
-
-  pub fn with_transform(&mut self, t: Mat4F) -> &Self {
-    self.transform = Some(t);
-    self
-  }
-}
-
-impl Component for DrawableMemo {
-  type Storage = VecStorage<Self>;
-}
-
-
-
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct Transform(pub Mat4F);

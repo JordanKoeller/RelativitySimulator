@@ -7,7 +7,7 @@ use ecs::entity::EntityConstructor;
 use specs::prelude::*;
 use utils::*;
 
-use renderer::{Drawable, Material,};
+use renderer::{Drawable, Material, Renderer};
 
 pub fn build_grid_scene(center: Vec3F, world: &mut World) {
   let player_pos = Vec3F::new(0f32, 0f32, 0f32);
@@ -18,7 +18,7 @@ pub fn build_grid_scene(center: Vec3F, world: &mut World) {
   let mut grid_material = Material::new();
   grid_material.diffuse(Vec3F::new(0.8f32, 0.4f32, 0.1f32));
 
-  let wire_box = WireBox::new(0.02, 15f32, center, 5);
+  let wire_box = WireBox::new(0.01, 30f32, center, 15);
   wire_box.build(world, &grid_material);
 }
 
@@ -43,6 +43,10 @@ impl WireBox {
     let d = self.scale / 2f32;
     let seed_corner = self.center_pos - Vec3F::new(d, d, d);
     let cube = Cube::new(material.clone());
+    let cube_id = {
+      let mut renderer = world.write_resource::<Renderer>();
+      renderer.submit_model(cube.state())
+    };
     let spoke_width = self.spoke_frac * self.scale / self.num_cubes as f32;
     for d in 0..3 {
       for e in 0..self.num_cubes + 1 {
@@ -62,7 +66,7 @@ impl WireBox {
           };
           EntityConstructor::new(world)
             .add(Transform(translate(add_transl + seed_corner) * nonunif_scale(scaling_vec)))
-            .add(cube.renderable())
+            .add(cube_id.clone())
             .build();
         }
       }
