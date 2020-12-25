@@ -1,5 +1,5 @@
 use app::{
-  entities::{create_player},
+  entities::{create_player, create_floor},
   Cube,
 };
 use ecs::components::*;
@@ -12,13 +12,12 @@ use renderer::{Drawable, Material, Renderer};
 pub fn build_grid_scene(center: Vec3F, world: &mut World) {
   let player_pos = Vec3F::new(0f32, 0f32, 0f32);
   create_player(player_pos, world);
-  // let floor = Floor::new(-6f32, 3f32);
-  // floor.get_constructor(world).build();
+  create_floor(-6f32, 3f32, world);
 
   let mut grid_material = Material::new();
   grid_material.diffuse(Vec3F::new(0.8f32, 0.4f32, 0.1f32));
 
-  let wire_box = WireBox::new(0.01, 30f32, center, 15);
+  let wire_box = WireBox::new(0.01, 60f32, center, 15);
   wire_box.build(world, &grid_material);
 }
 

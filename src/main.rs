@@ -69,6 +69,8 @@ pub fn main() {
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
   render.submit_shader(shader);
+  let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
+  render.submit_shader(shader);
 
   let mut g_loop = game_loop::GameLoop::new(window_event_channel.register_with_subs(&[
     WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
@@ -81,34 +83,16 @@ pub fn main() {
 
   dispatcher.setup(&mut world);
 
-  // let resources = [
-  //   "resources/textures/awesomeface.png",
-  //   "resources/textures/brickwall.jpg",
-  //   "resources/textures/container.jpg",
-  //   "resources/textures/marble.jpg",
-  //   "resources/textures/wood.png",
-  //   "resources/textures/checkerboard.png",
-  // ];
-  // (0..36).for_each(|x| {
-  //   let tex_id = x % 6;
-  //   let angle = (x as f32 / 36.0) * 2f32 * std::f32::consts::PI;
-  //   let pos = Vec3F::new(angle.cos() * 5f32, 0.0 + (x as f32 / 100f32), angle.sin() * 5f32);
-  //   let tex_cube = app::TexturedCube::new(resources[tex_id]);
-  //   let transform = utils::translate(pos);
-  //   world
-  //     .create_entity()
-  //     .with(tex_cube.renderable())
-  //     .with(Transform(transform))
-  //     .build();
-  // });
-  // world
-  //   .create_entity()
-  //   .with(app::Skybox::new("resources/skybox").renderable())
-  //   .build();
-
   world.insert(window_event_channel);
   world.insert(utils::Timestep(0.016));
   world.insert(render);
-  app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
+  // app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
+  app::scenes::build_rotate_boxes(
+    3,
+    10f32,
+    Vec3F::new(7.5f32, 0f32, -2.5f32),
+    Vec3F::new(5f32, 0f32, 0f32),
+    &mut world,
+  );
   g_loop.run(&mut dispatcher, &mut world, &mut window, &mut window_event_receiver);
 }

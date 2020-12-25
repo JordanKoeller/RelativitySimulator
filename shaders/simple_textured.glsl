@@ -9,18 +9,14 @@ layout (location = 2) in vec2 aTexCoords;
 out vec2 uv;
 out vec3 normal;
 
-#include "shaders/lorentz_helper.glsl"
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 void main()
 {
-    // gl_Position = model * vec4(aPos, 1.0);
     uv = aTexCoords;
     normal = aNormal;
-    vec4 pos = vec4(aPos, 1.0f);
-    gl_Position = projection * view * model * vec4(transformRelativistic(pos.xyz), 1.0f);
+    gl_Position = projection * view * model * vec4(aPos, 1.0f);
 
 }
 #shader fragment
@@ -34,7 +30,6 @@ uniform sampler2D diffuse_texture;
 
 void main()
 {
-	// FragColor = vec4(normal / 2.0 + 1.0, 1.0);
 	FragColor = texture(diffuse_texture, uv);
   if (FragColor.a < 0.5) discard;
 }
