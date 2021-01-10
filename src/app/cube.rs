@@ -5,14 +5,6 @@ pub struct TexturedCube {
   filename: String
 }
 
-impl TexturedCube {
-  pub fn new(texture: &str) -> TexturedCube {
-    TexturedCube {
-      filename: texture.to_string()
-    }
-  }
-}
-
 impl Drawable for TexturedCube {
   fn vertex_array(&self) -> VertexArray {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);

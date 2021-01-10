@@ -1,13 +1,9 @@
 use gl;
 use std::path::Path;
 
-use debug::*;
-use lazy_static;
-
 #[derive(Clone, Debug)]
 enum TextureSource {
   File(String),
-  Empty((u32, u32)),
   Null,
 }
 

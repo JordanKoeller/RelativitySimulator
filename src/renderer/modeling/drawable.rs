@@ -13,7 +13,7 @@ pub trait Drawable {
     DrawableState {
       vertex_array: self.vertex_array(),
       material: self.material(),
-      shader_name: self.shader_name()
+      shader_name: self.shader_name(),
     }
   }
 }
@@ -25,6 +25,7 @@ pub struct DrawableState {
 }
 
 impl DrawableState {
+  #[allow(dead_code)]
   pub fn new(vao: VertexArray, material: Material) -> DrawableState {
     DrawableState {
       shader_name: "default".to_string(),

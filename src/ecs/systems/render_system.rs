@@ -44,7 +44,7 @@ impl <'a> System<'a> for StartFrameSystem {
   );
 
   fn run(&mut self, (s_player, s_position, s_kinetics, s_rotation, mut renderer, timestep): Self::SystemData) {
-    for (player, pos, kinetics, rotation) in (&s_player, &s_position, &s_kinetics, &s_rotation).join() {
+    for (_player, pos, kinetics, rotation) in (&s_player, &s_position, &s_kinetics, &s_rotation).join() {
       let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
       renderer.start_scene(cam, timestep.0);
     }

@@ -29,13 +29,10 @@ mod utils;
 mod app;
 
 use events::{Event, EventChannel, KeyCode, WindowEvent, WindowEventChannel};
-use renderer::Drawable;
-use utils::{Vec2F, Vec3F};
+use utils::{Vec3F};
 
-use specs::{Builder, DispatcherBuilder, World, WorldExt};
+use specs::{World, WorldExt};
 
-use ecs::components::*;
-use ecs::systems::player_events::PlayerEvents;
 
 // settings
 pub const SCR_WIDTH: u32 = 1600;
@@ -86,7 +83,7 @@ pub fn main() {
   world.insert(window_event_channel);
   world.insert(utils::Timestep(0.016));
   world.insert(render);
-  // app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
+  app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
   app::scenes::build_rotate_boxes(
     3,
     10f32,

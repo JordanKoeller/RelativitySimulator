@@ -27,14 +27,6 @@ impl<'a> Camera<'a> {
   }
 
   pub fn view_matrix(&self) -> Mat4F {
-    let front = self.rotation.front();
-    // let front = Vec3F {
-    //   x: self.rotation.y.to_radians().cos() * self.rotation.x.to_radians().cos(),
-    //   y: self.rotation.x.to_radians().sin(),
-    //   z: self.rotation.y.to_radians().sin() * self.rotation.x.to_radians().cos(),
-    // };
-    // let right = front.cross(self.world_up()).normalize();
-    // let up = right.cross(front).normalize();
     let pt_pos = cgmath::Point3::<f32>::new(self.position.x, self.position.y, self.position.z);
     Mat4F::look_at(pt_pos, pt_pos + self.rotation.front(), self.rotation.up())
   }

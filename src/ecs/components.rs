@@ -1,12 +1,10 @@
-use specs::{Component, VecStorage};
 use specs::prelude::*;
+use specs::{Component, VecStorage};
 
 use events::ReceiverID;
-use renderer::{Material, VertexArray};
 use utils::*;
 
 use cgmath::prelude::*;
-use std::sync::RwLock;
 
 #[derive(Debug)]
 pub struct Position(pub Vec3F);
@@ -24,7 +22,7 @@ impl Default for Position {
 #[derive(Debug)]
 pub struct Kinetics {
   pub velocity: Vec3F,
-  pub acceleration: Vec3F
+  pub acceleration: Vec3F,
 }
 
 impl Component for Kinetics {
@@ -32,6 +30,7 @@ impl Component for Kinetics {
 }
 
 impl Kinetics {
+  #[allow(dead_code)]
   pub fn speed(&self) -> f32 {
     self.velocity.magnitude()
   }
@@ -49,14 +48,14 @@ impl Default for Kinetics {
 #[derive(Debug, Clone)]
 pub struct Rotation(pub Vec2F);
 
-
 impl Rotation {
   pub fn front(&self) -> Vec3F {
     Vec3F {
-        x: self.0.y.to_radians().cos() * self.0.x.to_radians().cos(),
-        y: self.0.x.to_radians().sin(),
-        z: self.0.y.to_radians().sin() * self.0.x.to_radians().cos(),
-      }.normalize()
+      x: self.0.y.to_radians().cos() * self.0.x.to_radians().cos(),
+      y: self.0.x.to_radians().sin(),
+      z: self.0.y.to_radians().sin() * self.0.x.to_radians().cos(),
+    }
+    .normalize()
   }
 
   pub fn right(&self) -> Vec3F {
@@ -103,7 +102,6 @@ pub struct Player;
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct EventReceiver(pub ReceiverID);
-
 
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]

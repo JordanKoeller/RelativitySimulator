@@ -50,11 +50,11 @@ impl VertexBuffer {
     }
   }
 
-  pub fn unbind(&self) {
-    unsafe {
-      gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-    }
-  }
+  // pub fn unbind(&self) {
+  //   unsafe {
+  //     gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+  //   }
+  // }
 }
 
 // impl Drop for VertexBuffer {
@@ -97,11 +97,11 @@ impl IndexBuffer {
     }
   }
 
-  pub fn unbind(&self) {
-    unsafe {
-      gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-    }
-  }
+  // pub fn unbind(&self) {
+  //   unsafe {
+  //     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+  //   }
+  // }
   pub fn len(&self) -> usize {
     self.data.len()
   }
@@ -119,6 +119,7 @@ impl IndexBuffer {
 //////////////////////////////////
 /// BUFFER LAYOUT ////////////////
 //////////////////////////////////
+#[allow(dead_code)]
 #[derive(Clone, Eq, PartialEq, Copy, Debug)]
 pub enum AttributeType {
   Float,

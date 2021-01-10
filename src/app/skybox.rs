@@ -7,7 +7,8 @@ pub struct Skybox {
 }
 
 impl Skybox {
-  pub fn new(texture: &str) -> Skybox {
+#[allow(dead_code)]
+pub fn new(texture: &str) -> Skybox {
     Skybox {
       texture_name: texture.to_string()
     }

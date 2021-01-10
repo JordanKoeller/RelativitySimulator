@@ -4,8 +4,6 @@ pub type ReceiverID = usize;
 
 type SubCount = u32;
 
-
-
 pub struct EventChannel<Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static> {
   registration_id: ReceiverID,
   subscriptions: HashMap<Event, SubCount>,
@@ -13,8 +11,9 @@ pub struct EventChannel<Event: Sync + Send + std::hash::Hash + Eq + Clone + std:
   active_events: HashSet<Event>,
 }
 
-impl<Event> EventChannel<Event> 
-where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static
+impl<Event> EventChannel<Event>
+where
+  Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
 {
   pub fn register_reader(&mut self) -> ReceiverID {
     let ret = self.registration_id.clone();
@@ -23,6 +22,7 @@ where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'sta
     ret
   }
 
+  #[allow(dead_code)]
   pub fn deregister_reader(&mut self, receiver: &ReceiverID) {
     if let Some(inbox) = self.receiver_inboxes.get(*receiver) {
       for evt in inbox.iter() {
@@ -47,7 +47,7 @@ where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'sta
       if let Some(sub_cnt) = self.subscriptions.get_mut(&event) {
         *sub_cnt += 1;
       }
-      // self.subscriptions.get_mut(&event) += 1;
+    // self.subscriptions.get_mut(&event) += 1;
     } else {
       self.subscriptions.insert(event.clone(), 1);
     }
@@ -62,6 +62,7 @@ where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'sta
     receiver
   }
 
+  #[allow(dead_code)]
   pub fn unsubscribe(&mut self, receiver: &ReceiverID, event: &Event) {
     // Decrement count of subs on the subs list.
     let mut flag = false;
@@ -81,7 +82,7 @@ where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'sta
     }
   }
 
-  pub fn read(&self, receiver: &ReceiverID) -> impl Iterator<Item=&Event> + '_ {
+  pub fn read(&self, receiver: &ReceiverID) -> impl Iterator<Item = &Event> + '_ {
     self.receiver_inboxes[*receiver].iter().filter_map(move |v| {
       let ret = self.active_events.get(v);
       ret
@@ -97,11 +98,11 @@ where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'sta
   pub fn clear_events(&mut self) {
     self.active_events.clear();
   }
-
 }
 
-impl<Event> Default for EventChannel<Event> 
-where Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static
+impl<Event> Default for EventChannel<Event>
+where
+  Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
 {
   fn default() -> Self {
     Self {

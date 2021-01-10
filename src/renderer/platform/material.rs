@@ -1,9 +1,8 @@
-use std::ffi::{CString, CStr};
-use std::collections::HashMap;
+use std::ffi::{CStr, CString};
 
 use utils::*;
 
-use renderer::{Uniform, Texture, WHITE_TEXTURE};
+use renderer::{Texture, Uniform, WHITE_TEXTURE};
 
 #[derive(Clone, Debug)]
 pub struct Material {
@@ -22,19 +21,20 @@ impl Material {
   pub fn specular(&mut self, v: Vec3F) {
     self.upsert_uniform(c_str!("specular"), Uniform::Vec3(v));
   }
+  #[allow(dead_code)]
 
   pub fn shininess(&mut self, v: f32) {
     self.upsert_uniform(c_str!("shininess"), Uniform::Float(v));
   }
-
+  #[allow(dead_code)]
   pub fn dissolve(&mut self, v: f32) {
     self.upsert_uniform(c_str!("dissolve"), Uniform::Float(v));
   }
-
+  #[allow(dead_code)]
   pub fn optical_density(&mut self, v: f32) {
     self.upsert_uniform(c_str!("optical_density"), Uniform::Float(v));
   }
-
+  #[allow(dead_code)]
   pub fn diffuse_texture(&mut self, v: Texture) {
     self.upsert_uniform(c_str!("diffuse_texture"), Uniform::Texture(v));
   }
@@ -50,11 +50,12 @@ impl Material {
   pub fn normal_texture(&mut self, v: Texture) {
     self.upsert_uniform(c_str!("normal_texture"), Uniform::Texture(v));
   }
-
+  #[allow(dead_code)]
   pub fn shininess_texture(&mut self, v: Texture) {
     self.upsert_uniform(c_str!("shininess_texture"), Uniform::Texture(v));
   }
 
+  #[allow(dead_code)]
   pub fn dissolve_texture(&mut self, v: Texture) {
     self.upsert_uniform(c_str!("dissolve_texture"), Uniform::Texture(v));
   }
@@ -63,15 +64,11 @@ impl Material {
     let c_str = CString::new(name).expect("Could not convert string to cstring");
     self.upsert_uniform(&c_str, uniform);
   }
-  
   pub fn uniforms(&self) -> &Vec<(CString, Uniform)> {
     &self.uniforms
   }
-  
   pub fn new() -> Material {
-    let mut ret = Material {
-      uniforms: Vec::new()
-    };
+    let mut ret = Material { uniforms: Vec::new() };
     ret.diffuse_texture(WHITE_TEXTURE.clone());
     ret.ambient_texture(WHITE_TEXTURE.clone());
     ret.specular_texture(WHITE_TEXTURE.clone());
@@ -79,12 +76,9 @@ impl Material {
     ret.diffuse(Vec3F::new(1f32, 1f32, 1f32));
     ret.ambient(Vec3F::new(1f32, 1f32, 1f32));
     ret.specular(Vec3F::new(1f32, 1f32, 1f32));
-    
     ret.normal_texture(WHITE_TEXTURE.clone());
     ret
   }
-  
-  
   fn upsert_uniform(&mut self, c_str: &CStr, value: Uniform) {
     let c_string = CString::from(c_str);
     let mut flag = true;

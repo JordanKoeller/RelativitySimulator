@@ -28,38 +28,36 @@ impl Window {
 
     #[cfg(target_os = "macos")]
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-    
     // glfw window creation
     // --------------------
     let (mut window, events) = glfw
       .create_window(width, height, title, glfw::WindowMode::Windowed)
       .expect("Failed to create GLFW window");
 
-      window.make_current();
-      
-      window.set_cursor_pos_polling(true);
-      
-      window.set_key_polling(true);
-      window.set_scroll_polling(true);
-      window.set_framebuffer_size_polling(true);
-      
-      // gl: load all OpenGL function pointers
-      // ---------------------------------------
-      gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
-      unsafe {
-        let mut flags = 0;
-        gl::GetIntegerv(gl::CONTEXT_FLAGS, &mut flags);
-        if flags as u32 & gl::CONTEXT_FLAG_DEBUG_BIT != 0 {
-          gl::Enable(gl::DEBUG_OUTPUT);
-          gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS); // makes sure errors are displayed synchronously
-          gl::DebugMessageCallback(gl_debug_output, ptr::null());
-          gl::DebugMessageControl(gl::DONT_CARE, gl::DONT_CARE, gl::DONT_CARE, 0, ptr::null(), gl::TRUE);
-        }
-        else {
-          println!("======================================================================");
-          println!("Debug Context not active! Check if your driver supports the extension.");
-          println!("======================================================================");
-        }
+    window.make_current();
+
+    window.set_cursor_pos_polling(true);
+
+    window.set_key_polling(true);
+    window.set_scroll_polling(true);
+    window.set_framebuffer_size_polling(true);
+
+    // gl: load all OpenGL function pointers
+    // ---------------------------------------
+    gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
+    unsafe {
+      let mut flags = 0;
+      gl::GetIntegerv(gl::CONTEXT_FLAGS, &mut flags);
+      if flags as u32 & gl::CONTEXT_FLAG_DEBUG_BIT != 0 {
+        gl::Enable(gl::DEBUG_OUTPUT);
+        gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS); // makes sure errors are displayed synchronously
+        gl::DebugMessageCallback(gl_debug_output, ptr::null());
+        gl::DebugMessageControl(gl::DONT_CARE, gl::DONT_CARE, gl::DONT_CARE, 0, ptr::null(), gl::TRUE);
+      } else {
+        println!("======================================================================");
+        println!("Debug Context not active! Check if your driver supports the extension.");
+        println!("======================================================================");
+      }
       gl::Enable(gl::MULTISAMPLE);
       glfw.window_hint(glfw::WindowHint::Samples(Some(4)));
       gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
@@ -69,7 +67,6 @@ impl Window {
       gl::DepthFunc(gl::LESS);
       gl::ClearColor(0.1, 0.1, 0.1, 1.0);
     }
-
 
     let mut im_ctx = ImContext::create();
 
@@ -92,14 +89,17 @@ impl Window {
     &self.window
   }
 
+  #[allow(dead_code)]
   pub fn disable_cursor(&mut self) {
     self.window.set_cursor_mode(glfw::CursorMode::Disabled);
   }
 
+  #[allow(dead_code)]
   pub fn enable_cursor(&mut self) {
     self.window.set_cursor_mode(glfw::CursorMode::Normal);
   }
 
+  #[allow(dead_code)]
   pub fn set_closed(&mut self) {
     self.window.set_should_close(true);
   }

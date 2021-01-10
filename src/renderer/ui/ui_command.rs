@@ -1,7 +1,7 @@
-use std::ffi::{CStr, CString};
 
 use imgui::*;
 
+#[allow(dead_code)]
 pub enum OverlayLine {
   LabelText(String, String),
   Text(String),

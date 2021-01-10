@@ -4,6 +4,7 @@ use renderer::{Texture, CubeMap};
 
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub enum Uniform {
     Int(i32),
     IntArray(Vec<i32>),
@@ -20,6 +21,7 @@ pub enum Uniform {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum UniformType {
     Int,
     IntArray,
@@ -34,6 +36,7 @@ pub enum UniformType {
     UniformBuffer
 }
 
+#[allow(dead_code)]
 pub enum UniformLifecycle {
   Frame,
   Runtime,

@@ -29,6 +29,7 @@ pub type Mat2F = cgmath::Matrix2<f32>;
 #[allow(dead_code)]
 pub type Color = Vec3F;
 
+#[allow(dead_code)]
 pub type Ref<T> = Rc<T>;
 pub type MutRef<T> = Rc<RefCell<T>>;
 #[allow(dead_code)]
@@ -41,8 +42,6 @@ pub struct Timestep(pub f32);
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
   Rc::new(RefCell::new(v))
 }
-
-
 
 pub fn translate(pos: Vec3F) -> Mat4F {
   Mat4F::from_translation(pos)
@@ -58,24 +57,23 @@ pub fn nonunif_scale(factor: Vec3F) -> Mat4F {
   Mat4F::from_nonuniform_scale(factor.x, factor.y, factor.z)
 }
 
-
 // MultiMap
 
 const DEFAULT_CAPACITY: usize = 10;
 
-#[derive( Clone)]
+#[derive(Clone)]
 pub struct MultiMap<K, V>
 where
   K: Eq + Hash + Clone,
-  V: Clone
+  V: Clone,
 {
   data: HashMap<K, Vec<V>>,
 }
 
 impl<K, V> MultiMap<K, V>
 where
-K: Eq + Hash + Clone,
-V: Clone
+  K: Eq + Hash + Clone,
+  V: Clone,
 {
   pub fn new() -> MultiMap<K, V> {
     MultiMap {
@@ -94,6 +92,7 @@ V: Clone
     }
   }
 
+  #[allow(dead_code)]
   pub fn get(&self, k: &K) -> Option<&Vec<V>> {
     self.data.get(k)
   }

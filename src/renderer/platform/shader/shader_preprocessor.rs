@@ -1,13 +1,12 @@
 // use renderer::uniform::UniformType;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::str;
 
 use regex::Regex;
 
-use renderer::platform::{Shader, UniformType};
 
 lazy_static! {
   static ref INCLUDE_MATCHER: Regex = Regex::new("(?m)^\\s*#include \"([a-z./_]+)\"\\s*$").unwrap();
@@ -39,25 +38,25 @@ fn file_includer_helper(shader_path: &str, included_files: &mut HashSet<String>)
   ret
 }
 
-fn identify_uniforms(shader: &Shader) -> HashMap<String, UniformType> {
-  let mut uniforms = HashMap::new();
-  for uniform in UNIFORM_MATCHER.captures_iter(&shader.program_source) {
-    let name = String::from(&uniform[2]);
-    match &uniform[1] {
-      "vec3" => uniforms.insert(name, UniformType::Vec3),
-      "mat4" => uniforms.insert(name, UniformType::Mat4),
-      "mat3" => uniforms.insert(name, UniformType::Mat3),
-      "sampler2D" => uniforms.insert(name, UniformType::Int),
-      "sampler3D" => uniforms.insert(name, UniformType::Int),
-      "float" => uniforms.insert(name, UniformType::Float),
-      "int" => uniforms.insert(name, UniformType::Int),
-      "bool" => uniforms.insert(name, UniformType::Bool),
-      "samplerCube" => uniforms.insert(name, UniformType::Int),
-      _ => panic!(
-        "Shader contains unrecognized uniform 'uniform {} {};",
-        &uniform[1], &uniform[2]
-      ),
-    };
-  }
-  uniforms
-}
+// fn identify_uniforms(shader: &Shader) -> HashMap<String, UniformType> {
+//   let mut uniforms = HashMap::new();
+//   for uniform in UNIFORM_MATCHER.captures_iter(&shader.program_source) {
+//     let name = String::from(&uniform[2]);
+//     match &uniform[1] {
+//       "vec3" => uniforms.insert(name, UniformType::Vec3),
+//       "mat4" => uniforms.insert(name, UniformType::Mat4),
+//       "mat3" => uniforms.insert(name, UniformType::Mat3),
+//       "sampler2D" => uniforms.insert(name, UniformType::Int),
+//       "sampler3D" => uniforms.insert(name, UniformType::Int),
+//       "float" => uniforms.insert(name, UniformType::Float),
+//       "int" => uniforms.insert(name, UniformType::Int),
+//       "bool" => uniforms.insert(name, UniformType::Bool),
+//       "samplerCube" => uniforms.insert(name, UniformType::Int),
+//       _ => panic!(
+//         "Shader contains unrecognized uniform 'uniform {} {};",
+//         &uniform[1], &uniform[2]
+//       ),
+//     };
+//   }
+//   uniforms
+// }

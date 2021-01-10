@@ -1,6 +1,5 @@
 extern crate glfw;
 
-use std::collections::{HashMap, HashSet};
 
 use gl;
 

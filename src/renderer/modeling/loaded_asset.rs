@@ -1,10 +1,8 @@
-use std::path::Path;
 
 use tobj;
 
 use renderer::{
-  AttributeType, BufferLayout, DrawableState, Drawable, IndexBuffer, Material, Texture, VertexArray, VertexBuffer,
-  WHITE_TEXTURE, Uniform
+  AttributeType, BufferLayout, DrawableState, IndexBuffer, Material, Texture, VertexArray, VertexBuffer, WHITE_TEXTURE,
 };
 use utils::*;
 
@@ -13,6 +11,7 @@ use utils::*;
 //   material: Material,
 // }
 
+#[allow(dead_code)]
 pub struct Model {
   filename: String,
   shader: String,
@@ -20,28 +19,31 @@ pub struct Model {
 }
 
 impl Model {
-  pub fn new(path: &str, transform: Mat4F, shader: &str) -> Model {
+  #[allow(dead_code)]
+  pub fn new(path: &str, shader: &str) -> Model {
     // let directory = Path::new(path).parent().unwrap_or_else(|| Path::new("")).to_str().unwrap().into();
     let (model_vec, materials) = tobj::load_obj(path, true).expect(&format!("Failed to load file {}", path));
     let last_path_divider = path.rfind("/").expect("Could not remove filename from path");
     let dirpath = path[..last_path_divider].to_string();
     let my_materials = get_materials(&materials, dirpath);
-    let meshes = model_vec.into_iter().map(move |model| {
-      let vert_arr = get_vertex_array(&model.mesh);
-      if let Some(mat_id) = model.mesh.material_id {
-        Box::from(DrawableState::new_textured(vert_arr, my_materials[mat_id].clone()))
-      } else {
-        Box::from(DrawableState::new_textured(vert_arr, Material::new()))
-      }
-    }).collect();
+    let meshes = model_vec
+      .into_iter()
+      .map(move |model| {
+        let vert_arr = get_vertex_array(&model.mesh);
+        if let Some(mat_id) = model.mesh.material_id {
+          Box::from(DrawableState::new_textured(vert_arr, my_materials[mat_id].clone()))
+        } else {
+          Box::from(DrawableState::new_textured(vert_arr, Material::new()))
+        }
+      })
+      .collect();
     Model {
       filename: path.to_string(),
       shader: shader.to_string(),
-      meshes
+      meshes,
     }
   }
 }
-
 
 fn get_vertex_array(mesh: &tobj::Mesh) -> VertexArray {
   let mut atts: Vec<AttributeType> = vec![AttributeType::Float3];
@@ -60,9 +62,9 @@ fn get_vertex_array(mesh: &tobj::Mesh) -> VertexArray {
     buffer.push(mesh.positions[i * 3 + 2]);
     if mesh.normals.len() > 0 {
       buffer.push(mesh.normals[i * 3]);
-    buffer.push(mesh.normals[i * 3 + 1]);
-    buffer.push(mesh.normals[i * 3 + 2]);
-  }
+      buffer.push(mesh.normals[i * 3 + 1]);
+      buffer.push(mesh.normals[i * 3 + 2]);
+    }
     if mesh.texcoords.len() > 0 {
       buffer.push(mesh.texcoords[i * 2]);
       buffer.push(mesh.texcoords[i * 2 + 1]);
@@ -107,8 +109,6 @@ fn get_materials(mats: &Vec<tobj::Material>, dirpath: String) -> Vec<Material> {
     })
     .collect()
 }
-
-
 
 // impl Drawable for Mesh {
 //   fn vertex_array(&self) -> &VertexArray {

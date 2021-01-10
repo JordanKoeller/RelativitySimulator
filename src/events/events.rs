@@ -3,6 +3,7 @@ use utils::*;
 use glfw::Key as GLKey;
 
 #[derive(Clone, Hash, Eq, PartialEq, Debug)]
+#[allow(dead_code)]
 pub enum Event {
   KeyPressed(KeyCode),
   KeyDown(KeyCode),
@@ -16,19 +17,8 @@ pub enum Event {
   WindowResized,
 }
 
-impl Event {
-  pub fn event_inverse(self) -> Option<Event> {
-    match self {
-      Event::KeyDown(k) => Some(Event::KeyReleased(k)),
-      Event::KeyReleased(k) => Some(Event::KeyDown(k)),
-      Event::MousePressed(k) => Some(Event::MouseReleased(k)),
-      Event::MouseReleased(k) => Some(Event::MousePressed(k)),
-      _ => None,
-    }
-  }
-}
-
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub enum EventPayload {
   MouseScroll(i32),
   MouseMove(Vec2F),

@@ -38,7 +38,7 @@ impl ShaderStep {
     }
   }
 
-  pub fn glEnum(&self) -> gl::types::GLenum {
+  pub fn gl_enum(&self) -> gl::types::GLenum {
     match self {
       ShaderStep::FragmentShader(_) => gl::FRAGMENT_SHADER,
       ShaderStep::VertexShader(_) => gl::VERTEX_SHADER,
@@ -82,7 +82,7 @@ impl Shader {
       binder,
       unbinder,
     };
-    glCheckError!();
+    gl_check_error!();
     shader
   }
   pub fn from_file(name: &str, shader_path: &str) -> Self {
@@ -92,7 +92,7 @@ impl Shader {
         gl::UseProgram(slf.id);
       }
     };
-    fn unbinder(slf: &Shader) {
+    fn unbinder(_slf: &Shader) {
       unsafe { gl::UseProgram(0) }
     };
     Self::from_file_explicit(name, shader_path, binder, unbinder)
@@ -106,7 +106,7 @@ impl Shader {
         gl::UseProgram(slf.id);
       }
     };
-    fn unbinder(slf: &Shader) {
+    fn unbinder(_slf: &Shader) {
       unsafe {
         gl::DepthFunc(gl::LESS);
         gl::UseProgram(0);
@@ -215,7 +215,7 @@ fn compile_program(steps: Vec<ShaderStep>) -> u32 {
 }
 unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
   let shader_c_code = CString::new(shader.text().as_bytes()).unwrap();
-  let shader_id = gl::CreateShader(shader.glEnum());
+  let shader_id = gl::CreateShader(shader.gl_enum());
   gl::ShaderSource(shader_id, 1, &shader_c_code.as_ptr(), ptr::null());
   gl::CompileShader(shader_id);
   let mut err_log = Vec::with_capacity(512);

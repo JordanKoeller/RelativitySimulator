@@ -1,4 +1,4 @@
-use specs::{Join, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Join, Read, System, WriteStorage};
 
 use cgmath::prelude::*;
 use ecs::components::{Kinetics, Position};

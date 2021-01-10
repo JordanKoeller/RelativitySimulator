@@ -1,17 +1,12 @@
-use gl::types::*;
 
-use std::sync::mpsc::Receiver;
-use std::ptr;
-use std::mem;
 use std::os::raw::c_void;
-use std::path::Path;
 use std::ffi::CStr;
 
-pub fn glCheckError_(file: &str, line: u32) -> u32 {
+pub fn gl_check_error_(file: &str, line: u32) -> u32 {
   unsafe {
-    let mut errorCode = gl::GetError();
-    while errorCode != gl::NO_ERROR {
-        let error = match errorCode {
+    let mut error_code = gl::GetError();
+    while error_code != gl::NO_ERROR {
+        let error = match error_code {
             gl::INVALID_ENUM => "INVALID_ENUM",
             gl::INVALID_VALUE => "INVALID_VALUE",
             gl::INVALID_OPERATION => "INVALID_OPERATION",
@@ -24,15 +19,16 @@ pub fn glCheckError_(file: &str, line: u32) -> u32 {
 
         println!("{} | {} ({})", error, file, line);
 
-        errorCode = gl::GetError();
+        error_code = gl::GetError();
     }
-    errorCode
+    error_code
   }
 }
 
-macro_rules! glCheckError {
+#[allow(unused_macros)]
+macro_rules! gl_check_error {
     () => (
-        glCheckError_(file!(), line!())
+        gl_check_error_(file!(), line!())
     )
 }
 
