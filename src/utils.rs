@@ -37,7 +37,19 @@ pub type Mut<T> = RefCell<T>;
 
 #[derive(Default)]
 pub struct Timestep(pub f32);
+impl Timestep {
+  pub fn set_value(&mut self, value: f32) {
+    self.0 = value;
+  }
+}
 
+#[derive(Default)]
+pub struct Running(pub bool);
+impl Running {
+  pub fn set_value(&mut self, value: bool) {
+    self.0 = value;
+  }
+}
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
   Rc::new(RefCell::new(v))

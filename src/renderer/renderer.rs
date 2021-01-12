@@ -137,7 +137,7 @@ impl Renderer {
       "Render Mode".to_string(),
       format!("{:?}", self.config.mode),
     ));
-    overlay.push(OverlayLine::LabelText("Frame Time".to_string(), format!("{0:.4}", fps)));
+    overlay.push(OverlayLine::IntInput(format!("Frame Time {:.4}", fps).to_string(), (fps * 1000.0) as i32));
     self.submit_2d(overlay);
   }
 
@@ -215,7 +215,8 @@ impl Renderer {
 
   fn draw_imgui(&mut self, window: &mut Window) {
     let mut y = 10f32;
-    for overlay in self.queued_overlays.iter() {
+    for i in 0..self.queued_overlays.len() {
+      let overlay = self.queued_overlays.get_mut(i).unwrap();
       let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
       overlay.render(&ui, y.clone());
       window.imgui_glfw.draw(ui, &mut window.window);

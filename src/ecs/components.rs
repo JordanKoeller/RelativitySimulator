@@ -107,6 +107,10 @@ pub struct EventReceiver(pub ReceiverID);
 #[storage(VecStorage)]
 pub struct Transform(pub Mat4F);
 
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct DebugPannelReceiver(pub ReceiverID);
+
 // #[derive(Component, Debug, Clone)]
 // #[storage(VecStorage)]
 // pub struct ImguiElement(pub UiCommand);

@@ -28,7 +28,7 @@ mod utils;
 
 mod app;
 
-use events::{Event, EventChannel, KeyCode, WindowEvent, WindowEventChannel};
+use events::{Event, EventChannel, KeyCode, WindowEvent};
 use utils::{Vec3F};
 
 use specs::{World, WorldExt};
@@ -44,9 +44,8 @@ pub fn main() {
 
   // Initialize high-level "singleton" structures
   // --------------------------------------------
-  let mut window_event_receiver = WindowEventChannel::default();
   let mut window_event_channel = EventChannel::<WindowEvent>::default();
-  let mut window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
+  let window = utils::GetMutRef(renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity"));
   let mut render = renderer::Renderer::new(
     utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32),
     &mut window_event_channel,
@@ -69,20 +68,24 @@ pub fn main() {
   let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
   render.submit_shader(shader);
 
-  let mut g_loop = game_loop::GameLoop::new(window_event_channel.register_with_subs(&[
-    WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
-    WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
-  ]));
+  let mut g_loop = game_loop::GameLoop;
 
   let mut world = World::new();
 
-  let mut dispatcher = app::setup_dispatcher();
+  let mut dispatcher = app::setup_dispatcher(utils::MutRef::clone(&window));
 
   dispatcher.setup(&mut world);
 
+  let world_id = window_event_channel.register_with_subs(&[
+    WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
+    WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
+  ]);
+
   world.insert(window_event_channel);
   world.insert(utils::Timestep(0.016));
+  world.insert(utils::Running(true));
   world.insert(render);
+  world.insert(world_id);
   app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
   app::scenes::build_rotate_boxes(
     3,
@@ -91,5 +94,5 @@ pub fn main() {
     Vec3F::new(5f32, 0f32, 0f32),
     &mut world,
   );
-  g_loop.run(&mut dispatcher, &mut world, &mut window, &mut window_event_receiver);
+  g_loop.run(&mut dispatcher, &mut world, window);
 }

@@ -1,6 +1,5 @@
 extern crate glfw;
 
-
 use gl;
 
 use utils::Vec2F;
@@ -69,13 +68,15 @@ impl WindowEventChannel {
           // self.receive_event(Event::WindowResized, Some(EventPayload::WindowSize(Vec2F::new(width as f32, height as f32))))
         }
         glfw::WindowEvent::CursorPos(xpos, ypos) => {
-          let new_pos = Vec2F::new(xpos as f32, ypos as f32);
-          if let Some(last_pos) = self.last_mouse_pos {
-            let offset = Vec2F::new(new_pos.x - last_pos.x, last_pos.y - new_pos.y);
-            channel.publish(WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset)));
-            // self.receive_event(Event::MouseMoved, Some(EventPayload::MouseMove(offset)));
+          if !window.cursor {
+            let new_pos = Vec2F::new(xpos as f32, ypos as f32);
+            if let Some(last_pos) = self.last_mouse_pos {
+              let offset = Vec2F::new(new_pos.x - last_pos.x, last_pos.y - new_pos.y);
+              channel.publish(WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset)));
+              // self.receive_event(Event::MouseMoved, Some(EventPayload::MouseMove(offset)));
+            }
+            self.last_mouse_pos = Some(new_pos);
           }
-          self.last_mouse_pos = Some(new_pos);
         }
         glfw::WindowEvent::Key(key_code, _, key_action, _) => {
           let my_key: KeyCode = KeyCode::from(key_code);
@@ -93,15 +94,17 @@ impl WindowEventChannel {
           }
         }
         glfw::WindowEvent::MouseButton(button, action, _) => {
-          let my_button = MouseButton::from(button);
-          match action {
-            glfw::Action::Press => {
-              self.down_mouse[my_button.clone() as usize] = true;
-              channel.publish(WindowEvent::new(Event::MousePressed(my_button)));
+          if !window.cursor {
+            let my_button = MouseButton::from(button);
+            match action {
+              glfw::Action::Press => {
+                self.down_mouse[my_button.clone() as usize] = true;
+                channel.publish(WindowEvent::new(Event::MousePressed(my_button)));
+              }
+              // glfw::Action::Repeat => self.receive_event(Event::MousePressed(my_button), None),
+              glfw::Action::Release => channel.publish(WindowEvent::new(Event::MouseReleased(my_button))),
+              _ => {}
             }
-            // glfw::Action::Repeat => self.receive_event(Event::MousePressed(my_button), None),
-            glfw::Action::Release => channel.publish(WindowEvent::new(Event::MouseReleased(my_button))),
-            _ => {}
           }
         }
         _ => {}
