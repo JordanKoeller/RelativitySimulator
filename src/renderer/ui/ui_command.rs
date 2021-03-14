@@ -55,11 +55,6 @@ impl Overlay {
               ui.label_text(&ImString::from(t.clone()), &ImString::from(l.clone()));
             },
             OverlayLine::Text(t) => ui.text(t),
-            // OverlayLine::Text(t) => {
-
-            //   // let slider = imgui::internal::Slider::<u8>::new(&ImString::from(t.clone()));
-            //   // slider.build(ui, &self.v)
-            // }
             OverlayLine::IntInput(label, value) => {
               let v = ImString::from(label.clone());
               let slider = SliderInt::new(ui, &v, value, 0, 100);

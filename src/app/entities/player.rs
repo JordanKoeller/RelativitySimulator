@@ -1,7 +1,6 @@
 use specs::prelude::*;
 
-use ecs::components::*;
-use ecs::entity::EntityConstructor;
+use ecs::*;
 use events::{EventChannel, WindowEvent, Event, KeyCode};
 use utils::{Vec3F, Vec2F};
 
@@ -19,12 +18,12 @@ pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
       WindowEvent::new(Event::MouseMoved),
     ]))
   };
-  EntityConstructor::new(world)
-    .add(Player)
-    .add(Rotation(Vec2F::new(0f32, 0f32)))
-    .add(Kinetics::default())
-    .add(receiver)
-    .add(Position(pos))
-    .build()
+    world.create_entity()
+    .with(Player)
+    .with(Rotation(Vec2F::new(0f32, 0f32)))
+    .with(Kinetics::default())
+    .with(receiver)
+    .with(Position(pos))
+    .build();
 }
 

@@ -20,9 +20,9 @@ pub fn build_rotate_boxes(num_boxes: u32, scale: f32, start_pos: Vec3F, delta: V
     let pos = translate(start_pos + delta * i as f32);
     let scale = Mat4F::from_scale(scale);
     let transform = Transform(scale * pos);
-    EntityConstructor::new(world)
-      .add(drawable_id.clone())
-      .add(transform)
+    world.create_entity()
+      .with(drawable_id.clone())
+      .with(transform)
       .build();
   }
 }

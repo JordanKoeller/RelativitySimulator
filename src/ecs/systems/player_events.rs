@@ -25,7 +25,7 @@ impl<'a> System<'a> for PlayerEvents {
     for (_position, rotation, kinetics, receiver_id) in (&mut pos_storage, &mut rot_storage, &mut kinetic_storage, &evt_receiver).join() {
       _evt_channel
         .read(&receiver_id.0)
-        .for_each(move |window_event: &WindowEvent| {
+        .for_each(move |(window_event, _payload): (&WindowEvent, &())| {
           match window_event.code {
           Event::KeyDown(KeyCode::W) => kinetics.acceleration += rotation.front(),
           Event::KeyDown(KeyCode::A) => kinetics.acceleration -= rotation.right(),

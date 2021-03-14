@@ -8,6 +8,8 @@ use renderer::*;
 
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
+type TransformStack = Vec<Mat4F>;
+
 struct Screen {
   pub screen_quad: VertexArray,
   pub shader: Shader,
@@ -29,6 +31,9 @@ pub struct Renderer {
   // Config
   config: RendererConfig,
   receiver_id: ReceiverID,
+
+  // Transform Stack
+  transform_stack: TransformStack,
 }
 
 impl Default for Renderer {
@@ -42,6 +47,7 @@ impl Default for Renderer {
       queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id: 0,
+      transform_stack: vec![identity()],
     }
   }
 }
@@ -62,6 +68,7 @@ impl Renderer {
       queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id,
+      transform_stack: vec![identity()],
     }
   }
 
@@ -269,7 +276,7 @@ impl Renderer {
   pub fn process_events(&mut self, chanel: &mut EventChannel<WindowEvent>) {
     chanel
       .read(&self.receiver_id)
-      .for_each(move |window_event: &WindowEvent| match &window_event.code {
+      .for_each(move |(window_event, _): (&WindowEvent, &())| match &window_event.code {
         Event::WindowResized => {
           if let Some(payload) = &window_event.payload {
             match payload {

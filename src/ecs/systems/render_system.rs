@@ -1,20 +1,20 @@
-use specs::prelude::*;
 use cgmath::prelude::*;
+use specs::prelude::*;
 
-use utils::{Timestep, Mat4F, MutRef, Running};
-use renderer::{Renderer, DrawableId, DrawCommand, Window, Camera};
-use ecs::components::{Transform, Player, Position, Kinetics, Rotation};
-use events::{EventChannel, WindowEvent, WindowEventChannel, ReceiverID, Event, KeyCode};
+use ecs::components::{Kinetics, Player, Position, Rotation, Transform};
+use events::{Event, EventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventChannel};
+use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window};
+use utils::{Mat4F, MutRef, Running, Timestep};
 
 pub struct RenderSystem {
   pub window: MutRef<Window>,
 }
 
-impl <'a> System<'a> for RenderSystem {
+impl<'a> System<'a> for RenderSystem {
   type SystemData = (
     ReadStorage<'a, DrawableId>,
     ReadStorage<'a, Transform>,
-    Write<'a, Renderer>
+    Write<'a, Renderer>,
   );
 
   fn run(&mut self, (drawables, transforms, mut renderer): Self::SystemData) {
@@ -22,12 +22,12 @@ impl <'a> System<'a> for RenderSystem {
       if let Some(transform) = maybe_transform {
         renderer.submit(DrawCommand {
           id: drawable.clone(),
-          transform: transform.clone()
+          transform: transform.clone(),
         });
       } else {
         renderer.submit(DrawCommand {
           id: drawable.clone(),
-          transform: Transform(Mat4F::one())
+          transform: Transform(Mat4F::one()),
         });
       }
     }
@@ -42,7 +42,7 @@ pub struct StartFrameSystem {
   pub last_time: f32,
 }
 
-impl <'a> System<'a> for StartFrameSystem {
+impl<'a> System<'a> for StartFrameSystem {
   type SystemData = (
     Write<'a, Renderer>,
     Write<'a, EventChannel<WindowEvent>>,
@@ -56,20 +56,31 @@ impl <'a> System<'a> for StartFrameSystem {
     ReadStorage<'a, Rotation>,
   );
 
-  fn run(&mut self, 
-    (mut renderer, mut events, mut window_events, receiver_id, mut timestep, mut running,
-      s_player, s_pos, s_kinetics, s_rotation
-    ): Self::SystemData) {
+  fn run(
+    &mut self,
+    (
+      mut renderer,
+      mut events,
+      mut window_events,
+      receiver_id,
+      mut timestep,
+      mut running,
+      s_player,
+      s_pos,
+      s_kinetics,
+      s_rotation,
+    ): Self::SystemData,
+  ) {
     let mut window = self.window.borrow_mut();
     let delta = window.glfw_token.get_time() as f32 - self.last_time;
     self.last_time = self.last_time + delta;
     timestep.set_value(delta);
     window.poll_events();
     window_events.process_events(&mut events, &mut window);
-    events.read(&receiver_id).for_each(|window_evt| match window_evt.code {
+    events.read(&receiver_id).for_each(|(window_evt, _)| match window_evt.code {
       Event::KeyPressed(KeyCode::Control) => {
         window.toggle_cursor();
-      },
+      }
       Event::KeyPressed(KeyCode::Esc) => {
         running.set_value(false);
       }

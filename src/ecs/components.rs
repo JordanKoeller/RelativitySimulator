@@ -5,6 +5,7 @@ use events::ReceiverID;
 use utils::*;
 
 use cgmath::prelude::*;
+use ecs::Debugger;
 
 #[derive(Debug)]
 pub struct Position(pub Vec3F);

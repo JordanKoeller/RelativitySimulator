@@ -1,4 +1,5 @@
 use cgmath;
+use cgmath::One;
 // use cgmath::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -68,6 +69,12 @@ pub fn scale(factor: f32) -> Mat4F {
 pub fn nonunif_scale(factor: Vec3F) -> Mat4F {
   Mat4F::from_nonuniform_scale(factor.x, factor.y, factor.z)
 }
+
+#[allow(dead_code)]
+pub fn identity() -> Mat4F {
+  Mat4F::one()
+}
+
 
 // MultiMap
 

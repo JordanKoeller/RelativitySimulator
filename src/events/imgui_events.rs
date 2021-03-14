@@ -1,27 +1,26 @@
-use events::{EventChannel, ReceiverID};
+use events::ReceiverID;
 use utils::*;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub enum ImguiUiEvent {
-  FloatInput(ReceiverID, f32, String),
-  IntInput(ReceiverID, i32, String),
-  BoolInput(ReceiverID, bool, String),
-  Vec2Input(ReceiverID, Vec2F, String),
-  Vec3Input(ReceiverID, Vec3F, String),
-  Vec2IntInput(ReceiverID, Vec2F, String),
+  FloatInput(usize, f32),
+  IntInput(usize, i32),
+  BoolInput(usize, bool),
+  Vec2Input(usize, Vec2F),
+  Vec3Input(usize, Vec3F),
+  Vec2IntInput(usize, Vec2F),
 }
 
 impl ImguiUiEvent {
   pub fn index(&self) -> usize {
-    let space = usize::MAX / 6;
     match self {
-      ImguiUiEvent::FloatInput(id, _, _) => 0 + id,
-      ImguiUiEvent::IntInput(id, _, _) => space + id,
-      ImguiUiEvent::BoolInput(id, _, _) => 2 * space + id,
-      ImguiUiEvent::Vec2Input(id, _, _) => 3 * space + id,
-      ImguiUiEvent::Vec3Input(id, _, _) => 4 * space + id,
-      ImguiUiEvent::Vec2IntInput(id, _, _) => 5 * space + id,
+      ImguiUiEvent::FloatInput(e, _) => *e,
+      ImguiUiEvent::IntInput(e, _) =>  *e,
+      ImguiUiEvent::BoolInput(e, _) => *e,
+      ImguiUiEvent::Vec2Input(e, _) => *e,
+      ImguiUiEvent::Vec3Input(e, _) => *e,
+      ImguiUiEvent::Vec2IntInput(e, _) => *e,
     }
   }
 }

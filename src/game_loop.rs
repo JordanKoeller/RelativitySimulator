@@ -24,6 +24,7 @@ impl GameLoop {
         let running_v = world.read_resource::<Running>();
         running = running_v.0;
       }
+      world.maintain();
     }
   }
 }
