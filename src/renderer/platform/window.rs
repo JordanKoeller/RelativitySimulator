@@ -74,7 +74,10 @@ impl Window {
       gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
       gl::Enable(gl::DEPTH_TEST);
       gl::DepthFunc(gl::LESS);
-      gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+      gl::ClearColor(0.2, 0.1, 0.0, 1.0);
+
+      // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+
     }
 
     let mut im_ctx = ImContext::create();
@@ -130,6 +133,13 @@ impl Window {
   pub fn clear_framebuffer(&mut self) {
     unsafe {
       gl::ClearColor(0.1, 0.2, 0.3, 1.0);
+      gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    }
+  }
+
+  pub fn clear_framebuffer2(&mut self) {
+    unsafe {
+      gl::ClearColor(0.7, 0.2, 0.3, 1.0);
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
   }

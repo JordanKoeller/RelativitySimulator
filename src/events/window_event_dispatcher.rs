@@ -44,13 +44,13 @@ impl WindowEvent {
   }
 }
 
-pub struct WindowEventChannel {
+pub struct WindowEventDispatcher {
   last_mouse_pos: Option<Vec2F>,
   down_keys: Vec<bool>,
   down_mouse: Vec<bool>,
 }
 
-impl WindowEventChannel {
+impl WindowEventDispatcher {
   pub fn process_events(&mut self, channel: &mut EventChannel<WindowEvent>, window: &mut Window) {
     channel.clear_events();
     for (_, event) in glfw::flush_messages(&window.events) {
@@ -61,10 +61,10 @@ impl WindowEventChannel {
           // height will be significantly larger than specified on retina displays.
           println!("Setting frame buffer {} {}", width, height);
           unsafe { gl::Viewport(0, 0, width, height) }
-          channel.publish(WindowEvent::payload(
-            Event::WindowResized,
-            EventPayload::WindowSize(Vec2F::new(width as f32, height as f32)),
-          ));
+          // channel.publish(WindowEvent::payload(
+          //   Event::WindowResized,
+          //   EventPayload::WindowSize(Vec2F::new(width as f32, height as f32)),
+          // ));
           // self.receive_event(Event::WindowResized, Some(EventPayload::WindowSize(Vec2F::new(width as f32, height as f32))))
         }
         glfw::WindowEvent::CursorPos(xpos, ypos) => {
@@ -125,9 +125,9 @@ impl WindowEventChannel {
   }
 }
 
-impl Default for WindowEventChannel {
+impl Default for WindowEventDispatcher {
   fn default() -> Self {
-    WindowEventChannel {
+    WindowEventDispatcher {
       last_mouse_pos: None,
       down_keys: (0..KeyCode::KeyCodeLength as usize).map(|_| false).collect(),
       down_mouse: (0..MouseButton::MouseButtonLength as usize).map(|_| false).collect(),

@@ -88,15 +88,16 @@ where
     }
   }
 
-  pub fn read(&self, receiver: &ReceiverID) -> impl Iterator<Item = (&Event, &Payload)> + '_ {
+  pub fn read(&self, receiver: &ReceiverID) -> impl Iterator<Item = (&Event, Option<&Payload>)> + '_ {
     self.receiver_inboxes[*receiver].iter().filter_map(move |v| {
       let ret = self.active_events.get(v);
       match ret {
         Some(evt) => {
           let payload = self.payloads.get(evt);
+          // Some((evt, payload))
           match payload {
-            Some(pld) => Some((evt, pld)),
-            None => None,
+            Some(pld) => Some((evt, Some(pld))),
+            None => Some((evt, None)),
           }
         }
         None => None,
@@ -106,12 +107,20 @@ where
 
   pub fn publish(&mut self, event: Event) {
     if self.subscriptions.contains_key(&event) {
-      self.active_events.insert(event);
+      self.active_events.insert(event.clone());
+    }
+  }
+
+  pub fn publish_with_payload(&mut self, event: Event, payload: Payload) {
+    if self.subscriptions.contains_key(&event) {
+      self.active_events.insert(event.clone());
+      self.payloads.insert(event, payload);
     }
   }
 
   pub fn clear_events(&mut self) {
     self.active_events.clear();
+    self.payloads.clear();
   }
 }
 

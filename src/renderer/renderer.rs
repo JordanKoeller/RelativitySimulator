@@ -33,13 +33,12 @@ pub struct Renderer {
   receiver_id: ReceiverID,
 
   // Transform Stack
-  transform_stack: TransformStack,
 }
 
 impl Default for Renderer {
   fn default() -> Self {
     Renderer {
-      screen: create_screen(1600, 900),
+      screen: create_screen(1600, 1200),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
@@ -47,7 +46,6 @@ impl Default for Renderer {
       queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id: 0,
-      transform_stack: vec![identity()],
     }
   }
 }
@@ -68,7 +66,6 @@ impl Renderer {
       queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id,
-      transform_stack: vec![identity()],
     }
   }
 
@@ -162,7 +159,7 @@ impl Renderer {
       gl::Disable(gl::DEPTH_TEST);
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
-    window.clear_framebuffer();
+    window.clear_framebuffer2();
     self.screen.shader.bind();
     self
       .screen
@@ -276,7 +273,7 @@ impl Renderer {
   pub fn process_events(&mut self, chanel: &mut EventChannel<WindowEvent>) {
     chanel
       .read(&self.receiver_id)
-      .for_each(move |(window_event, _): (&WindowEvent, &())| match &window_event.code {
+      .for_each(move |(window_event, _): (&WindowEvent, Option<&()>)| match &window_event.code {
         Event::WindowResized => {
           if let Some(payload) = &window_event.payload {
             match payload {
@@ -297,8 +294,12 @@ impl Renderer {
 fn create_screen(w: i32, h: i32) -> Screen {
   let verts = vec![
     // Positions  // uv
-    -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32, -1f32,
-    1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
+    -1f32, 1f32, 0f32, 1f32,
+    -1f32, -1f32, 0f32, 0f32,
+    1f32, -1f32, 1f32, 0f32,
+    -1f32, 1f32, 0f32, 1f32,
+    1f32, -1f32, 1f32, 0f32,
+    1f32, 1f32, 1f32, 1f32,
   ];
 
   let inds = vec![0, 1, 2, 3, 4, 5];

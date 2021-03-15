@@ -237,15 +237,25 @@ impl<'a, Delegate: EntityDelegate<'a>> System<'a> for EntityManager<'a, Delegate
         EntityCrudEvent::NOOP => {}
         EntityCrudEvent::Create => {
             // let constructor = EntityConstructorFactory::from_updater(&entities, &updater);
-            self.delegate.create(payload.clone(), &mut resource_storage, || {
-              MyBuilder::LazyBuilder(updater.create_entity(&entities))
-            });
+            match payload {
+              Some(pld) => {
+                self.delegate.create(pld.clone(), &mut resource_storage, || {
+                  MyBuilder::LazyBuilder(updater.create_entity(&entities))
+                });
+              }
+              None => {}
+            }
           }
           EntityCrudEvent::Delete(id) => {
             entities.delete(*id);
           }
           EntityCrudEvent::Update(id) => {
-            self.delegate.update_entity(*id, payload.clone());
+            match payload {
+              Some(pld) => {
+                self.delegate.update_entity(*id, pld.clone());
+              }
+              None => {}
+            }
           }
         };
       });

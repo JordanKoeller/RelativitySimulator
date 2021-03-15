@@ -7,7 +7,7 @@ use utils::*;
 use app::Cube;
 
 #[derive(Clone, Debug)]
-struct BuildingState {
+pub struct BuildingState {
   bounding_box: Vec3F,
   position: Vec3F,
   ratio: f32,
@@ -27,7 +27,7 @@ impl Default for BuildingState {
 
 type BuildingStateData<'a> = (ReadStorage<'a, DrawableId>, Write<'a, Renderer>);
 
-struct BuildingDelegate;
+pub struct BuildingDelegate;
 impl<'a> EntityDelegate<'a> for BuildingDelegate {
   type State = BuildingState;
   type EntityResources = BuildingStateData<'a>;

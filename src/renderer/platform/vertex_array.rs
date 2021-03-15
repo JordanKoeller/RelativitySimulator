@@ -19,7 +19,6 @@ impl VertexArray {
       index_buffer,
     };
     unsafe {
-      println!("CREATING VAO");
       gl::CreateVertexArrays(1, &mut ret.id);
       gl::BindVertexArray(ret.id);
     }

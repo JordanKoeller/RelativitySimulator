@@ -2,7 +2,7 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 
 use ecs::components::{Kinetics, Player, Position, Rotation, Transform};
-use events::{Event, EventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventChannel};
+use events::{Event, EventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
 use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
@@ -40,14 +40,14 @@ impl<'a> System<'a> for RenderSystem {
 pub struct StartFrameSystem {
   pub window: MutRef<Window>,
   pub last_time: f32,
+  pub receiver_id: ReceiverID,
 }
 
 impl<'a> System<'a> for StartFrameSystem {
   type SystemData = (
     Write<'a, Renderer>,
     Write<'a, EventChannel<WindowEvent>>,
-    Write<'a, WindowEventChannel>,
-    Read<'a, ReceiverID>,
+    Write<'a, WindowEventDispatcher>,
     Write<'a, Timestep>,
     Write<'a, Running>,
     ReadStorage<'a, Player>,
@@ -62,7 +62,6 @@ impl<'a> System<'a> for StartFrameSystem {
       mut renderer,
       mut events,
       mut window_events,
-      receiver_id,
       mut timestep,
       mut running,
       s_player,
@@ -77,7 +76,7 @@ impl<'a> System<'a> for StartFrameSystem {
     timestep.set_value(delta);
     window.poll_events();
     window_events.process_events(&mut events, &mut window);
-    events.read(&receiver_id).for_each(|(window_evt, _)| match window_evt.code {
+    events.read(&self.receiver_id).for_each(|(window_evt, _)| match window_evt.code {
       Event::KeyPressed(KeyCode::Control) => {
         window.toggle_cursor();
       }
