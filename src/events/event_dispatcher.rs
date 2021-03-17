@@ -4,7 +4,7 @@ pub type ReceiverID = usize;
 
 type SubCount = u32;
 
-pub struct EventWithPayload<Event, Payload>
+pub struct EventChannelWithPayload<Event, Payload>
 where
   Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
   Payload: Sized,
@@ -16,7 +16,7 @@ where
   active_events: HashSet<Event>,
 }
 
-impl<Event, Payload> EventWithPayload<Event, Payload>
+impl<Event, Payload> EventChannelWithPayload<Event, Payload>
 where
   Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
   Payload: Sized,
@@ -124,7 +124,7 @@ where
   }
 }
 
-impl<Event, Payload> Default for EventWithPayload<Event, Payload>
+impl<Event, Payload> Default for EventChannelWithPayload<Event, Payload>
 where
   Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
   Payload: Sized,
@@ -143,7 +143,7 @@ where
 pub type EventChannel<Event>
 where
   Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
-= EventWithPayload<Event, ()>;
+= EventChannelWithPayload<Event, ()>;
 
 // pub struct EventChannel<Event: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static> {
 //   registration_id: ReceiverID,

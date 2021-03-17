@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use specs::world::LazyBuilder;
 
-use events::{EventWithPayload, ReceiverID};
+use events::{EventChannelWithPayload, ReceiverID};
 
 /////////////////////////////////////////////
 // CRUD EVENTS
@@ -9,19 +9,15 @@ use events::{EventWithPayload, ReceiverID};
 
 #[derive(Clone, Eq, Debug)]
 pub enum EntityCrudEvent {
-  Create,
-  Update(Entity),
-  Delete(Entity),
+  Create(usize),
   NOOP,
 }
 
 impl EntityCrudEvent {
   fn index(&self) -> u32 {
     match self {
-      EntityCrudEvent::Create => 0,
-      EntityCrudEvent::Update(_) => 1,
-      EntityCrudEvent::Delete(_) => 2,
-      EntityCrudEvent::NOOP => 3,
+      EntityCrudEvent::Create(i) => *i as u32,
+      EntityCrudEvent::NOOP => u32::MAX,
     }
   }
 }
@@ -48,124 +44,6 @@ impl Default for EntityCrudEvent {
 // Entity Constructor
 /////////////////////////////////////////////
 
-// pub enum BuilderSpawner<'a> {
-//   Builder(EntityBuilder<'a>),
-//   LazyBuilder(Entity, &'a LazyUpdate),
-// }
-
-// impl<'a> BuilderSpawner<'a> {
-//   fn add<C: Component + Send + Sync>(self, component: C) -> Self {
-//     match self {
-//       BuilderSpawner::Builder(builder) => BuilderSpawner::Builder(builder.with(component)),
-//       BuilderSpawner::LazyBuilder(ent, updater) => {
-//         updater.insert(ent, component);
-//         self
-//       }
-//     }
-//   }
-
-//   fn build(self) -> Entity {
-//     match self {
-//       BuilderSpawner::Builder(builder) => builder.build(),
-//       BuilderSpawner::LazyBuilder(ent, updater) => {
-//         ent
-//       }
-//     }
-//   }
-// }
-
-// pub trait EntityConstructor {
-//   fn new_entity<'a>(self) -> (BuilderSpawner<'a>, Self);
-//   // fn add<C: Component + Send + Sync>(self, component: C) -> Self;
-//   // fn build(&mut self) -> Entity;
-// }
-
-// pub struct LazyUpdater<'a, 'b> {
-//   entity: Option<Entity>,
-//   entities: &'b Entities<'a>,
-//   updater: &'b LazyUpdate,
-// }
-// impl<'a, 'b> LazyUpdater<'a, 'b> {
-//     pub fn new(entities: &'b Entities<'a>, updater: &'b LazyUpdate) -> Self {
-//     Self {
-//       entity: None,
-//       entities: entities,
-//       updater,
-//     }
-//   }
-// }
-// impl<'a, 'b> EntityConstructor for LazyUpdater<'a, 'b> {
-//   fn new_entity<'c>(self) -> (BuilderSpawner<'c>, Self) {
-//     (
-//       BuilderSpawner::LazyBuilder(self.entities.create(), self.updater),
-//       self
-//     )
-//   }
-//   // fn add<C: Component + Send + Sync>(self, component: C) -> Self {
-//   //   self.updater.insert(self.entity.unwrap(), component);
-//   //   self
-//   // }
-//   // fn build(&mut self) -> Entity {
-//   //   self.entity.unwrap().clone()
-//   // }
-//   // fn new_entity(self) -> Self {
-//   //   LazyUpdater::new(self.entities, self.updater)
-//   // }
-// }
-// pub struct WorldEntityCreator<'a> {
-//   world: &'a mut World,
-//   builder: Option<EntityBuilder<'a>>
-// }
-// impl<'a> EntityConstructor<'a> for WorldEntityCreator<'a> {
-//   fn add<C: Component + Send + Sync>(self, component: C) -> Self {
-//     WorldEntityCreator {
-//       world: self.world,
-//       builder: Some(self.builder.unwrap().with(component))
-//     }
-//   }
-//   fn build(&mut self) -> Entity {
-//     let mut ret: Option<Entity> = None;
-//     self.builder.map(|builder| {
-//       ret = Some(builder.build());
-//     });
-//     self.builder = None;
-//     ret.unwrap()
-//     // let builder = self.builder;
-//     // self.builder = None;
-//     // builder.as_ref().build()
-
-//     // let newEnt = self.builder.clone()
-//     // self.builder.unwrap().build()
-//     // self.builder.as_ref().unwrap().build();
-//     // self.builder.unwrap().build();
-//   }
-//   fn new_entity(self) -> Self {
-//     WorldEntityCreator::new(self.world)
-//     // let myBuilder = self.world.create_entity() as EntityBuilder<'a>;
-//     // self.builder = Some();
-//   }
-// }
-// impl<'a> WorldEntityCreator<'a> {
-//   pub fn new(world: &'a mut World) -> Self {
-//     let builder: EntityBuilder<'a> = world.create_entity();
-//     Self {
-//       world,
-//       builder: Some(builder),
-//     }
-//   }
-// }
-
-// pub struct EntityConstructorFactory;
-
-// impl EntityConstructorFactory {
-//   pub fn from_builder<'a>(world: &'a mut World) -> WorldEntityCreator<'a> {
-//     WorldEntityCreator::new(world)
-//   }
-
-//   pub fn from_updater<'a, 'b>(entities: &'b Entities<'a>, updater: &'b LazyUpdate) -> LazyUpdater<'a, 'b> {
-//     LazyUpdater::new(entities, updater)
-//   }
-// }
 
 pub enum MyBuilder<'a, 'b> {
   Builder(EntityBuilder<'a>),
@@ -198,35 +76,45 @@ pub trait EntityDelegate<'a> {
 
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(&self, state: Self::State, resources: &mut Self::EntityResources, constructor: F) -> Vec<Entity>;
 
-  fn update_entity(&self, entity: Entity, state: Self::State);
 }
 
 /////////////////////////////////////////////
 // Entity manager system definition
 /////////////////////////////////////////////
 
-struct EntityManager<'a, Delegate: EntityDelegate<'a>> {
+pub struct EntityManager<Delegate> 
+where for<'a> Delegate: EntityDelegate<'a> + Default {
   delegate: Delegate,
   event_receiver_id: ReceiverID,
-  marker: std::marker::PhantomData<&'a Delegate>,
 }
 
-impl<'a, Delegate: EntityDelegate<'a>> EntityManager<'a, Delegate> {
+impl<Delegate> EntityManager<Delegate>
+where for <'a> Delegate: EntityDelegate<'a> + Default {
   fn new(delegate: Delegate) -> Self {
     Self {
       delegate,
       event_receiver_id: usize::MAX,
-      marker: std::marker::PhantomData::default(),
     }
   }
 }
 
-impl<'a, Delegate: EntityDelegate<'a>> System<'a> for EntityManager<'a, Delegate> {
+impl<Delegate> Default for EntityManager<Delegate> 
+where for <'a> Delegate: EntityDelegate<'a> + Default {
+  fn default() -> Self {
+    Self {
+      delegate: Delegate::default(),
+      event_receiver_id: usize::MAX,
+    }
+  }
+}
+
+impl<'a, Delegate> System<'a> for EntityManager<Delegate> 
+where for <'b> Delegate: EntityDelegate<'b> + Default {
   type SystemData = (
-    Delegate::EntityResources,
+    <Delegate as EntityDelegate<'a>>::EntityResources,
     Entities<'a>,
     Read<'a, LazyUpdate>,
-    Write<'a, EventWithPayload<EntityCrudEvent, Delegate::State>>,
+    Write<'a, EventChannelWithPayload<EntityCrudEvent, <Delegate as EntityDelegate<'a>>::State>>,
   );
 
   fn run(&mut self, (mut resource_storage, entities, updater, mut crud_events): Self::SystemData) {
@@ -235,8 +123,7 @@ impl<'a, Delegate: EntityDelegate<'a>> System<'a> for EntityManager<'a, Delegate
     .for_each(|(event, payload)| {
       match event {
         EntityCrudEvent::NOOP => {}
-        EntityCrudEvent::Create => {
-            // let constructor = EntityConstructorFactory::from_updater(&entities, &updater);
+        EntityCrudEvent::Create(_) => {
             match payload {
               Some(pld) => {
                 self.delegate.create(pld.clone(), &mut resource_storage, || {
@@ -246,24 +133,125 @@ impl<'a, Delegate: EntityDelegate<'a>> System<'a> for EntityManager<'a, Delegate
               None => {}
             }
           }
-          EntityCrudEvent::Delete(id) => {
-            entities.delete(*id);
-          }
-          EntityCrudEvent::Update(id) => {
-            match payload {
-              Some(pld) => {
-                self.delegate.update_entity(*id, pld.clone());
-              }
-              None => {}
-            }
-          }
         };
       });
+      crud_events.clear_events();
   }
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
-    let mut channel = world.fetch_mut::<EventWithPayload<EntityCrudEvent, Delegate::State>>();
-    self.event_receiver_id = channel.register_with_subs(&[EntityCrudEvent::Create]);
+    let mut channel = world.fetch_mut::<EventChannelWithPayload<EntityCrudEvent, Delegate::State>>();
+    self.event_receiver_id = channel.register_with_subs(&[
+      EntityCrudEvent::Create(0),
+      EntityCrudEvent::Create(1),
+      EntityCrudEvent::Create(2),
+      EntityCrudEvent::Create(3),
+      EntityCrudEvent::Create(4),
+      EntityCrudEvent::Create(5),
+      EntityCrudEvent::Create(6),
+      EntityCrudEvent::Create(7),
+      EntityCrudEvent::Create(8),
+      EntityCrudEvent::Create(9),
+      EntityCrudEvent::Create(10),
+      EntityCrudEvent::Create(11),
+      EntityCrudEvent::Create(12),
+      EntityCrudEvent::Create(13),
+      EntityCrudEvent::Create(14),
+      EntityCrudEvent::Create(15),
+      EntityCrudEvent::Create(16),
+      EntityCrudEvent::Create(17),
+      EntityCrudEvent::Create(18),
+      EntityCrudEvent::Create(19),
+      EntityCrudEvent::Create(20),
+      EntityCrudEvent::Create(21),
+      EntityCrudEvent::Create(22),
+      EntityCrudEvent::Create(23),
+      EntityCrudEvent::Create(24),
+      EntityCrudEvent::Create(25),
+      EntityCrudEvent::Create(26),
+      EntityCrudEvent::Create(27),
+      EntityCrudEvent::Create(28),
+      EntityCrudEvent::Create(29),
+      EntityCrudEvent::Create(30),
+      EntityCrudEvent::Create(31),
+      EntityCrudEvent::Create(32),
+      EntityCrudEvent::Create(33),
+      EntityCrudEvent::Create(34),
+      EntityCrudEvent::Create(35),
+      EntityCrudEvent::Create(36),
+      EntityCrudEvent::Create(37),
+      EntityCrudEvent::Create(38),
+      EntityCrudEvent::Create(39),
+      EntityCrudEvent::Create(40),
+      EntityCrudEvent::Create(41),
+      EntityCrudEvent::Create(42),
+      EntityCrudEvent::Create(43),
+      EntityCrudEvent::Create(44),
+      EntityCrudEvent::Create(45),
+      EntityCrudEvent::Create(46),
+      EntityCrudEvent::Create(47),
+      EntityCrudEvent::Create(48),
+      EntityCrudEvent::Create(49),
+      EntityCrudEvent::Create(50),
+      EntityCrudEvent::Create(51),
+      EntityCrudEvent::Create(52),
+      EntityCrudEvent::Create(53),
+      EntityCrudEvent::Create(54),
+      EntityCrudEvent::Create(55),
+      EntityCrudEvent::Create(56),
+      EntityCrudEvent::Create(57),
+      EntityCrudEvent::Create(58),
+      EntityCrudEvent::Create(59),
+      EntityCrudEvent::Create(60),
+      EntityCrudEvent::Create(61),
+      EntityCrudEvent::Create(62),
+      EntityCrudEvent::Create(63),
+      EntityCrudEvent::Create(64),
+      EntityCrudEvent::Create(65),
+      EntityCrudEvent::Create(66),
+      EntityCrudEvent::Create(67),
+      EntityCrudEvent::Create(68),
+      EntityCrudEvent::Create(69),
+      EntityCrudEvent::Create(70),
+      EntityCrudEvent::Create(71),
+      EntityCrudEvent::Create(72),
+      EntityCrudEvent::Create(73),
+      EntityCrudEvent::Create(74),
+      EntityCrudEvent::Create(75),
+      EntityCrudEvent::Create(76),
+      EntityCrudEvent::Create(77),
+      EntityCrudEvent::Create(78),
+      EntityCrudEvent::Create(79),
+      EntityCrudEvent::Create(80),
+      EntityCrudEvent::Create(81),
+      EntityCrudEvent::Create(82),
+      EntityCrudEvent::Create(83),
+      EntityCrudEvent::Create(84),
+      EntityCrudEvent::Create(85),
+      EntityCrudEvent::Create(86),
+      EntityCrudEvent::Create(87),
+      EntityCrudEvent::Create(88),
+      EntityCrudEvent::Create(89),
+      EntityCrudEvent::Create(90),
+      EntityCrudEvent::Create(91),
+      EntityCrudEvent::Create(92),
+      EntityCrudEvent::Create(93),
+      EntityCrudEvent::Create(94),
+      EntityCrudEvent::Create(95),
+      EntityCrudEvent::Create(96),
+      EntityCrudEvent::Create(97),
+      EntityCrudEvent::Create(98),
+      EntityCrudEvent::Create(99),
+      EntityCrudEvent::Create(100),
+      EntityCrudEvent::Create(101),
+      EntityCrudEvent::Create(102),
+      EntityCrudEvent::Create(103),
+      EntityCrudEvent::Create(104),
+      EntityCrudEvent::Create(105),
+      EntityCrudEvent::Create(106),
+      EntityCrudEvent::Create(107),
+      EntityCrudEvent::Create(108),
+      EntityCrudEvent::Create(109),
+      ]);
   }
 }

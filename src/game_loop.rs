@@ -18,13 +18,13 @@ impl GameLoop {
     let mut window_open = true;
     while running && window_open {
       dispatcher.dispatch(&world);
+      world.maintain();
       {
         let window_ref = window.borrow();
         window_open = window_ref.is_open();
         let running_v = world.read_resource::<Running>();
         running = running_v.0;
       }
-      world.maintain();
     }
   }
 }

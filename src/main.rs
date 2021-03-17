@@ -86,7 +86,8 @@ pub fn main() {
   world.insert(utils::Running(true));
   world.insert(render);
   world.insert(world_id);
-  app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
+  app::build_city(&mut world);
+  // app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
   // app::scenes::build_rotate_boxes(
   //   3,
   //   10f32,

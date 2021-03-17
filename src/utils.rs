@@ -26,6 +26,9 @@ pub type Vec4F = cgmath::Vector4<f32>;
 pub type Mat4F = cgmath::Matrix4<f32>;
 pub type Mat3F = cgmath::Matrix3<f32>;
 #[allow(dead_code)]
+pub type QuatF = cgmath::Quaternion<f32>;
+pub type DegF = cgmath::Deg<f32>;
+#[allow(dead_code)]
 pub type Mat2F = cgmath::Matrix2<f32>;
 #[allow(dead_code)]
 pub type Color = Vec3F;
