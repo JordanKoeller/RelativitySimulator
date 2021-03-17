@@ -18,6 +18,7 @@ pub trait Drawable {
   }
 }
 
+#[derive(Debug)]
 pub struct DrawableState {
   pub shader_name: String,
   pub vertex_array: VertexArray,

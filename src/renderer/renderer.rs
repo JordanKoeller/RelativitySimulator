@@ -8,6 +8,8 @@ use renderer::*;
 
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
+type TransformStack = Vec<Mat4F>;
+
 struct Screen {
   pub screen_quad: VertexArray,
   pub shader: Shader,
@@ -29,12 +31,14 @@ pub struct Renderer {
   // Config
   config: RendererConfig,
   receiver_id: ReceiverID,
+
+  // Transform Stack
 }
 
 impl Default for Renderer {
   fn default() -> Self {
     Renderer {
-      screen: create_screen(1600, 900),
+      screen: create_screen(1600, 1200),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
@@ -137,7 +141,7 @@ impl Renderer {
       "Render Mode".to_string(),
       format!("{:?}", self.config.mode),
     ));
-    overlay.push(OverlayLine::LabelText("Frame Time".to_string(), format!("{0:.4}", fps)));
+    overlay.push(OverlayLine::IntInput(format!("Frame Time {:.4}", fps).to_string(), (fps * 1000.0) as i32));
     self.submit_2d(overlay);
   }
 
@@ -155,7 +159,7 @@ impl Renderer {
       gl::Disable(gl::DEPTH_TEST);
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
-    window.clear_framebuffer();
+    window.clear_framebuffer2();
     self.screen.shader.bind();
     self
       .screen
@@ -215,7 +219,8 @@ impl Renderer {
 
   fn draw_imgui(&mut self, window: &mut Window) {
     let mut y = 10f32;
-    for overlay in self.queued_overlays.iter() {
+    for i in 0..self.queued_overlays.len() {
+      let overlay = self.queued_overlays.get_mut(i).unwrap();
       let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
       overlay.render(&ui, y.clone());
       window.imgui_glfw.draw(ui, &mut window.window);
@@ -268,7 +273,7 @@ impl Renderer {
   pub fn process_events(&mut self, chanel: &mut EventChannel<WindowEvent>) {
     chanel
       .read(&self.receiver_id)
-      .for_each(move |window_event: &WindowEvent| match &window_event.code {
+      .for_each(move |(window_event, _): (&WindowEvent, Option<&()>)| match &window_event.code {
         Event::WindowResized => {
           if let Some(payload) = &window_event.payload {
             match payload {
@@ -289,8 +294,12 @@ impl Renderer {
 fn create_screen(w: i32, h: i32) -> Screen {
   let verts = vec![
     // Positions  // uv
-    -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32, -1f32,
-    1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
+    -1f32, 1f32, 0f32, 1f32,
+    -1f32, -1f32, 0f32, 0f32,
+    1f32, -1f32, 1f32, 0f32,
+    -1f32, 1f32, 0f32, 1f32,
+    1f32, -1f32, 1f32, 0f32,
+    1f32, 1f32, 1f32, 1f32,
   ];
 
   let inds = vec![0, 1, 2, 3, 4, 5];

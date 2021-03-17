@@ -3,7 +3,7 @@ use app::{
   Cube,
 };
 use ecs::components::*;
-use ecs::entity::EntityConstructor;
+use ecs::*;
 use specs::prelude::*;
 use utils::*;
 
@@ -63,9 +63,9 @@ impl WireBox {
             // xy plane
             Vec3F::new(e as f32 * increment, f as f32 * increment, self.scale / 2f32)
           };
-          EntityConstructor::new(world)
-            .add(Transform(translate(add_transl + seed_corner) * nonunif_scale(scaling_vec)))
-            .add(cube_id.clone())
+          world.create_entity()
+            .with(Transform(translate(add_transl + seed_corner) * nonunif_scale(scaling_vec)))
+            .with(cube_id.clone())
             .build();
         }
       }

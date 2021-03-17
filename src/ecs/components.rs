@@ -5,6 +5,7 @@ use events::ReceiverID;
 use utils::*;
 
 use cgmath::prelude::*;
+use ecs::Debugger;
 
 #[derive(Debug)]
 pub struct Position(pub Vec3F);
@@ -106,6 +107,10 @@ pub struct EventReceiver(pub ReceiverID);
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct Transform(pub Mat4F);
+
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct DebugPannelReceiver(pub ReceiverID);
 
 // #[derive(Component, Debug, Clone)]
 // #[storage(VecStorage)]

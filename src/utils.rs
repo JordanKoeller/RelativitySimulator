@@ -1,4 +1,5 @@
 use cgmath;
+use cgmath::One;
 // use cgmath::prelude::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -25,6 +26,9 @@ pub type Vec4F = cgmath::Vector4<f32>;
 pub type Mat4F = cgmath::Matrix4<f32>;
 pub type Mat3F = cgmath::Matrix3<f32>;
 #[allow(dead_code)]
+pub type QuatF = cgmath::Quaternion<f32>;
+pub type DegF = cgmath::Deg<f32>;
+#[allow(dead_code)]
 pub type Mat2F = cgmath::Matrix2<f32>;
 #[allow(dead_code)]
 pub type Color = Vec3F;
@@ -37,7 +41,19 @@ pub type Mut<T> = RefCell<T>;
 
 #[derive(Default)]
 pub struct Timestep(pub f32);
+impl Timestep {
+  pub fn set_value(&mut self, value: f32) {
+    self.0 = value;
+  }
+}
 
+#[derive(Default)]
+pub struct Running(pub bool);
+impl Running {
+  pub fn set_value(&mut self, value: bool) {
+    self.0 = value;
+  }
+}
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
   Rc::new(RefCell::new(v))
@@ -56,6 +72,12 @@ pub fn scale(factor: f32) -> Mat4F {
 pub fn nonunif_scale(factor: Vec3F) -> Mat4F {
   Mat4F::from_nonuniform_scale(factor.x, factor.y, factor.z)
 }
+
+#[allow(dead_code)]
+pub fn identity() -> Mat4F {
+  Mat4F::one()
+}
+
 
 // MultiMap
 

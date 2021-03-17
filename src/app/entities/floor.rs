@@ -1,7 +1,6 @@
 use specs::prelude::*;
 
-use ecs::components::*;
-use ecs::entity::EntityConstructor;
+use ecs::*;
 use renderer::*;
 use utils::*;
 
@@ -91,8 +90,8 @@ pub fn create_floor<'a>(height: f32, cube_scale: f32, world: &'a mut World) {
     let mut renderer = world.write_resource::<Renderer>();
     renderer.submit_model(floor.state())
   };
-  EntityConstructor::new(world)
-    .add(drawable_id)
-    .add(transform)
+    world.create_entity()
+    .with(drawable_id)
+    .with(transform)
     .build();
 }

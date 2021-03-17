@@ -1,6 +1,6 @@
 use specs::prelude::*;
 
-use app::{entities::create_floor, entities::create_player, Cube};
+use app::{entities::create_floor, entities::create_player, Cube, FaceCube};
 use renderer::*;
 use utils::*;
 
@@ -20,26 +20,11 @@ pub fn build_rotate_boxes(num_boxes: u32, scale: f32, start_pos: Vec3F, delta: V
     let pos = translate(start_pos + delta * i as f32);
     let scale = Mat4F::from_scale(scale);
     let transform = Transform(scale * pos);
-    EntityConstructor::new(world)
-      .add(drawable_id.clone())
-      .add(transform)
+    world.create_entity()
+      .with(drawable_id.clone())
+      .with(transform)
       .build();
   }
 }
 
-pub struct FaceCube {
-  pub c: Cube,
-}
 
-impl Drawable for FaceCube {
-  fn vertex_array(&self) -> VertexArray {
-    self.c.vertex_array()
-  }
-  fn material(&self) -> Material {
-    self.c.material()
-  }
-
-  fn shader_name(&self) -> String {
-    "face_cube".to_string()
-  }
-}

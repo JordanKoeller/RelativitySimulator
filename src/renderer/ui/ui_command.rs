@@ -3,9 +3,15 @@ use imgui::*;
 
 #[allow(dead_code)]
 pub enum OverlayLine {
+  // Labels and stuff
   LabelText(String, String),
   Text(String),
   HLine,
+
+  // Input components
+  FloatInput(String, f32),
+  IntInput(String, i32),
+  BoolInput(String, bool),
 }
 
 pub struct Overlay {
@@ -29,15 +35,12 @@ impl Overlay {
     self.lines.len() as f32 * 20f32
   }
 
-  pub fn render(&self, ui: &Ui, y: f32) {
+  pub fn render(&mut self, ui: &Ui, y: f32) {
     const DISTANCE: f32 = 10.0;
     let window_pos = [DISTANCE, y];
     let _style = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
-    // let flags = ui.io().config_flags;
-    // flags.push(imgui::ConfigFlags::NO_CURSOR_CHANGE);
     Window::new(ui, &ImString::from(self.title.clone()))
       .opened(&mut true)
-      // .flags(imgui::ConfigFlags::NO_MOUSE_CURSOR_CHANGE)
       .position(window_pos, Condition::Always)
       .title_bar(false)
       .resizable(true)
@@ -45,11 +48,19 @@ impl Overlay {
       .movable(false)
       .save_settings(false)
       .build(|| {
-        for line in self.lines.iter() {
+        for line in self.lines.iter_mut() {
           match line {
             OverlayLine::HLine => ui.separator(),
-            OverlayLine::LabelText(l, t) => ui.label_text(&ImString::from(t.clone()), &ImString::from(l.clone())),
+            OverlayLine::LabelText(l, t) => {
+              ui.label_text(&ImString::from(t.clone()), &ImString::from(l.clone()));
+            },
             OverlayLine::Text(t) => ui.text(t),
+            OverlayLine::IntInput(label, value) => {
+              let v = ImString::from(label.clone());
+              let slider = SliderInt::new(ui, &v, value, 0, 100);
+              slider.build();
+            }
+            _ => {}
           }
         }
       });

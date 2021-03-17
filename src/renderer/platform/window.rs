@@ -17,6 +17,13 @@ pub struct Window {
   pub window: glfw::Window,
   pub imgui_glfw: ImguiGLFW,
   pub im_context: ImContext,
+  pub cursor: bool,
+}
+
+impl Default for Window {
+  fn default() -> Self {
+    Window::new(400, 400, "Game")
+  }
 }
 
 impl Window {
@@ -36,11 +43,13 @@ impl Window {
 
     window.make_current();
 
-    window.set_cursor_pos_polling(true);
+    // window.set_cursor_pos_polling(true);
 
-    window.set_key_polling(true);
-    window.set_scroll_polling(true);
-    window.set_framebuffer_size_polling(true);
+    // window.set_key_polling(true);
+    // window.set_scroll_polling(true);
+    // window.set_framebuffer_size_polling(true);
+    // window.set_cursor_enter_polling(true);
+    window.set_all_polling(true);
 
     // gl: load all OpenGL function pointers
     // ---------------------------------------
@@ -65,7 +74,10 @@ impl Window {
       gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
       gl::Enable(gl::DEPTH_TEST);
       gl::DepthFunc(gl::LESS);
-      gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+      gl::ClearColor(0.2, 0.1, 0.0, 1.0);
+
+      // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+
     }
 
     let mut im_ctx = ImContext::create();
@@ -73,7 +85,7 @@ impl Window {
     let imgui_glfw = ImguiGLFW::new(&mut im_ctx, &mut window);
     im_ctx.io_mut().config_flags |= imgui::ConfigFlags::NO_MOUSE_CURSOR_CHANGE;
     window.set_cursor_mode(glfw::CursorMode::Disabled);
-    // imgui_glfw.set_cursor_mode()
+    // imgui_glfw.set_cursor_mode();
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     Window {
@@ -82,6 +94,7 @@ impl Window {
       window: window,
       imgui_glfw: imgui_glfw,
       im_context: im_ctx,
+      cursor: false,
     }
   }
 
@@ -89,15 +102,16 @@ impl Window {
     &self.window
   }
 
-  #[allow(dead_code)]
-  pub fn disable_cursor(&mut self) {
-    self.window.set_cursor_mode(glfw::CursorMode::Disabled);
+  pub fn toggle_cursor(&mut self) {
+    if self.cursor {
+      self.cursor = false;
+      self.window.set_cursor_mode(glfw::CursorMode::Disabled);
+    } else {
+      self.cursor = true;
+      self.window.set_cursor_mode(glfw::CursorMode::Normal);
+    }
   }
 
-  #[allow(dead_code)]
-  pub fn enable_cursor(&mut self) {
-    self.window.set_cursor_mode(glfw::CursorMode::Normal);
-  }
 
   #[allow(dead_code)]
   pub fn set_closed(&mut self) {
@@ -119,6 +133,13 @@ impl Window {
   pub fn clear_framebuffer(&mut self) {
     unsafe {
       gl::ClearColor(0.1, 0.2, 0.3, 1.0);
+      gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    }
+  }
+
+  pub fn clear_framebuffer2(&mut self) {
+    unsafe {
+      gl::ClearColor(0.7, 0.2, 0.3, 1.0);
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
   }
