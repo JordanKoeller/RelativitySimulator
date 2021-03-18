@@ -94,7 +94,6 @@ where
       match ret {
         Some(evt) => {
           let payload = self.payloads.get(evt);
-          // Some((evt, payload))
           match payload {
             Some(pld) => Some((evt, Some(pld))),
             None => Some((evt, None)),

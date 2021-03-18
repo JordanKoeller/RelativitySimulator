@@ -4,7 +4,7 @@ use gl;
 
 use utils::Vec2F;
 
-use super::{Event, EventChannel, EventPayload, KeyCode, MouseButton};
+use super::{Event, StatelessEventChannel, EventChannel, EventPayload, KeyCode, MouseButton};
 
 use renderer::Window;
 
@@ -51,7 +51,7 @@ pub struct WindowEventDispatcher {
 }
 
 impl WindowEventDispatcher {
-  pub fn process_events(&mut self, channel: &mut EventChannel<WindowEvent>, window: &mut Window) {
+  pub fn process_events(&mut self, channel: &mut StatelessEventChannel<WindowEvent>, window: &mut Window) {
     channel.clear_events();
     for (_, event) in glfw::flush_messages(&window.events) {
       // Process Application Events
@@ -72,7 +72,8 @@ impl WindowEventDispatcher {
             let new_pos = Vec2F::new(xpos as f32, ypos as f32);
             if let Some(last_pos) = self.last_mouse_pos {
               let offset = Vec2F::new(new_pos.x - last_pos.x, last_pos.y - new_pos.y);
-              channel.publish(WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset)));
+              let evt = WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset));
+              channel.publish(evt);
               // self.receive_event(Event::MouseMoved, Some(EventPayload::MouseMove(offset)));
             }
             self.last_mouse_pos = Some(new_pos);

@@ -6,7 +6,7 @@ use utils::*;
 use renderer::platform::VertexArray;
 use renderer::*;
 
-use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
+use events::{Event, EventChannel, StatelessEventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
 
 type TransformStack = Vec<Mat4F>;
 
@@ -52,7 +52,7 @@ impl Default for Renderer {
 
 impl Renderer {
   // Constructor
-  pub fn new(screen_dims: Vec2F, channel: &mut EventChannel<WindowEvent>) -> Renderer {
+  pub fn new(screen_dims: Vec2F, channel: &mut StatelessEventChannel<WindowEvent>) -> Renderer {
     let receiver_id = channel.register_with_subs(&[
       WindowEvent::new(Event::WindowResized),
       WindowEvent::new(Event::KeyPressed(KeyCode::Tab)),
@@ -270,10 +270,10 @@ impl Renderer {
     );
   }
 
-  pub fn process_events(&mut self, chanel: &mut EventChannel<WindowEvent>) {
+  pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {
+    let id = self.receiver_id;
     chanel
-      .read(&self.receiver_id)
-      .for_each(move |(window_event, _): (&WindowEvent, Option<&()>)| match &window_event.code {
+      .for_each(&id, |window_event| match &window_event.code {
         Event::WindowResized => {
           if let Some(payload) = &window_event.payload {
             match payload {

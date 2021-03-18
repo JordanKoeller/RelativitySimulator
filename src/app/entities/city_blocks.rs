@@ -1,6 +1,6 @@
 use cgmath::ElementWise;
 use ecs::*;
-use events::EventChannelWithPayload;
+use events::{StatefulEventChannel, EventChannel};
 use specs::prelude::*;
 use utils::*;
 
@@ -37,8 +37,8 @@ impl DistrictState {
 }
 
 type DistrictStateData<'a> = (
-  Write<'a, EventChannelWithPayload<EntityCrudEvent, StreetState>>,
-  Write<'a, EventChannelWithPayload<EntityCrudEvent, BuildingState>>,
+  Write<'a, StatefulEventChannel<EntityCrudEvent, StreetState>>,
+  Write<'a, StatefulEventChannel<EntityCrudEvent, BuildingState>>,
 );
 
 #[derive(Default, Debug)]
@@ -146,7 +146,7 @@ impl DistrictDelegate {
   }
 
   fn make_building<'a>(&self,
-    evts: &mut Write<'a, EventChannelWithPayload<EntityCrudEvent, BuildingState>>,
+    evts: &mut Write<'a, StatefulEventChannel<EntityCrudEvent, BuildingState>>,
     lines: &mut Vec<Vec<(char, bool)>>, i: usize, j: usize, block_scale: &Vec2F, position: Vec3F) {
       // Find the max dims of a contiguous building
       let dims = match self.merge_buildings(&lines, Vec2I::new(i as i32,j as i32), Vec2I::new(1,1)) {
@@ -163,15 +163,15 @@ impl DistrictDelegate {
       let my_dims = Vec3F::new(block_scale.x * dims.x as f32, 20f32, block_scale.y * dims.y as f32);
       let bl_corner = position - Vec3F::new(block_scale.x / 2f32, 0f32, block_scale.y / 2f32);
       let new_center = bl_corner + Vec3F::new(my_dims.x / 2f32, 0f32, my_dims.z / 2f32);
-      evts.publish_with_payload(EntityCrudEvent::Create(i*lines.len() + j), BuildingState::new(
+      evts.publish((EntityCrudEvent::Create, BuildingState::new(
         new_center,
         my_dims,
         0.7f32
-      ));
+      )));
   }
 
   fn make_road<'a>(&self,
-    evts: &mut Write<'a, EventChannelWithPayload<EntityCrudEvent, StreetState>>,
+    evts: &mut Write<'a, StatefulEventChannel<EntityCrudEvent, StreetState>>,
     l: &mut Vec<Vec<(char, bool)>>, i: usize, j: usize, block_scale: &Vec2F, position: Vec3F) {
       l[i][j].1 = true;
       let char_slice: [char; 9] = [
@@ -187,9 +187,9 @@ impl DistrictDelegate {
       });
       match found {
         Some((piece, rotation)) => {
-          evts.publish_with_payload(EntityCrudEvent::Create(i*l.len()+j), StreetState::new(
+          evts.publish((EntityCrudEvent::Create, StreetState::new(
             position, *block_scale, *rotation, piece.clone()
-          ));
+          )));
         }
         None => {
           println!("########## FAILED ##############");

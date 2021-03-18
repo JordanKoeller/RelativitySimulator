@@ -14,7 +14,7 @@ impl<'a> System<'a> for PlayerEvents {
     WriteStorage<'a, Kinetics>,
     ReadStorage<'a, Player>,
     ReadStorage<'a, EventReceiver>,
-    Write<'a, EventChannel<WindowEvent>>,
+    Write<'a, StatelessEventChannel<WindowEvent>>,
   );
 
   fn run(
@@ -24,8 +24,7 @@ impl<'a> System<'a> for PlayerEvents {
 
     for (_position, rotation, kinetics, receiver_id) in (&mut pos_storage, &mut rot_storage, &mut kinetic_storage, &evt_receiver).join() {
       _evt_channel
-        .read(&receiver_id.0)
-        .for_each(move |(window_event, _payload): (&WindowEvent, Option<&()>)| {
+        .for_each(&receiver_id.0, |window_event| {
           match window_event.code {
           Event::KeyDown(KeyCode::W) => kinetics.acceleration += rotation.front(),
           Event::KeyDown(KeyCode::A) => kinetics.acceleration -= rotation.right(),
@@ -44,7 +43,9 @@ impl<'a> System<'a> for PlayerEvents {
           Event::MouseMoved => {
             if let Some(payload) = &window_event.payload {
               match payload {
-                EventPayload::MouseMove(vec) => rotation.rotate(vec.x * 0.05, vec.y * 0.05),
+                EventPayload::MouseMove(vec) => {
+                  rotation.rotate(vec.x * 0.05, vec.y * 0.05)
+                },
                 _ => panic!(format!("Received a payload of {:?} on MouseMoved event!", payload))
               }
             }

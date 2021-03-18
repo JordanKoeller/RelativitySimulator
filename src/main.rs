@@ -28,7 +28,7 @@ mod utils;
 
 mod app;
 
-use events::{Event, EventChannel, KeyCode, WindowEvent};
+use events::{Event, EventChannel, KeyCode, WindowEvent, StatelessEventChannel};
 use utils::{Vec3F};
 
 use specs::{World, WorldExt};
@@ -44,7 +44,7 @@ pub fn main() {
 
   // Initialize high-level "singleton" structures
   // --------------------------------------------
-  let mut window_event_channel = EventChannel::<WindowEvent>::default();
+  let mut window_event_channel = StatelessEventChannel::<WindowEvent>::default();
   let window = utils::GetMutRef(renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity"));
   let mut render = renderer::Renderer::new(
     utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32),

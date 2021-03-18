@@ -1,7 +1,7 @@
 use specs::prelude::*;
 
 use renderer::{Renderer};
-use events::{EventChannel, WindowEvent, ImguiUiEvent, ReceiverID};
+use events::{EventChannel, StatelessEventChannel, WindowEvent, ImguiUiEvent, ReceiverID};
 
 pub struct EventProcessingSystem {
   receiver_id: ReceiverID
@@ -18,7 +18,7 @@ impl Default for EventProcessingSystem {
 impl <'a> System<'a> for EventProcessingSystem {
   type SystemData = (
     Write<'a, Renderer>,
-    Write<'a, EventChannel<WindowEvent>>,
+    Write<'a, StatelessEventChannel<WindowEvent>>,
     // Write<'a, EventChannel<ImguiUiEvent>>,
   );
 

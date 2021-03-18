@@ -2,7 +2,7 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 
 use ecs::components::{Kinetics, Player, Position, Rotation, Transform};
-use events::{Event, EventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
+use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
 use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
@@ -46,7 +46,7 @@ pub struct StartFrameSystem {
 impl<'a> System<'a> for StartFrameSystem {
   type SystemData = (
     Write<'a, Renderer>,
-    Write<'a, EventChannel<WindowEvent>>,
+    Write<'a, StatelessEventChannel<WindowEvent>>,
     Write<'a, WindowEventDispatcher>,
     Write<'a, Timestep>,
     Write<'a, Running>,
@@ -76,7 +76,7 @@ impl<'a> System<'a> for StartFrameSystem {
     timestep.set_value(delta);
     window.poll_events();
     window_events.process_events(&mut events, &mut window);
-    events.read(&self.receiver_id).for_each(|(window_evt, _)| match window_evt.code {
+    events.for_each(&self.receiver_id, |window_evt| match window_evt.code {
       Event::KeyPressed(KeyCode::Control) => {
         window.toggle_cursor();
       }
