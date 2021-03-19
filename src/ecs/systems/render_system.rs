@@ -3,7 +3,7 @@ use specs::prelude::*;
 
 use ecs::components::{Kinetics, Player, Position, Rotation, Transform};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
-use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window};
+use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window, DrawableMemo, DrawableState};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
 pub struct RenderSystem {
@@ -92,5 +92,37 @@ impl<'a> System<'a> for StartFrameSystem {
       let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
       renderer.start_scene(cam, timestep.0);
     }
+  }
+}
+
+
+pub struct RegisterDrawableSystem;
+
+impl<'a> System<'a> for RegisterDrawableSystem {
+  type SystemData = (
+    Write<'a, Renderer>,
+    WriteStorage<'a, DrawableState>,
+    Entities<'a>,
+    Read<'a, LazyUpdate>,
+  );
+
+  fn run(&mut self,
+    (
+      mut renderer,
+      mut drawables_storage,
+      entities,
+      updater
+    ): Self::SystemData
+  ) {
+    for (entity, drawable_state) in (&entities, &mut drawables_storage).join() {
+      drawable_state.refresh();
+      let id = renderer.submit_model(drawable_state.clone());
+      updater.remove::<DrawableState>(entity);
+      updater.insert(entity, id);
+    }
+  }
+
+  fn setup(&mut self, world: &mut World) {
+    world.register::<DrawableState>();
   }
 }

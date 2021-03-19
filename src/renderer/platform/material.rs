@@ -2,7 +2,7 @@ use std::ffi::{CStr, CString};
 
 use utils::*;
 
-use renderer::{Texture, Uniform, WHITE_TEXTURE};
+use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike};
 
 #[derive(Clone, Debug)]
 pub struct Material {
@@ -79,6 +79,7 @@ impl Material {
     ret.normal_texture(WHITE_TEXTURE.clone());
     ret
   }
+
   fn upsert_uniform(&mut self, c_str: &CStr, value: Uniform) {
     let c_string = CString::from(c_str);
     let mut flag = true;
@@ -92,5 +93,15 @@ impl Material {
     if flag {
       self.uniforms.push((c_string, value));
     }
+  }
+
+  pub fn refresh(&mut self) {
+    self.uniforms.iter_mut().for_each(|(name, uniform)| {
+      match uniform {
+        Uniform::CubeMap(c) => c.refresh(),
+        Uniform::Texture(t) => t.refresh(),
+        _ => {}
+      }
+    });
   }
 }

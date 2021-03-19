@@ -27,12 +27,14 @@ impl RelativityMode {
 #[derive(Debug, Clone)]
 pub struct RendererConfig {
   pub mode: RelativityMode,
+  pub debug: bool,
 }
 
 impl Default for RendererConfig {
   fn default() -> Self {
     RendererConfig {
       mode: RelativityMode::CLASSICAL,
+      debug: false,
     }
   }
 }
@@ -40,7 +42,8 @@ impl Default for RendererConfig {
 impl RendererConfig {
   pub fn new(mode: RelativityMode) -> Self {
     RendererConfig {
-      mode: mode
+      mode: mode,
+      debug: false,
     }
   }
 

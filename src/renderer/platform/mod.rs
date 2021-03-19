@@ -6,7 +6,9 @@ pub mod window;
 pub mod texture;
 pub mod material;
 pub mod framebuffer;
+pub mod gl_bus;
 
+pub use self::gl_bus::*;
 pub use self::buffer::{VertexBuffer, IndexBuffer, AttributeType, BufferLayout};
 pub use self::vertex_array::VertexArray;
 pub use self::shader::*;

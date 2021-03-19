@@ -86,12 +86,12 @@ pub fn create_floor<'a>(height: f32, cube_scale: f32, world: &'a mut World) {
   let scale = Mat4F::from_nonuniform_scale(EXTENT, 1f32, EXTENT);
   let floor = Floor::new(cube_scale);
   let transform = Transform(scale * translation);
-  let drawable_id = {
-    let mut renderer = world.write_resource::<Renderer>();
-    renderer.submit_model(floor.state())
-  };
+  // let drawable_id = {
+  //   let mut renderer = world.write_resource::<Renderer>();
+  //   renderer.submit_model(floor.state())
+  // };
     world.create_entity()
-    .with(drawable_id)
+    .with(floor.state())
     .with(transform)
     .build();
 }

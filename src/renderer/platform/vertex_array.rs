@@ -13,21 +13,24 @@ pub struct VertexArray {
 
 impl VertexArray {
   pub fn new(vertex_buffers: Vec<VertexBuffer>, index_buffer: IndexBuffer) -> VertexArray {
-    let mut ret = VertexArray {
+    VertexArray {
       id: 0,
-      vertex_buffers: Vec::new(),
+      vertex_buffers: vertex_buffers,
       index_buffer,
-    };
+    }
+  }
+
+  pub fn refresh(&mut self) {
     unsafe {
-      gl::CreateVertexArrays(1, &mut ret.id);
-      gl::BindVertexArray(ret.id);
+      gl::CreateVertexArrays(1, &mut self.id);
+      gl::BindVertexArray(self.id);
     }
-    for vb in vertex_buffers {
-      ret.add_vertex_buffer(vb);
+    for vb_i in 0..self.vertex_buffers.len() {
+      self.vertex_buffers[vb_i].refresh();
+        self.refresh_vertex_buffer(&self.vertex_buffers[vb_i]);
     }
-    ret.index_buffer.init();
-    ret.unbind();
-    ret
+    self.index_buffer.refresh();
+    self.unbind();
   }
 
   pub fn unbind(&self) {
@@ -42,9 +45,8 @@ impl VertexArray {
     }
   }
 
-  pub fn add_vertex_buffer(&mut self, buff: VertexBuffer) {
-    // self.bind();
-    buff.init();
+  pub fn refresh_vertex_buffer(&self, buff: &VertexBuffer) {
+    self.bind();
     let stride = buff.layout.stride();
     for &(i, offset, attrib) in buff.layout.ind_offset_attrib().iter() {
       // println!("Setting Attribute {} {} {} {}", i, attrib.width(), stride, offset);
@@ -60,7 +62,6 @@ impl VertexArray {
         );
       }
     }
-    self.vertex_buffers.push(buff);
   }
 
   pub fn draw(&self, elem_type: &gl::types::GLenum) {

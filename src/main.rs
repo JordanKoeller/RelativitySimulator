@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 extern crate glfw;
 
 extern crate cgmath;
@@ -11,6 +14,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate specs;
 extern crate tobj;
+extern crate rand;
 
 mod macros;
 
@@ -57,6 +61,8 @@ pub fn main() {
   // -------------------------
   // let cube = app::ColoredCube::new(Vec3F::new(2.0, 0.0, -10.0), Color::new(0.5, 0.2, 0.8));
   // let cube: Ref<dyn renderer::Drawable> = Ref::new(cube);
+  let shader = renderer::Shader::from_file("debug", "shaders/debug_tessellation.glsl");
+  render.submit_shader(shader);
   let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");

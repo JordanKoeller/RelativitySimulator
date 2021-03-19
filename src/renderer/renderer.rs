@@ -6,7 +6,7 @@ use utils::*;
 use renderer::platform::VertexArray;
 use renderer::*;
 
-use events::{Event, EventChannel, StatelessEventChannel, EventPayload, KeyCode, ReceiverID, WindowEvent};
+use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 
 type TransformStack = Vec<Mat4F>;
 
@@ -31,7 +31,6 @@ pub struct Renderer {
   // Config
   config: RendererConfig,
   receiver_id: ReceiverID,
-
   // Transform Stack
 }
 
@@ -56,6 +55,7 @@ impl Renderer {
     let receiver_id = channel.register_with_subs(&[
       WindowEvent::new(Event::WindowResized),
       WindowEvent::new(Event::KeyPressed(KeyCode::Tab)),
+      WindowEvent::new(Event::KeyPressed(KeyCode::Q)),
     ]);
     Renderer {
       screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
@@ -141,7 +141,14 @@ impl Renderer {
       "Render Mode".to_string(),
       format!("{:?}", self.config.mode),
     ));
-    overlay.push(OverlayLine::IntInput(format!("Frame Time {:.4}", fps).to_string(), (fps * 1000.0) as i32));
+    overlay.push(OverlayLine::LabelText(
+      "Debug On:".to_string(),
+      format!("{:?}", self.config.debug),
+    ));
+    overlay.push(OverlayLine::IntInput(
+      format!("Frame Time {:.4}", fps).to_string(),
+      (fps * 1000.0) as i32,
+    ));
     self.submit_2d(overlay);
   }
 
@@ -172,42 +179,52 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_scene(&mut self, window: &mut Window) {
-    let mut active_shader: ShaderId = ShaderId(usize::MAX);
-    for (s_id, cmd) in self.queued_drawables.iter() {
-      let memo = self.assets.get_asset(&cmd.id);
-      if s_id != &active_shader {
-        active_shader = s_id.clone();
-        self.switch_shader(self.assets.get_shader(&active_shader));
-      }
-      let mut texture_slot = 1;
-      for (unif_name, unif) in memo.material.uniforms() {
-        match unif {
-          Uniform::Texture(tex) => {
-            self
-              .assets
-              .get_shader(&active_shader)
-              .set_texture(texture_slot, unif_name, tex);
-            texture_slot += 1;
-          }
-          Uniform::CubeMap(tex) => {
-            self
-              .assets
-              .get_shader(&active_shader)
-              .set_texture(texture_slot, unif_name, tex);
-            texture_slot += 1;
-          }
-          _ => self.assets.get_shader(&active_shader).set_uniform(&unif_name, &unif),
+  pub fn draw_drawable(&self, cmd: &DrawCommand, shader: &ShaderId) {
+    let memo = self.assets.get_asset(&cmd.id);
+    let mut texture_slot = 1;
+    for (unif_name, unif) in memo.material.uniforms() {
+      match unif {
+        Uniform::Texture(tex) => {
+          self
+            .assets
+            .get_shader(&shader)
+            .set_texture(texture_slot, unif_name, tex);
+          texture_slot += 1;
         }
+        Uniform::CubeMap(tex) => {
+          self
+            .assets
+            .get_shader(&shader)
+            .set_texture(texture_slot, unif_name, tex);
+          texture_slot += 1;
+        }
+        _ => self.assets.get_shader(&shader).set_uniform(&unif_name, &unif),
       }
-      self
-        .assets
-        .get_shader(&active_shader)
-        .set_uniform(c_str!("model"), &Uniform::Mat4(cmd.transform.0));
-      memo.vertex_array.bind();
-      memo
-        .vertex_array
-        .draw(&self.assets.get_shader(&active_shader).element_type);
+    }
+    self
+      .assets
+      .get_shader(&shader)
+      .set_uniform(c_str!("model"), &Uniform::Mat4(cmd.transform.0));
+    memo.vertex_array.bind();
+    memo.vertex_array.draw(&self.assets.get_shader(&shader).element_type);
+  }
+
+  pub fn draw_scene(&mut self, window: &mut Window) {
+    // let mut active_shader: ShaderId = ShaderId(usize::MAX);
+    for (s_id, cmd) in self.queued_drawables.iter() {
+      // if s_id != &active_shader {
+      //   active_shader = s_id.clone();
+      //   self.switch_shader(self.assets.get_shader(&active_shader));
+      // }
+      self.switch_shader(self.assets.get_shader(&s_id));
+      self.draw_drawable(&cmd, &s_id);
+    }
+    if self.config.debug {
+      let debug_id = ShaderId(0);
+      self.switch_shader(self.assets.get_shader(&debug_id));
+      for (_, cmd) in self.queued_drawables.iter() {
+        self.draw_drawable(&cmd, &debug_id);
+      }
     }
     self.draw_imgui(window);
     self.queued_overlays.clear();
@@ -272,38 +289,38 @@ impl Renderer {
 
   pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {
     let id = self.receiver_id;
-    chanel
-      .for_each(&id, |window_event| match &window_event.code {
-        Event::WindowResized => {
-          if let Some(payload) = &window_event.payload {
-            match payload {
-              EventPayload::WindowSize(new_sz) => self.set_dims(new_sz.clone()),
-              _ => {}
-            }
+    chanel.for_each(&id, |window_event| match &window_event.code {
+      Event::WindowResized => {
+        if let Some(payload) = &window_event.payload {
+          match payload {
+            EventPayload::WindowSize(new_sz) => self.set_dims(new_sz.clone()),
+            _ => {}
           }
         }
-        Event::KeyPressed(KeyCode::Tab) => {
-          let new_config = RendererConfig::new(self.config.clone().mode.rotate());
-          self.submit_config(new_config);
-        }
-        _ => {}
-      });
+      }
+      Event::KeyPressed(KeyCode::Tab) => {
+        let new_config = RendererConfig::new(self.config.clone().mode.rotate());
+        self.submit_config(new_config);
+      }
+      Event::KeyPressed(KeyCode::Q) => {
+        let mut new_config = self.config.clone();
+        new_config.debug = !new_config.debug;
+        self.submit_config(new_config);
+      }
+      _ => {}
+    });
   }
 }
 
 fn create_screen(w: i32, h: i32) -> Screen {
   let verts = vec![
     // Positions  // uv
-    -1f32, 1f32, 0f32, 1f32,
-    -1f32, -1f32, 0f32, 0f32,
-    1f32, -1f32, 1f32, 0f32,
-    -1f32, 1f32, 0f32, 1f32,
-    1f32, -1f32, 1f32, 0f32,
-    1f32, 1f32, 1f32, 1f32,
+    -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32, -1f32,
+    1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
   ];
 
   let inds = vec![0, 1, 2, 3, 4, 5];
-  let screen_quad = VertexArray::new(
+  let mut screen_quad = VertexArray::new(
     vec![VertexBuffer::create(
       verts,
       BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]),
@@ -311,6 +328,7 @@ fn create_screen(w: i32, h: i32) -> Screen {
     IndexBuffer::create(inds),
   );
   let shader = Shader::from_file("renderer_screen", "shaders/screen_shader.glsl");
+  screen_quad.refresh();
 
   Screen {
     framebuffer: Framebuffer::dims(w, h),

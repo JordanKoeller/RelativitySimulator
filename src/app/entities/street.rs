@@ -44,7 +44,7 @@ impl StreetState {
   }
 }
 
-type StreetStateData<'a> = (ReadStorage<'a, DrawableId>, ReadStorage<'a, Transform>, Write<'a, Renderer>);
+type StreetStateData<'a> = (ReadStorage<'a, DrawableId>, ReadStorage<'a, Transform>);
 
 #[derive(Default)]
 pub struct StreetDelegate;
@@ -72,9 +72,8 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
     };
     material.diffuse_texture(texture);
     let model = Cube::new(material).state();
-    let drawable = resources.2.submit_model(model);
     let builder = constructor();
-    let ent = builder.with(drawable).with(transform).build();
+    let ent = builder.with(model).with(transform).build();
     vec![ent]
   }
 

@@ -18,7 +18,8 @@ pub trait Drawable {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Component)]
+#[storage(VecStorage)]
 pub struct DrawableState {
   pub shader_name: String,
   pub vertex_array: VertexArray,
@@ -41,6 +42,11 @@ impl DrawableState {
       vertex_array: vao,
       material: material,
     }
+  }
+
+  pub fn refresh(&mut self) {
+    self.vertex_array.refresh();
+    self.material.refresh();
   }
 }
 

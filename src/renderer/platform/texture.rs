@@ -19,10 +19,14 @@ pub trait TextureLike {
 
   fn id(&self) -> u32;
   fn texture_type(&self) -> gl::types::GLenum;
+
+  fn refresh(&mut self);
+
 }
 
 #[derive(Clone, Debug)]
 pub struct Texture {
+
   source_data: TextureSource,
   width: u32,
   height: u32,
@@ -31,14 +35,12 @@ pub struct Texture {
 
 impl Texture {
   pub fn from_file(path: &str) -> Texture {
-    let (data, width, height, format) = texture_helpers::load_file(path, true);
     let src = TextureSource::File(path.to_string());
-    let id = texture_helpers::create_2d_buffer(&data, &width, &height, &format);
     Texture {
       source_data: src,
-      width: width,
-      height: height,
-      id: id,
+      width: u32::MAX,
+      height: u32::MAX,
+      id: u32::MAX,
     }
   }
 
@@ -59,6 +61,20 @@ impl TextureLike for Texture {
   fn texture_type(&self) -> gl::types::GLenum {
     gl::TEXTURE_2D
   }
+
+  fn refresh(&mut self) {
+    match &self.source_data {
+      TextureSource::File(path) => {
+        let (data, width, height, format) = texture_helpers::load_file(&path, true);
+        self.id = texture_helpers::create_2d_buffer(&data, &width, &height, &format);
+        self.width = width;
+        self.height = height;
+      }
+      _ => {}
+    }
+    
+  }
+
 }
 
 // impl Drop for Texture {
@@ -84,10 +100,8 @@ impl TextureLike for CubeMap {
   fn texture_type(&self) -> gl::types::GLenum {
     gl::TEXTURE_CUBE_MAP
   }
-}
 
-impl CubeMap {
-  pub fn from_file(dirpath: &str) -> CubeMap {
+  fn refresh(&mut self) {
     let faces = [
       "right.jpg",
       "left.jpg",
@@ -96,17 +110,33 @@ impl CubeMap {
       "front.jpg",
       "back.jpg",
     ];
-    let dir = Path::new(dirpath);
-    let mut imgs = faces.iter().map(|file| {
-      let full_path = dir.join(Path::new(file));
-      texture_helpers::load_file(full_path.to_str().expect("Could not construct path for"), false)
-    });
-    let (id, width, height) = texture_helpers::create_cubemap_buffer(&mut imgs);
+    match &self.source_data {
+      TextureSource::File(dirpath) => {
+        let dir = Path::new(&dirpath);
+        let mut imgs = faces.iter().map(|file| {
+          let full_path = dir.join(Path::new(file));
+          texture_helpers::load_file(full_path.to_str().expect("Could not construct path for"), false)
+        });
+        let (id, width, height) = texture_helpers::create_cubemap_buffer(&mut imgs);
+        self.id = id;
+        self.width = width;
+        self.height = height;
+      }
+      _ => {}
+    }
+  }
+
+
+}
+
+impl CubeMap {
+  pub fn from_file(dirpath: &str) -> CubeMap {
+
     CubeMap {
       source_data: TextureSource::File(dirpath.to_string()),
-      width,
-      height,
-      id
+      width: u32::MAX,
+      height: u32::MAX,
+      id: u32::MAX
     }
   }
 }

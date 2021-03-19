@@ -1,3 +1,4 @@
+use rand::{thread_rng, Rng};
 use specs::prelude::*;
 
 use ecs::*;
@@ -33,7 +34,7 @@ impl BuildingState {
   }
 }
 
-type BuildingStateData<'a> = (ReadStorage<'a, DrawableId>, Write<'a, Renderer>);
+type BuildingStateData<'a> = (ReadStorage<'a, DrawableId>);
 
 #[derive(Default, Debug)]
 pub struct BuildingDelegate;
@@ -70,23 +71,23 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     ));
     let transform2 = Transform(translate2 * scale_high_block);
 
-    let texture = Texture::from_file(&format!("resources/textures/building/building-{}.jpg", 1));
+    let texture = Texture::from_file(&format!("resources/textures/building/building-{}.jpg", thread_rng().gen_range(1,6)));
 
     // Entity 1
     let builder = constructor();
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
-    let id = resources.1.submit_model(model);
-    let ent1 = builder.with(id).with(transform1).build();
+    // let id = resources.1.submit_model(model);
+    let ent1 = builder.with(model).with(transform1).build();
 
     // Entity 2
     let builder = constructor();
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
-    let id = resources.1.submit_model(model);
-    let ent2 = builder.with(id).with(transform2).build();
+    // let id = resources.1.submit_model(model);
+    let ent2 = builder.with(model).with(transform2).build();
     vec![ent1, ent2]
   }
 }

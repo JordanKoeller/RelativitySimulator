@@ -14,7 +14,7 @@ pub enum ShaderStep {
   VertexShader(String),
   FragmentShader(String),
   // ComputeShader(String),
-  // GeometryShader(String),
+  GeometryShader(String),
   TessControlShader(String),
   TessEvalShader(String),
 }
@@ -26,6 +26,7 @@ impl ShaderStep {
       ShaderStep::FragmentShader(_) => "FRAGMENT_SHADER".to_string(),
       ShaderStep::TessControlShader(_) => "TESS_CONTROL_SHADER".to_string(),
       ShaderStep::TessEvalShader(_) => "TESS_EVALUATION_SHADER".to_string(),
+      ShaderStep::GeometryShader(_) => "GEOMETRY_SHADER".to_string(),
     }
   }
 
@@ -35,6 +36,7 @@ impl ShaderStep {
       ShaderStep::FragmentShader(s) => s,
       ShaderStep::TessControlShader(s) => s,
       ShaderStep::TessEvalShader(s) => s,
+      ShaderStep::GeometryShader(s) => s,
     }
   }
 
@@ -44,6 +46,7 @@ impl ShaderStep {
       ShaderStep::VertexShader(_) => gl::VERTEX_SHADER,
       ShaderStep::TessControlShader(_) => gl::TESS_CONTROL_SHADER,
       ShaderStep::TessEvalShader(_) => gl::TESS_EVALUATION_SHADER,
+      ShaderStep::GeometryShader(_) => gl::GEOMETRY_SHADER,
     }
   }
 }
@@ -181,6 +184,7 @@ fn decompress(body: String) -> Vec<ShaderStep> {
         "tesscontrol" => ShaderStep::TessControlShader(lines.join("\n")),
         "tesseval" => ShaderStep::TessEvalShader(lines.join("\n")),
         "fragment" => ShaderStep::FragmentShader(lines.join("\n")),
+        "geometry" => ShaderStep::GeometryShader(lines.join("\n")),
         _ => panic!("Could not determine shader type from label"),
       }
     })
@@ -258,4 +262,4 @@ fn set_unif_helper(unif: &Uniform, loc: i32) {
   // gl::Uniform1i(lo, )
 }
 
-const SHADER_OPTIONS: [&str; 4] = ["vertex", "fragment", "tesseval", "tesscontrol"];
+const SHADER_OPTIONS: [&str; 5] = ["vertex", "fragment", "tesseval", "tesscontrol", "geometry"];

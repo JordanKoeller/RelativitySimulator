@@ -2,6 +2,8 @@ use gl;
 use std::mem::size_of;
 use std::os::raw::c_void;
 
+// use super::GLBus;
+
 ////////////////////
 /// BUFFER OBJECTS
 ////////////////////
@@ -11,28 +13,57 @@ pub struct VertexBuffer {
   id: u32,
   pub layout: BufferLayout,
   data: Vec<f32>,
+  // bound: bool,
 }
 
 #[derive(Clone, Debug)]
 pub struct IndexBuffer {
   id: u32,
   data: Vec<u32>,
+  // bound: bool,
 }
 
 ////////////////////
 /// VERTEX BUFFER
 ////////////////////
 
+// impl GLBus for VertexBuffer {
+//   fn bound(&self) -> bool {
+//     self.bound
+//   }
+
+//   fn bind(&mut self) {
+//     unsafe {
+//       gl::BindBuffer(gl::ARRAY_BUFFER, self.id);
+//     }
+//     self.bound = true;
+//   }
+
+//   fn unbind(&mut self) {
+//     unsafe {
+//       gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+//     }
+//     self.bound = false;
+//   }
+
+//   fn create_gl_repr(&mut self)
+// }
+
 impl VertexBuffer {
   pub fn create(data: Vec<f32>, layout: BufferLayout) -> VertexBuffer {
-    let mut id = 0;
-    unsafe {
-      gl::GenBuffers(1, &mut id);
-    }
-    VertexBuffer { id, layout, data }
+    VertexBuffer { id: u32::MAX, layout, data }
   }
 
-  pub fn init(&self) {
+  pub fn refresh(&mut self) {
+    if self.id == u32::MAX {
+      unsafe {
+        gl::GenBuffers(1, &mut self.id);
+      }
+    }
+    self.init();
+  }
+
+  fn init(&self) {
     self.bind();
     unsafe {
       gl::BufferData(
@@ -50,11 +81,11 @@ impl VertexBuffer {
     }
   }
 
-  // pub fn unbind(&self) {
-  //   unsafe {
-  //     gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-  //   }
-  // }
+  pub fn unbind(&self) {
+    unsafe {
+      gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+    }
+  }
 }
 
 // impl Drop for VertexBuffer {
@@ -72,14 +103,19 @@ impl VertexBuffer {
 
 impl IndexBuffer {
   pub fn create(data: Vec<u32>) -> Self {
-    let mut id = 0;
-    unsafe {
-      gl::GenBuffers(1, &mut id);
-    }
-    Self { id, data }
+    Self { id: u32::MAX, data }
   }
 
-  pub fn init(&self) {
+  pub fn refresh(&mut self) {
+    if self.id == u32::MAX {
+      unsafe {
+        gl::GenBuffers(1, &mut self.id);
+      }
+    }
+    self.init();
+  }
+
+  fn init(&self) {
     self.bind();
     unsafe {
       gl::BufferData(
