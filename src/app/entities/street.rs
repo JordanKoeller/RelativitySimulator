@@ -44,7 +44,7 @@ impl StreetState {
   }
 }
 
-type StreetStateData<'a> = (ReadStorage<'a, DrawableId>, ReadStorage<'a, Transform>);
+type StreetStateData<'a> = ();
 
 #[derive(Default)]
 pub struct StreetDelegate;
@@ -56,7 +56,7 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
     &self,
     state: Self::State,
-    resources: &mut Self::EntityResources,
+    _resources: &mut Self::EntityResources,
     constructor: F,
   ) -> Vec<Entity> {
     let mut stack = TransformStack::default();

@@ -96,7 +96,7 @@ impl Material {
   }
 
   pub fn refresh(&mut self) {
-    self.uniforms.iter_mut().for_each(|(name, uniform)| {
+    self.uniforms.iter_mut().for_each(|(_, uniform)| {
       match uniform {
         Uniform::CubeMap(c) => c.refresh(),
         Uniform::Texture(t) => t.refresh(),

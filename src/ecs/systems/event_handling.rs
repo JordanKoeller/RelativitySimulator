@@ -29,7 +29,7 @@ impl <'a> System<'a> for EventProcessingSystem {
 
   }
 
-  fn setup(&mut self, world: &mut World) {
+  fn setup(&mut self, _world: &mut World) {
     // let mut imgui_channel = world.write_resource::<EventChannel<ImguiUiEvent>>();
     // self.receiver_id = imgui_channel.register_reader();
   }

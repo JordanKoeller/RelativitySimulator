@@ -35,7 +35,7 @@ impl BuildingState {
   }
 }
 
-type BuildingStateData<'a> = (ReadStorage<'a, DrawableId>);
+type BuildingStateData<'a> = ();
 
 #[derive(Default, Debug)]
 pub struct BuildingDelegate;
@@ -46,7 +46,7 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
     &self,
     state: Self::State,
-    resources: &mut Self::EntityResources,
+    _resources: &mut Self::EntityResources,
     constructor: F,
   ) -> Vec<Entity> {
     // Entity 1
