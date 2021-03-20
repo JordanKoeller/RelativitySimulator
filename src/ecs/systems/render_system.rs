@@ -94,7 +94,7 @@ impl<'a> System<'a> for StartFrameSystem {
     // window.clear_framebuffer();
     for (_player, pos, kinetics, rotation) in (&s_player, &s_pos, &s_kinetics, &s_rotation).join() {
       let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
-      renderer.start_scene(cam, timestep.0, timestep.1);
+      renderer.start_scene(cam, &timestep);
     }
   }
 }

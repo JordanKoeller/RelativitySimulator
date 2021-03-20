@@ -55,8 +55,7 @@ impl<'a> Camera<'a> {
   }
 
   pub fn velocity_inverse_basis_matrix(&self) -> Mat3F {
-    let ret: cgmath::Matrix3<f32> = self.velocity_basis_matrix().invert().expect("Could not invert matrix");
-    ret
+    self.velocity_basis_matrix().invert().expect("Could not invert matrix")
   }
 
 }

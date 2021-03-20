@@ -19,6 +19,7 @@ struct Screen {
 pub struct Renderer {
   // Screen
   screen: Screen,
+  ui_renderer: UiRenderer,
   // Shader/Uniform Management
   config_uniforms: HashMap<CString, Uniform>, // Long-term uniforms
   common_uniforms: HashMap<CString, Uniform>, // common uniforms, change every frame
@@ -26,7 +27,6 @@ pub struct Renderer {
   // Asset management
   assets: AssetLibrary,
   queued_drawables: MultiMap<ShaderId, DrawCommand>,
-  queued_overlays: Vec<Overlay>,
 
   // Config
   config: RendererConfig,
@@ -38,11 +38,11 @@ impl Default for Renderer {
   fn default() -> Self {
     Renderer {
       screen: create_screen(1600, 1200),
+      ui_renderer: UiRenderer::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
       queued_drawables: MultiMap::new(),
-      queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id: 0,
     }
@@ -59,11 +59,11 @@ impl Renderer {
     ]);
     Renderer {
       screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
+      ui_renderer: UiRenderer::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
       queued_drawables: MultiMap::new(),
-      queued_overlays: Vec::new(),
       config: RendererConfig::default(),
       receiver_id,
     }
@@ -103,10 +103,6 @@ impl Renderer {
     Overlay::new(title)
   }
 
-  pub fn submit_2d(&mut self, cmd: Overlay) {
-    self.queued_overlays.push(cmd);
-  }
-
   pub fn submit_config(&mut self, config: RendererConfig) {
     self.submit_common_uniform(
       CString::from(c_str!("lorentzFlag")),
@@ -118,42 +114,12 @@ impl Renderer {
 
   // Methods that do something instead of just get/set things
 
-  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, fps: f32, render_time: f32) {
+  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, timestep: &Timestep) {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
-    let mut overlay = self.ui_box("Camera Uniforms");
-    overlay.push(OverlayLine::HLine);
-    overlay.push(OverlayLine::LabelText(
-      "Position".to_string(),
-      to_string!(camera.position),
-    ));
-    // overlay.push(OverlayLine::LabelText("Front".to_string(), to_string!(camera.front())));
-    overlay.push(OverlayLine::LabelText(
-      "Beta:".to_string(),
-      format!("{0:.3}", camera.beta()),
-    ));
-    overlay.push(OverlayLine::LabelText(
-      "Gamma:".to_string(),
-      format!("{0:.3}", camera.gamma()),
-    ));
-    overlay.push(OverlayLine::LabelText(
-      "Render Mode".to_string(),
-      format!("{:?}", self.config.mode),
-    ));
-    overlay.push(OverlayLine::LabelText(
-      "Debug On:".to_string(),
-      format!("{:?}", self.config.debug),
-    ));
-    overlay.push(OverlayLine::IntInput(
-      format!("Frame Time {:.4}", fps).to_string(),
-      (fps * 1000.0) as i32,
-    ));
-    overlay.push(OverlayLine::IntInput(
-      format!("Render Time {:.4}", render_time).to_string(),
-      (render_time * 1000.0) as i32,
-    ));
-    self.submit_2d(overlay);
+    #[cfg(feature = "debug")]
+    self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
   }
 
   pub fn init_frame(&mut self, window: &mut Window) {
@@ -214,15 +180,16 @@ impl Renderer {
   }
 
   pub fn draw_scene(&mut self, window: &mut Window) {
-    // let mut active_shader: ShaderId = ShaderId(usize::MAX);
+    let mut active_shader: ShaderId = ShaderId(usize::MAX);
     for (s_id, cmd) in self.queued_drawables.iter() {
-      // if s_id != &active_shader {
-      //   active_shader = s_id.clone();
-      //   self.switch_shader(self.assets.get_shader(&active_shader));
-      // }
-      self.switch_shader(self.assets.get_shader(&s_id));
+      if s_id != &active_shader {
+        active_shader = s_id.clone();
+        self.switch_shader(self.assets.get_shader(&s_id));
+      }
       self.draw_drawable(&cmd, &s_id);
     }
+
+    #[cfg(feature = "debug")]
     if self.config.debug {
       let debug_id = ShaderId(0);
       self.switch_shader(self.assets.get_shader(&debug_id));
@@ -230,24 +197,13 @@ impl Renderer {
         self.draw_drawable(&cmd, &debug_id);
       }
     }
-    self.draw_imgui(window);
-    self.queued_overlays.clear();
+    self.ui_renderer.draw(window);
+    self.ui_renderer.clear();
     self.queued_drawables.clear();
     self.common_uniforms.clear();
   }
 
   // Private helper functions
-
-  fn draw_imgui(&mut self, window: &mut Window) {
-    let mut y = 10f32;
-    for i in 0..self.queued_overlays.len() {
-      let overlay = self.queued_overlays.get_mut(i).unwrap();
-      let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
-      overlay.render(&ui, y.clone());
-      window.imgui_glfw.draw(ui, &mut window.window);
-      y += overlay.height() + 10f32;
-    }
-  }
 
   fn switch_shader(&self, shader: &Shader) {
     shader.bind();

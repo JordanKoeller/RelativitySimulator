@@ -21,7 +21,7 @@ where
 {
   pub fn new() -> MultiMap<K, V> {
     MultiMap {
-      data: HashMap::default(),
+      data: HashMap::with_capacity(DEFAULT_CAPACITY),
     }
   }
   pub fn push(&mut self, k: K, v: V) {
@@ -60,6 +60,6 @@ where
   }
 
   pub fn clear(&mut self) {
-    self.data.clear()
+    self.data.iter_mut().for_each(|(_, v)| v.clear());
   }
 }
