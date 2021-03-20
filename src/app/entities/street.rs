@@ -59,10 +59,10 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
     resources: &mut Self::EntityResources,
     constructor: F,
   ) -> Vec<Entity> {
-    let scaler = nonunif_scale(Vec3F::new(state.footprint.x, 1f32, state.footprint.y));
-    let translate_matrix = translate(state.position);
-    let rotation_matrix = Mat4F::from_angle_y(state.rotation);
-    let transform = Transform(translate_matrix * scaler * rotation_matrix);
+    let mut stack = TransformStack::default();
+    stack.push_euler(state.rotation, Vec3F::unit_y());
+    stack.push_nonunif_scale(Vec3F::new(state.footprint.x, 1f32, state.footprint.y));
+    stack.push_translate(state.position);
     let mut material = Material::new();
     let texture = match state.piece {
       StreetPiece::Straightaway => Texture::from_file("resources/textures/roads/straightaway-1.jpg"),
@@ -73,7 +73,7 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
     material.diffuse_texture(texture);
     let model = Cube::new(material).state();
     let builder = constructor();
-    let ent = builder.with(model).with(transform).build();
+    let ent = builder.with(model).with(stack.pop()).build();
     vec![ent]
   }
 

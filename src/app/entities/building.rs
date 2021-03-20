@@ -1,5 +1,6 @@
 use rand::{thread_rng, Rng};
 use specs::prelude::*;
+use cgmath::prelude::*;
 
 use ecs::*;
 use renderer::{Drawable, DrawableId, Material, Renderer, Texture};
@@ -51,25 +52,15 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     // Entity 1
 
     // TODO: Set up some type of transform stack for hierarchical transforms
-    let scale_low_block = Mat4F::from_nonuniform_scale(
-      state.bounding_box.x,
-      state.bounding_box.y * state.ratio,
-      state.bounding_box.z,
-    );
-    let big_scale = state.ratio + (1f32 - state.ratio) / 2f32;
-    let scale_high_block = Mat4F::from_nonuniform_scale(
-      state.bounding_box.x * big_scale,
-      state.bounding_box.y * (1f32 - state.ratio),
-      state.bounding_box.z * big_scale,
-    );
-    let translate1 = translate(state.position);
-    let transform1 = Transform(translate1 * scale_low_block);
-    let translate2 = translate(Vec3F::new(
-      state.position.x,
-      state.position.y + state.bounding_box.y * state.ratio,
-      state.position.z,
-    ));
-    let transform2 = Transform(translate2 * scale_high_block);
+    let mut stack = TransformStack::default();
+    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(1f32,  state.ratio, 1f32)));
+    stack.push_translate(state.position);
+    let transform1 = stack.pop();
+    stack.clear();
+    let top_scale = state.ratio + (1f32 - state.ratio) / 2f32;
+    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(top_scale, 1f32 - state.ratio, top_scale)));
+    stack.push_translate(state.position + Vec3F::unit_y() * state.bounding_box.y * state.ratio);
+    let transform2 = stack.pop();
 
     let texture = Texture::from_file(&format!("resources/textures/building/building-{}.jpg", thread_rng().gen_range(1,6)));
 
@@ -78,7 +69,6 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
-    // let id = resources.1.submit_model(model);
     let ent1 = builder.with(model).with(transform1).build();
 
     // Entity 2
@@ -86,7 +76,6 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
-    // let id = resources.1.submit_model(model);
     let ent2 = builder.with(model).with(transform2).build();
     vec![ent1, ent2]
   }

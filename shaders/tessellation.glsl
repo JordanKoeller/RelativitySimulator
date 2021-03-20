@@ -53,9 +53,9 @@ void main()
     // gl_TessLevelOuter[0] = tess_level(newWorldPos[0], newWorldPos[1]);
     // gl_TessLevelOuter[1] = tess_level(newWorldPos[1], newWorldPos[2]);
     // gl_TessLevelOuter[2] = tess_level(newWorldPos[2], newWorldPos[0]);
-    gl_TessLevelOuter[0] = 2;
-    gl_TessLevelOuter[1] = 2;
-    gl_TessLevelOuter[2] = 2;
+    gl_TessLevelOuter[0] = 10;
+    gl_TessLevelOuter[1] = 10;
+    gl_TessLevelOuter[2] = 10;
     gl_TessLevelInner[0] = (gl_TessLevelOuter[0] + gl_TessLevelOuter[1] + gl_TessLevelOuter[2]) / 3.0;
 }
 

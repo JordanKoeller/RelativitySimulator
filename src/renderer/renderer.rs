@@ -118,7 +118,7 @@ impl Renderer {
 
   // Methods that do something instead of just get/set things
 
-  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, fps: f32) {
+  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, fps: f32, render_time: f32) {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
@@ -148,6 +148,10 @@ impl Renderer {
     overlay.push(OverlayLine::IntInput(
       format!("Frame Time {:.4}", fps).to_string(),
       (fps * 1000.0) as i32,
+    ));
+    overlay.push(OverlayLine::IntInput(
+      format!("Render Time {:.4}", render_time).to_string(),
+      (render_time * 1000.0) as i32,
     ));
     self.submit_2d(overlay);
   }
@@ -299,7 +303,8 @@ impl Renderer {
         }
       }
       Event::KeyPressed(KeyCode::Tab) => {
-        let new_config = RendererConfig::new(self.config.clone().mode.rotate());
+        let mut new_config = self.config.clone();
+        new_config.mode = new_config.mode.rotate();
         self.submit_config(new_config);
       }
       Event::KeyPressed(KeyCode::Q) => {

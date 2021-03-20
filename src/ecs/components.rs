@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use specs::prelude::*;
 use specs::{Component, VecStorage};
 
@@ -107,6 +109,14 @@ pub struct EventReceiver(pub ReceiverID);
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct Transform(pub Mat4F);
+
+impl Deref for Transform {
+  type Target = Mat4F;
+
+  fn deref(&self) -> &Mat4F {
+    &self.0
+  }
+}
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]

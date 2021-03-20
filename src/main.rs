@@ -88,7 +88,7 @@ pub fn main() {
 
 
   world.insert(window_event_channel);
-  world.insert(utils::Timestep(0.016));
+  world.insert(utils::Timestep(0.016, 0.01));
   world.insert(utils::Running(true));
   world.insert(render);
   world.insert(world_id);
