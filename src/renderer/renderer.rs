@@ -118,7 +118,7 @@ impl Renderer {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
-    #[cfg(feature = "debug")]
+    #[cfg(not(feature = "release"))]
     self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
   }
 
@@ -189,7 +189,7 @@ impl Renderer {
       self.draw_drawable(&cmd, &s_id);
     }
 
-    #[cfg(feature = "debug")]
+    #[cfg(not(feature = "release"))]
     if self.config.debug {
       let debug_id = ShaderId(0);
       self.switch_shader(self.assets.get_shader(&debug_id));
