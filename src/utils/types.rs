@@ -3,18 +3,7 @@ use cgmath::One;
 // use cgmath::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
-// use std::time::SystemTime;
 
-// #[allow(dead_code)]
-// pub fn elapsed(start_time: &SystemTime) -> String {
-//   let elapsed = start_time.elapsed().unwrap();
-//   format!(
-//     "{}s {:.*}ms",
-//     elapsed.as_secs(),
-//     1,
-//     elapsed.subsec_nanos() as f64 / 1_000_000.0
-//   )
-// }
 
 pub type Vec2F = cgmath::Vector2<f32>;
 pub type Vec2I = cgmath::Vector2<i32>;

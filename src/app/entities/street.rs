@@ -4,7 +4,7 @@ use ecs::{EntityDelegate, MyBuilder};
 use renderer::{DrawableId, Material, Texture, Drawable, Renderer};
 use utils::*;
 
-use app::{Cube, FaceCube};
+use app::{Cube, FaceCube, AxisAlignedCubeCollision};
 
 #[derive(Clone, Debug)]
 pub enum StreetPiece {
@@ -73,7 +73,8 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
     material.diffuse_texture(texture);
     let model = Cube::new(material).state();
     let builder = constructor();
-    let ent = builder.with(model).with(stack.pop()).build();
+    let transform = stack.pop();
+    let ent = builder.with(model).with(AxisAlignedCubeCollision::from_transform(&transform)).with(transform).build();
     vec![ent]
   }
 

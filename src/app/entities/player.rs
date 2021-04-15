@@ -24,6 +24,7 @@ pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
     .with(Kinetics::default())
     .with(receiver)
     .with(Position(pos))
+    .with(CanCollide {radius: 1f32})
     .build();
 }
 

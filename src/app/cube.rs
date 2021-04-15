@@ -1,5 +1,13 @@
+use std::ops::Deref;
+use specs::prelude::*;
+use specs::{Component, VecStorage};
+use cgmath::prelude::{InnerSpace};
 use renderer::{Drawable, Material, Texture};
 use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
+
+use ecs::{components::Transform, Collision, CollisionSummary};
+
+use utils::{Vec3F, Vec4F, swizzle_down, swizzle_up, Mat3F};
 
 pub struct TexturedCube {
   filename: String
@@ -67,6 +75,80 @@ impl Drawable for FaceCube {
 
   fn shader_name(&self) -> String {
     "face_cube".to_string()
+  }
+}
+
+#[derive(Component, Debug, Clone)]
+#[storage(VecStorage)]
+pub struct AxisAlignedCubeCollision {
+  center: Vec3F,
+  dims: Vec3F
+}
+
+impl AxisAlignedCubeCollision {
+
+  pub fn from_transform(transform: &Transform) -> Self {
+    let c1 = Vec3F::new(-0.5f32, 0f32, -0.5f32);
+    let c2 = Vec3F::new(0.5f32, 1f32, 0.5f32);
+    let p1 = transform.deref() * swizzle_up(&c1);
+    let p2 = transform.deref() * swizzle_up(&c2);
+    let center = (p1 + p2) / 2f32;
+    let dims = p2 - p1;
+    Self {
+      center: swizzle_down(&center),
+      dims: swizzle_down(&dims),
+    }
+  }
+
+  fn within_box(&self, pt: &Vec3F, bl: &Vec3F, tr: &Vec3F) -> bool {
+    self.approx_between(&bl.x, &tr.x, &pt.x) &&
+    self.approx_between(&bl.y, &tr.y, &pt.y) &&
+    self.approx_between(&bl.z, &tr.z, &pt.z)
+  }
+}
+
+impl Collision for AxisAlignedCubeCollision {
+
+  fn distance_to(&self, pt: &Vec3F) -> f32 {
+
+    0f32
+  }
+
+  fn sphere_collision(&self, sphere: (&Vec3F, &f32), velocity: &Vec3F) -> Option<CollisionSummary> {
+    let new_dims = self.dims + Vec3F::new(1f32, 1f32, 1f32) * *sphere.1 * 2f32;
+    let c = sphere.0;
+
+    let lows = self.center - new_dims / 2f32;
+    let highs = self.center + new_dims / 2f32;
+
+    let checks = [
+      (&lows, &-Vec3F::unit_x()),
+      (&lows, &-Vec3F::unit_y()),
+      (&lows, &-Vec3F::unit_z()),
+      (&highs, &Vec3F::unit_x()),
+      (&highs, &Vec3F::unit_y()),
+      (&highs, &Vec3F::unit_z()),
+    ];
+
+    checks.iter().fold(None, |acc, elem| {
+      if let Some(summary) = self.get_collision(elem.0, &c, velocity, elem.1) {
+        if summary.time >= 0f32 && self.within_box(&summary.position, &lows, &highs) {
+          if let Some(prev_best) = acc {
+            if summary.time < prev_best.time {
+              Some(summary)
+            } else {
+              Some(prev_best)
+            }
+          } else {
+            Some(summary)
+          }
+        } else {
+          acc
+        }
+      } else {
+        acc
+      }
+    })
   }
 }
 

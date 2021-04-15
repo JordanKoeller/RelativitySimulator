@@ -21,3 +21,11 @@ pub fn nonunif_scale(factor: Vec3F) -> Mat4F {
 pub fn identity() -> Mat4F {
   Mat4F::one()
 }
+
+pub fn swizzle_up(v: &Vec3F) -> Vec4F {
+  Vec4F::new(v.x, v.y, v.z, 1f32)
+}
+
+pub fn swizzle_down(v: &Vec4F) -> Vec3F {
+  Vec3F::new(v.x, v.y, v.z)
+}

@@ -14,12 +14,13 @@ const LAYOUT: &str = "\
 #......#
 ##.#.#.#
 ##.#.#.#
+##.#.#.#
 #......#
 ########\
 ";
 
 pub fn build_city(world: &mut World) {
-  let player_pos = Vec3F::new(30f32, 2f32, 70f32);
+  let player_pos = Vec3F::new(30f32, 6f32, 65f32);
   create_player(player_pos, world);
   {
     let mut evt_mgr = world.fetch_mut::<StatefulEventChannel<EntityCrudEvent, DistrictState>>();

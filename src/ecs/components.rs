@@ -118,10 +118,3 @@ impl Deref for Transform {
   }
 }
 
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct DebugPannelReceiver(pub ReceiverID);
-
-// #[derive(Component, Debug, Clone)]
-// #[storage(VecStorage)]
-// pub struct ImguiElement(pub UiCommand);
