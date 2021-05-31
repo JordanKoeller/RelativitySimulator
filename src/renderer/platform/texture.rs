@@ -230,4 +230,5 @@ mod texture_helpers {
 
 lazy_static! {
   pub static ref WHITE_TEXTURE: Texture = Texture::from_file("resources/textures/white.png");
+  pub static ref DEBUG_TEXTURE: Texture = Texture::from_file("resources/debug/numbers.png");
 }

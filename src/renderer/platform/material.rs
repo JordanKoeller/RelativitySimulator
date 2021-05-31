@@ -2,7 +2,7 @@ use std::ffi::{CStr, CString};
 
 use utils::*;
 
-use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike};
+use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
 #[derive(Clone, Debug)]
 pub struct Material {
@@ -77,6 +77,7 @@ impl Material {
     ret.ambient(Vec3F::new(1f32, 1f32, 1f32));
     ret.specular(Vec3F::new(1f32, 1f32, 1f32));
     ret.normal_texture(WHITE_TEXTURE.clone());
+    ret.unknown_uniform("debug_texture", Uniform::Texture(DEBUG_TEXTURE.clone()));
     ret
   }
 

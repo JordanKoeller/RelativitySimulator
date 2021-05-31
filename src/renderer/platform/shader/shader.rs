@@ -222,14 +222,14 @@ unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
   let shader_id = gl::CreateShader(shader.gl_enum());
   gl::ShaderSource(shader_id, 1, &shader_c_code.as_ptr(), ptr::null());
   gl::CompileShader(shader_id);
-  let mut err_log = Vec::with_capacity(512);
+  let mut err_log = Vec::with_capacity(2048);
   let mut err_code = 0;
-  err_log.set_len(512 - 1);
+  err_log.set_len(2048 - 1);
   gl::GetShaderiv(shader_id, gl::COMPILE_STATUS, &mut err_code);
   if err_code != gl::TRUE as gl::types::GLint {
     gl::GetShaderInfoLog(
       shader_id,
-      512,
+      2047,
       ptr::null_mut(),
       err_log.as_mut_ptr() as *mut gl::types::GLchar,
     );
@@ -241,7 +241,6 @@ unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
   }
   gl::AttachShader(*program, shader_id);
   gl::DeleteShader(shader_id);
-  // let shader_code = CString::new(shader.0.as_bytes()).unwrap();
 }
 
 fn set_unif_helper(unif: &Uniform, loc: i32) {
@@ -259,7 +258,6 @@ fn set_unif_helper(unif: &Uniform, loc: i32) {
       _ => panic!("Please set texture uniforms through the set_texture method"),
     }
   }
-  // gl::Uniform1i(lo, )
 }
 
 const SHADER_OPTIONS: [&str; 5] = ["vertex", "fragment", "tesseval", "tesscontrol", "geometry"];
