@@ -99,7 +99,7 @@ impl Default for Rotation {
 }
 
 #[derive(Component, Default, Debug)]
-#[storage(NullStorage)]
+#[storage(VecStorage)]
 pub struct Player;
 
 #[derive(Component, Default, Debug)]

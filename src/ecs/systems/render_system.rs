@@ -19,7 +19,7 @@ impl<'a> System<'a> for RenderSystem {
   );
 
   fn run(&mut self, (drawables, transforms, mut timestep, mut renderer): Self::SystemData) {
-    let mut window = self.window.borrow_mut();
+    let window = self.window.borrow_mut();
     for (drawable, maybe_transform) in (&drawables, (&transforms).maybe()).join() {
       if let Some(transform) = maybe_transform {
         renderer.submit(DrawCommand {
@@ -35,9 +35,9 @@ impl<'a> System<'a> for RenderSystem {
     }
     // let mut window = self.window.borrow_mut();
     let start = window.glfw_token.get_time() as f32;
-    renderer.draw_scene(&mut window);
-    renderer.end_frame(&mut window);
+    renderer.draw_scene();
     timestep.set_render_time(window.glfw_token.get_time() as f32 - start);
+
   }
 }
 
@@ -96,6 +96,20 @@ impl<'a> System<'a> for StartFrameSystem {
       let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
       renderer.start_scene(cam, &timestep);
     }
+  }
+}
+
+pub struct EndFrameSystem {
+  pub window: MutRef<Window>
+}
+
+impl<'a> System<'a> for EndFrameSystem {
+
+  type SystemData = Write<'a, Renderer>;
+
+  fn run(&mut self, mut renderer: Self::SystemData) {
+    let mut window = self.window.borrow_mut();
+    renderer.end_frame(&mut window);
   }
 }
 

@@ -143,4 +143,11 @@ impl Window {
       gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     }
   }
+
+
+
+  pub fn draw_ui<'ui>(&mut self, ui: imgui::Ui<'ui>) {
+    self.imgui_glfw.draw(ui, &mut self.window);
+
+  }
 }

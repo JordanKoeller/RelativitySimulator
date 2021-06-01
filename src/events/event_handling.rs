@@ -75,7 +75,9 @@ impl MechanicsEngine {
     }
     pub fn update(&mut self, scene: &mut Scene) {
         for evt in self.listener.consume_events().iter() {
-            self.subscribed_events.get(evt).expect("Could not find event key")(scene);
+          if let Some(handler) = self.subscribed_events.get(evt) {
+            handler(scene);
+          }
         }
         let delta = 0.1 * self.listener.consume_mouse_moved();
         scene.player_mut().rotate(delta.x, delta.y);
