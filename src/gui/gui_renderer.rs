@@ -49,18 +49,6 @@ impl GuiRenderer {
     .build(|| {
       for line in lines.iter_mut() {
         line.render(&ui);
-        // match line {
-        //   Widget::Break => ui.separator(),
-        //   Widget::LabeledText(l, t) => {
-        //     ui.label_text(t, &ImString::from(l.clone()));
-        //   }
-        //   Widget::Text(t) => ui.text(t),
-        //   Widget::InputString(l, t) => {
-        //     let input = ui.input_text(&l, t);
-        //     input.build();
-        //   },
-        //   _ => {}
-        // }
       }
     });
   }
