@@ -21,7 +21,7 @@ impl<'a> System<'a> for GuiRenderer {
       // let pid = self.get_registered_panel(overlay);
       let mut window = self.window.borrow_mut();
       self.render_panel(&mut window, y, overlay);
-      y += overlay.height() + 10f32;
+      y += overlay.height() * 2f32 + 10f32;
     }
   }
 }
