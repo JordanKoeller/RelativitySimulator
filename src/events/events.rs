@@ -116,6 +116,7 @@ pub enum KeyCode {
   Period,
   Slash,
   Tilde,
+  Backspace,
   KeyCodeLength
 }
 
@@ -148,12 +149,26 @@ impl From<GLKey> for KeyCode {
       GLKey::X => KeyCode::X,
       GLKey::Y => KeyCode::Y,
       GLKey::Z => KeyCode::Z,
+      GLKey::Num0 => KeyCode::Zero,
+      GLKey::Num1 => KeyCode::One,
+      GLKey::Num2 => KeyCode::Two,
+      GLKey::Num3 => KeyCode::Three,
+      GLKey::Num4 => KeyCode::Four,
+      GLKey::Num5 => KeyCode::Five,
+      GLKey::Num6 => KeyCode::Six,
+      GLKey::Num7 => KeyCode::Seven,
+      GLKey::Num8 => KeyCode::Eight,
+      GLKey::Num9 => KeyCode::Nine,
+      GLKey::Right => KeyCode::ArrowRight,
+      GLKey::Left => KeyCode::ArrowLeft,
+      GLKey::Up => KeyCode::ArrowUP,
+      GLKey::Down => KeyCode::ArrowDown,
       GLKey::LeftShift => KeyCode::LeftShift,
       GLKey::Space => KeyCode::Space,
       GLKey::Tab => KeyCode::Tab,
       GLKey::LeftControl => KeyCode::Control,
       GLKey::Escape => KeyCode::Esc,
-
+      GLKey::Backspace => KeyCode::Backspace,
       _ => panic!(format!("Could not parse code {:?}", code)),
     }
   }
@@ -218,6 +233,8 @@ impl From<usize> for KeyCode {
       u if u == Period as usize => Period,
       u if u == Slash as usize => Slash,
       u if u == Tilde as usize => Tilde,
+      u if u == Esc as usize => Esc,
+      u if u == Backspace as usize => Backspace,
       u if u == KeyCodeLength as usize => KeyCodeLength,
       _ => panic!(format!("Could not convert usize {} to a KeyCode", u))
     }

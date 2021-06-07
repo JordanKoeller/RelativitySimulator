@@ -61,11 +61,6 @@ impl WindowEventDispatcher {
           // height will be significantly larger than specified on retina displays.
           println!("Setting frame buffer {} {}", width, height);
           unsafe { gl::Viewport(0, 0, width, height) }
-          // channel.publish(WindowEvent::payload(
-          //   Event::WindowResized,
-          //   EventPayload::WindowSize(Vec2F::new(width as f32, height as f32)),
-          // ));
-          // self.receive_event(Event::WindowResized, Some(EventPayload::WindowSize(Vec2F::new(width as f32, height as f32))))
         }
         glfw::WindowEvent::CursorPos(xpos, ypos) => {
           if !window.cursor {
@@ -77,21 +72,26 @@ impl WindowEventDispatcher {
               // self.receive_event(Event::MouseMoved, Some(EventPayload::MouseMove(offset)));
             }
             self.last_mouse_pos = Some(new_pos);
+          } else {
+            let new_pos = Vec2F::new(xpos as f32, ypos as f32);
+            self.last_mouse_pos = Some(new_pos);
           }
         }
         glfw::WindowEvent::Key(key_code, _, key_action, _) => {
           let my_key: KeyCode = KeyCode::from(key_code);
-          match key_action {
-            glfw::Action::Press => {
-              self.down_keys[my_key.clone() as usize] = true;
-              channel.publish(WindowEvent::new(Event::KeyPressed(my_key)));
+          if !window.cursor || my_key == KeyCode::Control {
+            match key_action {
+              glfw::Action::Press => {
+                self.down_keys[my_key.clone() as usize] = true;
+                channel.publish(WindowEvent::new(Event::KeyPressed(my_key)));
+              }
+              glfw::Action::Release => {
+                self.down_keys[my_key.clone() as usize] = false;
+                channel.publish(WindowEvent::new(Event::KeyReleased(my_key)));
+              }
+  
+              _ => {} // glfw::Action::Repeat => self.receive_event(Event::KeyDown(my_key), None),
             }
-            glfw::Action::Release => {
-              self.down_keys[my_key.clone() as usize] = false;
-              channel.publish(WindowEvent::new(Event::KeyReleased(my_key)));
-            }
-
-            _ => {} // glfw::Action::Repeat => self.receive_event(Event::KeyDown(my_key), None),
           }
         }
         glfw::WindowEvent::MouseButton(button, action, _) => {

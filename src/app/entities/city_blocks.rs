@@ -5,6 +5,8 @@ use specs::prelude::*;
 use utils::*;
 
 use app::{BuildingState, StreetPiece, StreetState};
+use gui::GuiInputPanel;
+use gui::widgets::*;
 
 const BUILDING: char = '#';
 const STREET: char = '.';
@@ -43,15 +45,16 @@ type DistrictStateData<'a> = (
 
 #[derive(Default, Debug)]
 pub struct DistrictDelegate;
+
 impl<'a> EntityDelegate<'a> for DistrictDelegate {
   type State = DistrictState;
   type EntityResources = DistrictStateData<'a>;
 
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
     &self,
-    state: Self::State,
+    state: &Self::State,
     resources: &mut Self::EntityResources,
-    _constructor: F,
+    constructor: F,
   ) -> Vec<Entity> {
     let mut lines: Vec<Vec<(char, bool)>> = state // tuples of charcter and a bool for the block has been processed already
       .layout
@@ -74,7 +77,11 @@ impl<'a> EntityDelegate<'a> for DistrictDelegate {
         }
       }
     }
-    vec![]
+    let mut debugger = GuiInputPanel::new("City Debugger");
+    debugger.push(Box::from(LabeledInputTextBox::new("City Layout", &state.layout)));
+    let ent = constructor();
+    let ret = ent.with(debugger).build();
+    vec![ret]
   }  
 }
 

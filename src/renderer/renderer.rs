@@ -19,7 +19,6 @@ struct Screen {
 pub struct Renderer {
   // Screen
   screen: Screen,
-  ui_renderer: UiRenderer,
   // Shader/Uniform Management
   config_uniforms: HashMap<CString, Uniform>, // Long-term uniforms
   common_uniforms: HashMap<CString, Uniform>, // common uniforms, change every frame
@@ -38,7 +37,6 @@ impl Default for Renderer {
   fn default() -> Self {
     Renderer {
       screen: create_screen(1600, 1200),
-      ui_renderer: UiRenderer::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
@@ -59,7 +57,6 @@ impl Renderer {
     ]);
     Renderer {
       screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
-      ui_renderer: UiRenderer::default(),
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
@@ -99,9 +96,6 @@ impl Renderer {
     self.queued_drawables.push(s_id, cmd);
   }
 
-  pub fn ui_box(&self, title: &str) -> Overlay {
-    Overlay::new(title)
-  }
 
   pub fn submit_config(&mut self, config: RendererConfig) {
     self.submit_common_uniform(
@@ -179,7 +173,7 @@ impl Renderer {
     memo.vertex_array.draw(&self.assets.get_shader(&shader).element_type);
   }
 
-  pub fn draw_scene(&mut self, window: &mut Window) {
+  pub fn draw_scene(&mut self) {
     let mut active_shader: ShaderId = ShaderId(usize::MAX);
     for (s_id, cmd) in self.queued_drawables.iter() {
       if s_id != &active_shader {
@@ -197,8 +191,8 @@ impl Renderer {
         self.draw_drawable(&cmd, &debug_id);
       }
     }
-    self.ui_renderer.draw(window);
-    self.ui_renderer.clear();
+    // self.ui_renderer.draw(window);
+    // self.ui_renderer.clear();
     self.queued_drawables.clear();
     self.common_uniforms.clear();
   }

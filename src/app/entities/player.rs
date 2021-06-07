@@ -3,6 +3,7 @@ use specs::prelude::*;
 use ecs::*;
 use events::{EventChannel, StatelessEventChannel, WindowEvent, Event, KeyCode};
 use utils::{Vec3F, Vec2F};
+use gui::GuiInputPanel;
 
 pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
   let receiver = {
@@ -25,6 +26,7 @@ pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
     .with(receiver)
     .with(Position(pos))
     .with(CanCollide {radius: 1f32})
+    .with(GuiInputPanel::new("Player"))
     .build();
 }
 

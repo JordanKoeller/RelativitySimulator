@@ -29,6 +29,7 @@ mod events;
 mod game_loop;
 mod renderer;
 mod utils;
+mod gui;
 
 mod app;
 

@@ -1,6 +1,8 @@
 use specs::prelude::*;
 use specs::world::LazyBuilder;
 
+
+
 use events::{EventChannel, ReceiverID, StatefulEventChannel};
 
 /////////////////////////////////////////////
@@ -10,6 +12,7 @@ use events::{EventChannel, ReceiverID, StatefulEventChannel};
 #[derive(Clone, Eq, Debug)]
 pub enum EntityCrudEvent {
   Create,
+  Update(Entity),
   NOOP,
 }
 
@@ -18,19 +21,40 @@ impl EntityCrudEvent {
     match self {
       EntityCrudEvent::Create => 0,
       EntityCrudEvent::NOOP => 1,
+      EntityCrudEvent::Update(_) => 2,
     }
   }
 }
 
 impl std::hash::Hash for EntityCrudEvent {
   fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-    self.index().hash(state)
+    match self {
+      EntityCrudEvent::Create => 0.hash(state),
+      EntityCrudEvent::NOOP => 1.hash(state),
+      EntityCrudEvent::Update(e) => {
+        2.hash(state);
+        e.hash(state);
+      },
+    }
+    // self.index().hash(state)
   }
 }
 
 impl PartialEq for EntityCrudEvent {
   fn eq(&self, other: &Self) -> bool {
-    self.index() == other.index()
+    if self.index() != 2 {
+      self.index() == other.index()
+    } else {
+      if let EntityCrudEvent::Update(e1) = self {
+        if let EntityCrudEvent::Update(e2) = other {
+          e1 == e2
+        } else {
+          false
+        }
+      } else {
+        false
+      }
+    }
   }
 }
 
@@ -75,10 +99,15 @@ pub trait EntityDelegate<'a> {
 
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
     &self,
-    state: Self::State,
+    state: &Self::State,
     resources: &mut Self::EntityResources,
     constructor: F,
   ) -> Vec<Entity>;
+
+  fn update(&self, state: &Self::State, resources: &mut Self::EntityResources, entity_id: &Entity) {
+    panic!("EntityDelegate::create not implemented for {}", std::any::type_name::<Self>());
+  }
+
 }
 
 /////////////////////////////////////////////
@@ -131,11 +160,14 @@ where
   fn run(&mut self, (mut resource_storage, entities, updater, mut crud_events): Self::SystemData) {
     crud_events.for_each(&self.event_receiver_id, |ep| {
       match ep.0 {
-        EntityCrudEvent::NOOP => {}
+        EntityCrudEvent::NOOP => {},
         EntityCrudEvent::Create => {
-          self.delegate.create(ep.1.clone(), &mut resource_storage, || {
+          self.delegate.create(&ep.1, &mut resource_storage, || {
             MyBuilder::LazyBuilder(updater.create_entity(&entities))
           });
+        },
+        EntityCrudEvent::Update(updating_entity) => {
+          self.delegate.update(&ep.1, &mut resource_storage, &updating_entity);
         }
       };
     });
