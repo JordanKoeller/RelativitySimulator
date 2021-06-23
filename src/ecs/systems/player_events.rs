@@ -19,11 +19,11 @@ impl<'a> System<'a> for PlayerEvents {
 
   fn run(
     &mut self,
-    (mut pos_storage, mut rot_storage, mut kinetic_storage, _player_storage, evt_receiver, _evt_channel): Self::SystemData,
+    (mut pos_storage, mut rot_storage, mut kinetic_storage, _player_storage, evt_receiver, evt_channel): Self::SystemData,
   ) {
 
     for (_position, rotation, kinetics, receiver_id) in (&mut pos_storage, &mut rot_storage, &mut kinetic_storage, &evt_receiver).join() {
-      _evt_channel
+      evt_channel
         .for_each(&receiver_id.0, |window_event| {
           match window_event.code {
           Event::KeyDown(KeyCode::W) => kinetics.acceleration += rotation.front(),

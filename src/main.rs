@@ -30,6 +30,7 @@ mod game_loop;
 mod renderer;
 mod utils;
 mod gui;
+mod shapes;
 
 mod app;
 
@@ -37,6 +38,7 @@ use events::{Event, EventChannel, KeyCode, WindowEvent, StatelessEventChannel};
 use utils::{Vec3F};
 
 use specs::{World, WorldExt};
+use game_loop::GameLoop;
 
 
 // settings
@@ -50,7 +52,7 @@ pub fn main() {
   // Initialize high-level "singleton" structures
   // --------------------------------------------
   let mut window_event_channel = StatelessEventChannel::<WindowEvent>::default();
-  let window = utils::GetMutRef(renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity"));
+  let window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
   let mut render = renderer::Renderer::new(
     utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32),
     &mut window_event_channel,
@@ -75,7 +77,6 @@ pub fn main() {
   let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
   render.submit_shader(shader);
 
-  let mut g_loop = game_loop::GameLoop;
 
   let mut world = World::new();
 
@@ -83,9 +84,6 @@ pub fn main() {
     WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
     WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
   ]);
-  let mut dispatcher = app::setup_dispatcher(utils::MutRef::clone(&window), world_id);
-
-  dispatcher.setup(&mut world);
 
 
   world.insert(window_event_channel);
@@ -93,14 +91,10 @@ pub fn main() {
   world.insert(utils::Running(true));
   world.insert(render);
   world.insert(world_id);
-  app::build_city(&mut world);
-  // app::scenes::build_grid_scene(Vec3F::new(5f32, 0f32, 0f32), &mut world);
-  // app::scenes::build_rotate_boxes(
-  //   3,
-  //   10f32,
-  //   Vec3F::new(7.5f32, 0f32, -2.5f32),
-  //   Vec3F::new(5f32, 0f32, 0f32),
-  //   &mut world,
-  // );
-  g_loop.run(&mut dispatcher, &mut world, window);
+  app::flappy_bird::setup_world(&mut world);
+  // app::build_city(&mut world);
+
+  let mut runtime = GameLoop::new(window, world, world_id);
+  runtime.with_systems(app::flappy_bird::get_system_registration());
+  runtime.run();
 }

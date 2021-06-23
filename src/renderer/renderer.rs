@@ -6,6 +6,8 @@ use utils::*;
 use renderer::platform::VertexArray;
 use renderer::*;
 
+use ecs::Camera;
+
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 
 type TransformStack = Vec<Mat4F>;
@@ -108,7 +110,7 @@ impl Renderer {
 
   // Methods that do something instead of just get/set things
 
-  pub fn start_scene<'a>(&mut self, camera: Camera<'a>, timestep: &Timestep) {
+  pub fn start_scene<'a>(&mut self, camera: &Camera, timestep: &Timestep) {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
@@ -209,10 +211,10 @@ impl Renderer {
     }
   }
 
-  fn extract_camera_uniforms<'a>(&mut self, camera: &Camera<'a>) {
+  fn extract_camera_uniforms(&mut self, camera: &Camera) {
     self
       .common_uniforms
-      .insert(CString::new("view").unwrap(), Uniform::Mat4(camera.view_matrix()));
+      .insert(CString::new("view").unwrap(), Uniform::Mat4(*camera.view_matrix()));
     let f32_dims = Vec2F::new(
       self.screen.framebuffer.spec.dims.x as f32,
       self.screen.framebuffer.spec.dims.y as f32,
@@ -227,10 +229,10 @@ impl Renderer {
     self
       .common_uniforms
       .insert(CString::new("gamma").unwrap(), Uniform::Float(camera.gamma()));
-    self.common_uniforms.insert(
-      CString::new("cameraPos").unwrap(),
-      Uniform::Vec3(camera.position.clone()),
-    );
+    // self.common_uniforms.insert(
+    //   CString::new("cameraPos").unwrap(),
+    //   Uniform::Vec3(camera.position.clone()),
+    // );
     self.common_uniforms.insert(
       CString::new("changeOfBasis").unwrap(),
       Uniform::Mat3(camera.velocity_basis_matrix()),

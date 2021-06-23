@@ -1,12 +1,12 @@
 use specs::prelude::*;
 
-use super::Motion;
 use ecs::systems::*;
 use events::ReceiverID;
 use renderer::Window;
-use utils::{MutRef, GetMutRef};
+use utils::{MutRef, GetMutRef, Mat4F, Vec3F};
 use ecs::entity::EntityManager;
 use debug::DiagnosticsPanel;
+use ecs::components::{Camera};
 
 use app::{StreetDelegate, BuildingDelegate, DistrictDelegate};
 use gui::GuiRenderer;
@@ -27,11 +27,12 @@ pub fn setup_dispatcher<'a, 'b>(window: MutRef<Window>, receiver_id: ReceiverID)
     .with(EntityManager::<BuildingDelegate>::default(), "building_mgr", &["district_mgr"])
     .with(EventProcessingSystem::default(), "event processing", &[])
     .with(PlayerEvents, "plyer_events", &["event processing"])
-    // .with(CollisionSystem::default(), "collision_system", &["plyer_events"])
-    .with(Motion, "motion_system", &["plyer_events"])
+    .with(MotionSystem, "motion_system", &["plyer_events"])
+    .with(ParticleUpdater, "particles", &["motion_system"])
     .with(DiagnosticsPanel, "diagnostics", &["plyer_events"])
     .with_thread_local(RenderSystem { window: window_handle })
     .with_thread_local(GuiRenderer {window: window_handle2})
     .with_thread_local(EndFrameSystem {window: window_handle3})
     .build()
 }
+

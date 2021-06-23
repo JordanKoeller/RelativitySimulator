@@ -12,9 +12,9 @@ const MAX_ACCELERATION: f32 = 6f32;
 
 const DRAG: f32 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
 
-pub struct Motion;
+pub struct MotionSystem;
 
-impl<'a> System<'a> for Motion {
+impl<'a> System<'a> for MotionSystem {
   type SystemData = (
     WriteStorage<'a, Position>,
     ReadStorage<'a, CanCollide>,
@@ -72,7 +72,7 @@ impl<'a> System<'a> for Motion {
   }
 }
 
-impl Motion {
+impl MotionSystem {
   fn compute_kinematics(&self, kinetics: &mut Kinetics, dt: f32) {
     let norm_acc = if kinetics.acceleration.magnitude2() != 0.0 {
       let norm_acc = kinetics.acceleration.normalize_to(MAX_ACCELERATION);

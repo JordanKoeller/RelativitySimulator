@@ -1,9 +1,9 @@
 use cgmath::prelude::*;
 use specs::prelude::*;
 
-use ecs::components::{Kinetics, Player, Position, Rotation, Transform};
+use ecs::components::{Kinetics, Player, Position, Rotation, Transform, Camera};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
-use renderer::{Camera, DrawCommand, DrawableId, Renderer, Window, DrawableMemo, DrawableState};
+use renderer::{DrawCommand, DrawableId, Renderer, Window, DrawableMemo, DrawableState};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
 pub struct RenderSystem {
@@ -54,10 +54,7 @@ impl<'a> System<'a> for StartFrameSystem {
     Write<'a, WindowEventDispatcher>,
     Write<'a, Timestep>,
     Write<'a, Running>,
-    ReadStorage<'a, Player>,
-    ReadStorage<'a, Position>,
-    ReadStorage<'a, Kinetics>,
-    ReadStorage<'a, Rotation>,
+    ReadStorage<'a, Camera>,
   );
 
   fn run(
@@ -68,10 +65,7 @@ impl<'a> System<'a> for StartFrameSystem {
       mut window_events,
       mut timestep,
       mut running,
-      s_player,
-      s_pos,
-      s_kinetics,
-      s_rotation,
+      camera_storage
     ): Self::SystemData,
   ) {
     let mut window = self.window.borrow_mut();
@@ -90,12 +84,16 @@ impl<'a> System<'a> for StartFrameSystem {
       _ => {}
     });
     renderer.init_frame(&mut window);
+    for camera in (&camera_storage).join() {
+      renderer.start_scene(&camera, &timestep);
+
+    }
     // events.process_events(&mut )
     // window.clear_framebuffer();
-    for (_player, pos, kinetics, rotation) in (&s_player, &s_pos, &s_kinetics, &s_rotation).join() {
-      let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
-      renderer.start_scene(cam, &timestep);
-    }
+    // for (_player, pos, kinetics, rotation) in (&s_player, &s_pos, &s_kinetics, &s_rotation).join() {
+    //   let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
+    //   renderer.start_scene(cam, &timestep);
+    // }
   }
 }
 
