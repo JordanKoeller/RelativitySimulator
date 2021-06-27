@@ -108,6 +108,8 @@ pub trait EntityDelegate<'a> {
     panic!("EntityDelegate::create not implemented for {}", std::any::type_name::<Self>());
   }
 
+  fn setup_delegate(&mut self, world: &mut World) {}
+
 }
 
 /////////////////////////////////////////////
@@ -176,6 +178,7 @@ where
 
   fn setup(&mut self, world: &mut World) {
     Self::SystemData::setup(world);
+    self.delegate.setup_delegate(world);
     let mut channel = world.fetch_mut::<StatefulEventChannel<EntityCrudEvent, Delegate::State>>();
     self.event_receiver_id = channel.register_with_subs(&[
       EntityCrudEvent::Create

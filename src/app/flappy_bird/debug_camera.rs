@@ -17,9 +17,10 @@ impl<'a> System<'a> for CameraDebugger {
     WriteStorage<'a, Camera>,
     ReadStorage<'a, EventReceiver>,
     Write<'a, StatelessEventChannel<WindowEvent>>,
+    Read<'a, Timestep>
   );
 
-  fn run(&mut self, (mut s_pos, mut s_rot, mut s_panel, mut s_cam, s_evt_id, events_channel): Self::SystemData) {
+  fn run(&mut self, (mut s_pos, mut s_rot, mut s_panel, mut s_cam, s_evt_id, events_channel, dt): Self::SystemData) {
     for (position, rotation, panel, mut camera, event_id) in (&mut s_pos, &mut s_rot, &mut s_panel, &mut s_cam, &s_evt_id).join() {
       // First I process any events
       let init_rotation = rotation.clone();
@@ -51,9 +52,14 @@ impl<'a> System<'a> for CameraDebugger {
         panel.push(Box::from(LineBreak));
         panel.push(Box::from(LabeledText::new(&to_string!(position.0), "Position")));
         panel.push(Box::from(LabeledText::new(&to_string!(rotation.front()), "Forward")));
+        panel.push(Box::from(LabeledText::new(
+          &format!("{0:.3}", dt.0 * 1000f32),
+          "Frame Time",
+        )));
       } else {
         panel.lines[1] = Box::from(LabeledText::new(&to_string!(position.0), "Position"));
         panel.lines[2] = Box::from(LabeledText::new(&to_string!(rotation.front()), "Forward"));
+        panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.0 * 1000f32), "Frame Time"));
       }
     }
   }
@@ -62,13 +68,13 @@ impl<'a> System<'a> for CameraDebugger {
     let receiver = {
       let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
       EventReceiver(listener.register_with_subs(&[
-        WindowEvent::new(Event::KeyDown(KeyCode::W)),
-        WindowEvent::new(Event::KeyDown(KeyCode::A)),
-        WindowEvent::new(Event::KeyDown(KeyCode::S)),
-        WindowEvent::new(Event::KeyDown(KeyCode::D)),
-        WindowEvent::new(Event::KeyDown(KeyCode::Q)),
-        WindowEvent::new(Event::KeyDown(KeyCode::E)),
-        WindowEvent::new(Event::MouseMoved),
+        // WindowEvent::new(Event::KeyDown(KeyCode::W)),
+        // WindowEvent::new(Event::KeyDown(KeyCode::A)),
+        // WindowEvent::new(Event::KeyDown(KeyCode::S)),
+        // WindowEvent::new(Event::KeyDown(KeyCode::D)),
+        // WindowEvent::new(Event::KeyDown(KeyCode::Q)),
+        // WindowEvent::new(Event::KeyDown(KeyCode::E)),
+        // WindowEvent::new(Event::MouseMoved),
         ]))
     };
     world.register::<GuiInputPanel>();
@@ -77,7 +83,7 @@ impl<'a> System<'a> for CameraDebugger {
       .with(Camera::default())
       .with(Rotation(Vec2F::new(0f32, 90f32)))
       .with(GuiInputPanel::new("Camera Info"))
-      .with(Position(Vec3F::new(0f32, 0f32, -10f32)))
+      .with(Position(Vec3F::new(0f32, 0f32, -20f32)))
       .with(receiver)
       .build();
   }

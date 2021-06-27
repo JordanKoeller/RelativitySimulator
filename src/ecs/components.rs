@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use specs::prelude::*;
-use specs::{Component, VecStorage};
+use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
 
 use events::ReceiverID;
 use utils::*;
@@ -15,7 +15,7 @@ use renderer::LIGHT_SPEED;
 pub struct Position(pub Vec3F);
 
 impl Component for Position {
-  type Storage = VecStorage<Self>;
+  type Storage = DefaultVecStorage<Self>;
 }
 
 impl Default for Position {
@@ -31,7 +31,7 @@ pub struct Kinetics {
 }
 
 impl Component for Kinetics {
-  type Storage = VecStorage<Self>;
+  type Storage = DefaultVecStorage<Self>;
 }
 
 impl Kinetics {
@@ -105,16 +105,26 @@ impl Default for Rotation {
 pub struct Player;
 
 #[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
+#[storage(DefaultVecStorage)]
 pub struct Gravity;
+
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct Drag;
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct EventReceiver(pub ReceiverID);
 
 #[derive(Component, Debug, Clone)]
-#[storage(VecStorage)]
+#[storage(DefaultVecStorage)]
 pub struct Transform(pub Mat4F);
+
+impl Default for Transform {
+  fn default() -> Self {
+    Self(Mat4F::one())
+  }
+}
 
 impl Deref for Transform {
   type Target = Mat4F;

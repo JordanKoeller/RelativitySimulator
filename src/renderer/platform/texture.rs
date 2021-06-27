@@ -28,8 +28,8 @@ pub trait TextureLike {
 pub struct Texture {
 
   source_data: TextureSource,
-  width: u32,
-  height: u32,
+  pub width: u32,
+  pub height: u32,
   id: u32,
 }
 
@@ -88,8 +88,8 @@ impl TextureLike for Texture {
 #[derive(Clone, Debug)]
 pub struct CubeMap {
   source_data: TextureSource,
-  width: u32,
-  height: u32,
+  pub width: u32,
+  pub height: u32,
   id: u32,
 }
 

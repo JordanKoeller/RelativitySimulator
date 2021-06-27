@@ -10,7 +10,7 @@ use utils::Timestep;
 #[storage(VecStorage)]
 pub struct Particle {
   pub lifetime: f32,
-  pub decay: f32, // TODO: Add some shader support for a global alpha parameter.
+  // pub decay: f32, // TODO: Add some shader support for a global alpha parameter.
 }
 
 

@@ -43,12 +43,6 @@ impl Window {
 
     window.make_current();
 
-    // window.set_cursor_pos_polling(true);
-
-    // window.set_key_polling(true);
-    // window.set_scroll_polling(true);
-    // window.set_framebuffer_size_polling(true);
-    // window.set_cursor_enter_polling(true);
     window.set_all_polling(true);
 
     // gl: load all OpenGL function pointers

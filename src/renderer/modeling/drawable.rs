@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage};
+use specs::{Component, VecStorage, DefaultVecStorage};
 
 use renderer::{Material, VertexArray};
 
@@ -50,6 +50,6 @@ impl DrawableState {
   }
 }
 
-#[derive(Clone, Debug, Component)]
-#[storage(VecStorage)]
+#[derive(Clone, Debug, Component, Default)]
+#[storage(DefaultVecStorage)]
 pub struct DrawableId(pub usize);

@@ -121,6 +121,7 @@ impl Renderer {
   pub fn init_frame(&mut self, window: &mut Window) {
     self.screen.framebuffer.bind();
     unsafe {
+      // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
       gl::Enable(gl::DEPTH_TEST);
     }
     window.clear_framebuffer();
@@ -129,8 +130,8 @@ impl Renderer {
   pub fn end_frame(&mut self, window: &mut Window) {
     self.screen.framebuffer.unbind();
     unsafe {
+      // gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
       gl::Disable(gl::DEPTH_TEST);
-      // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
     window.clear_framebuffer2();
     self.screen.shader.bind();

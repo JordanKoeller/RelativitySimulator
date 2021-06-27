@@ -88,8 +88,8 @@ pub struct AxisAlignedCubeCollision {
 impl AxisAlignedCubeCollision {
 
   pub fn from_transform(transform: &Transform) -> Self {
-    let c1 = Vec3F::new(-0.5f32, 0f32, -0.5f32);
-    let c2 = Vec3F::new(0.5f32, 1f32, 0.5f32);
+    let c1 = Vec3F::new(-0.5f32, -0.5f32, -0.5f32);
+    let c2 = Vec3F::new(0.5f32, 0.5f32, 0.5f32);
     let p1 = transform.deref() * swizzle_up(&c1);
     let p2 = transform.deref() * swizzle_up(&c2);
     let center = (p1 + p2) / 2f32;
