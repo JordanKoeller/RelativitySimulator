@@ -1,6 +1,5 @@
 use cgmath;
 use cgmath::One;
-
 use super::types::*;
 
 pub fn translate(pos: Vec3F) -> Mat4F {
@@ -24,6 +23,10 @@ pub fn identity() -> Mat4F {
 
 pub fn swizzle_up(v: &Vec3F) -> Vec4F {
   Vec4F::new(v.x, v.y, v.z, 1f32)
+}
+
+pub fn swizzle_up_with(v: &Vec3F, value: f32) -> Vec4F {
+  Vec4F::new(v.x, v.y, v.z, value)
 }
 
 pub fn swizzle_down(v: &Vec4F) -> Vec3F {

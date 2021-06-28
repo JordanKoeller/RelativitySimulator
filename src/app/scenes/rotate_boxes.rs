@@ -1,10 +1,13 @@
 use specs::prelude::*;
+use cgmath::Zero;
 
 use app::{entities::create_floor, entities::create_player, Cube, FaceCube};
 use renderer::*;
 use utils::*;
 
 use ecs::*;
+
+use physics::TransformComponent;
 
 pub fn build_rotate_boxes(num_boxes: u32, scale: f32, start_pos: Vec3F, delta: Vec3F, world: &mut World) {
   create_player(Vec3F::new(-50f32, 38f32, 25f32), world);
@@ -17,9 +20,9 @@ pub fn build_rotate_boxes(num_boxes: u32, scale: f32, start_pos: Vec3F, delta: V
     renderer.submit_model(cube.state())
   };
   for i in 0..num_boxes {
-    let pos = translate(start_pos + delta * i as f32);
-    let scale = Mat4F::from_scale(scale);
-    let transform = Transform(scale * pos);
+    let pos = start_pos + delta * i as f32;
+    let scale = Vec3F::new(scale, scale, scale);
+    let transform = TransformComponent::new(pos, scale, QuatF::zero());
     world.create_entity()
       .with(drawable_id.clone())
       .with(transform)

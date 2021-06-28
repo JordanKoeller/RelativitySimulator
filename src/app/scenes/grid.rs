@@ -7,6 +7,8 @@ use ecs::*;
 use specs::prelude::*;
 use utils::*;
 
+use physics::TransformComponent;
+
 use renderer::{Drawable, Material, Renderer};
 
 pub fn build_grid_scene(center: Vec3F, world: &mut World) {
@@ -64,7 +66,7 @@ impl WireBox {
             Vec3F::new(e as f32 * increment, f as f32 * increment, self.scale / 2f32)
           };
           world.create_entity()
-            .with(Transform(translate(add_transl + seed_corner) * nonunif_scale(scaling_vec)))
+            .with(TransformComponent::from(translate(add_transl + seed_corner) * nonunif_scale(scaling_vec)))
             .with(cube_id.clone())
             .build();
         }

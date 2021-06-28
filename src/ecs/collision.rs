@@ -6,7 +6,7 @@ use specs::{Component, VecStorage};
 
 use cgmath::prelude::*;
 
-use super::components::Transform;
+use physics::TransformComponent;
 use utils::{Vec3F};
 
 

@@ -92,6 +92,12 @@ impl Renderer {
     self.assets.register_asset(model)
   }
 
+  // TODO: This is temporary code:
+  pub fn submit_uniform(&mut self, d_id: &DrawableId, uniform_name: &str, uniform: Uniform) {
+    let asset = self.assets.get_asset_mut(d_id);
+    asset.material.unknown_uniform(uniform_name, uniform);
+  }
+
   pub fn submit(&mut self, cmd: DrawCommand) {
     let s_id = self.assets.get_asset(&cmd.id).shader_id.clone();
     // let s_id = self.assets.get_shader(&active_shader);
@@ -171,7 +177,7 @@ impl Renderer {
     self
       .assets
       .get_shader(&shader)
-      .set_uniform(c_str!("model"), &Uniform::Mat4(cmd.transform.0));
+      .set_uniform(c_str!("model"), &Uniform::Mat4(cmd.transform));
     memo.vertex_array.bind();
     memo.vertex_array.draw(&self.assets.get_shader(&shader).element_type);
   }

@@ -19,7 +19,6 @@ pub fn register_systems<'a, 'b>(b: GameLoopBuilder<'a, 'b>) -> GameLoopBuilder<'
 
 pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   Box::new(|builder: DispatcherBuilder<'a, 'b>| builder
-    // .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &[])
     .with(PlayerSystem::default(), "player_controller", &[])
     .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &["player_controller"])
     .with(CameraDebugger, "camera_debugger", &[])

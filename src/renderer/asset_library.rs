@@ -48,4 +48,8 @@ impl AssetLibrary {
   pub fn get_asset(&self, id: &DrawableId) -> &DrawableMemo {
     &self.models[id.0]
   }
+
+  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut DrawableMemo {
+    &mut self.models[id.0]
+  }
 }

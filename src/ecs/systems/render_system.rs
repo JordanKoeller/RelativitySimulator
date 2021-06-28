@@ -1,10 +1,12 @@
 use cgmath::prelude::*;
 use specs::prelude::*;
 
-use ecs::components::{Kinetics, Player, Position, Rotation, Transform, Camera};
+use ecs::components::{Player, Camera};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
 use renderer::{DrawCommand, DrawableId, Renderer, Window, DrawableMemo, DrawableState};
 use utils::{Mat4F, MutRef, Running, Timestep};
+
+use physics::{TransformComponent};
 
 pub struct RenderSystem {
   pub window: MutRef<Window>,
@@ -13,7 +15,7 @@ pub struct RenderSystem {
 impl<'a> System<'a> for RenderSystem {
   type SystemData = (
     ReadStorage<'a, DrawableId>,
-    ReadStorage<'a, Transform>,
+    ReadStorage<'a, TransformComponent>,
     Write<'a, Timestep>,
     Write<'a, Renderer>,
   );
@@ -24,12 +26,12 @@ impl<'a> System<'a> for RenderSystem {
       if let Some(transform) = maybe_transform {
         renderer.submit(DrawCommand {
           id: drawable.clone(),
-          transform: transform.clone(),
+          transform: transform.matrix(),
         });
       } else {
         renderer.submit(DrawCommand {
           id: drawable.clone(),
-          transform: Transform(Mat4F::one()),
+          transform: Mat4F::identity(),
         });
       }
     }

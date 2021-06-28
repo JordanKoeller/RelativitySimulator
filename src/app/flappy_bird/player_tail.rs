@@ -8,7 +8,7 @@ use shapes::Sprite;
 use utils::*;
 
 use app::{AxisAlignedCubeCollision, Cube};
-
+use physics::{TransformComponent, Gravity, RigidBody};
 
 #[derive(Clone, Debug)]
 pub struct PlayerTailParticleState {
@@ -55,19 +55,17 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
   ) -> Vec<Entity> {
     if let Some(d_id) = &self.id {
       vec![constructor()
-        .with(Position(state.position))
+        .with(TransformComponent::new(state.position, Vec3F::new(0.5f32, 0.5f32, 0.5f32), QuatF::zero()))
+        // .with(Position(state.position))
         .with(Particle {
           lifetime: state.lifetime,
         })
-        .with(Kinetics {
-          velocity: state.impulse,
-          acceleration: -Vec3F::unit_y(),
-        })
+        .with(RigidBody::new(state.impulse, -Vec3F::unit_y()))
         .with(d_id.clone())
         .with(Gravity)
-        .with(Transform(
-          Mat4F::from_translation(state.position) * Mat4F::from_scale(0.5f32),
-        ))
+        // .with(Transform(
+        //   Mat4F::from_translation(state.position) * Mat4F::from_scale(0.5f32),
+        // ))
         .build()]
     } else {
       panic!("Tried to make a sprite but it hasn't been pre-initialized!");

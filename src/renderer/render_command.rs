@@ -1,8 +1,9 @@
 use renderer::DrawableId;
-use ecs::components::Transform;
+use physics::components::TransformComponent;
+use utils::Mat4F;
 
 #[derive(Clone, Debug)]
 pub struct DrawCommand {
   pub id: DrawableId,
-  pub transform: Transform
+  pub transform: Mat4F
 }

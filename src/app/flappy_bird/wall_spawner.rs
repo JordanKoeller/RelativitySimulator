@@ -8,6 +8,8 @@ use shapes::Sprite;
 use utils::*;
 use utils::random;
 
+use physics::{TransformComponent, RigidBody};
+
 use app::AxisAlignedCubeCollision;
 
 struct WallSpec {
@@ -79,19 +81,19 @@ impl WallSpawner {
     let scaled_end = lerp(0f32, 1f32, -half_height, half_height, end);
     let position = Vec3F::new(-10f32, avg(scaled_start, scaled_end), 0f32);
     let scaled = Vec3F::new(1f32, (scaled_end - scaled_start) * invert, 1f32);
-    let model_matrix = Mat4F::from_translation(position) * nonunif_scale(scaled);
+    let transform = TransformComponent::new(position, scaled, QuatF::zero());
     // let position = Vec3F::unit_x();
     if let Some(d_id) = &self.sprite {
       ent.with(
         Particle {
-          lifetime: 5f32
+          lifetime: 50f32
         }
       )
-      .with(Kinetics {velocity: Vec3F::unit_x() * speed, acceleration: Vec3F::zero()})
+      .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))
+      // .with(Sprite::new("resources/flappy_bird/pipe.png").state())
       .with(d_id.clone())
-      .with(Transform(model_matrix))
-      .with(Position(position))
-      .with(AxisAlignedCubeCollision::from_transform(&Transform(model_matrix)))
+      .with(AxisAlignedCubeCollision::from_transform(&transform))
+      .with(transform)
       .build();
     }
   }

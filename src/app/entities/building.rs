@@ -6,6 +6,8 @@ use ecs::*;
 use renderer::{Drawable, DrawableId, Material, Renderer, Texture};
 use utils::*;
 
+use physics::TransformComponent;
+
 use app::{Cube, AxisAlignedCubeCollision};
 
 #[derive(Clone, Debug)]
@@ -69,6 +71,7 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
+    let transform1 = TransformComponent::from(transform1);
     let collider = AxisAlignedCubeCollision::from_transform(&transform1);
     let ent1 = builder.with(model).with(transform1).with(collider).build();
 
@@ -77,6 +80,7 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
     let mut material = Material::new();
     material.diffuse_texture(texture.clone());
     let model = Cube::new(material).state();
+    let transform2 = TransformComponent::from(transform2);
     let collider = AxisAlignedCubeCollision::from_transform(&transform2);
     let ent2 = builder.with(model).with(transform2).with(collider).build();
     vec![ent1, ent2]

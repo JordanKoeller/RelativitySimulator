@@ -25,6 +25,7 @@ extern crate lazy_static;
 mod debug;
 mod common;
 mod ecs;
+mod physics;
 mod events;
 mod game_loop;
 mod renderer;

@@ -1,18 +1,19 @@
 use cgmath::prelude::*;
 use specs::prelude::*;
+use cgmath::{Deg, Rad};
 
 use utils::*;
 use ecs::components::*;
-use ecs::components::Rotation;
 use gui::{GuiInputPanel, LabeledText, LineBreak};
 use events::*;
+
+use physics::{TransformComponent, RigidBody};
 
 pub struct CameraDebugger;
 
 impl<'a> System<'a> for CameraDebugger {
   type SystemData = (
-    WriteStorage<'a, Position>,
-    WriteStorage<'a, Rotation>,
+    WriteStorage<'a, TransformComponent>,
     WriteStorage<'a, GuiInputPanel>,
     WriteStorage<'a, Camera>,
     ReadStorage<'a, EventReceiver>,
@@ -20,23 +21,25 @@ impl<'a> System<'a> for CameraDebugger {
     Read<'a, Timestep>
   );
 
-  fn run(&mut self, (mut s_pos, mut s_rot, mut s_panel, mut s_cam, s_evt_id, events_channel, dt): Self::SystemData) {
-    for (position, rotation, panel, mut camera, event_id) in (&mut s_pos, &mut s_rot, &mut s_panel, &mut s_cam, &s_evt_id).join() {
+  fn run(&mut self, (mut s_transform, mut s_panel, mut s_cam, s_evt_id, events_channel, dt): Self::SystemData) {
+    for (transform, panel, mut camera, event_id) in (&mut s_transform, &mut s_panel, &mut s_cam, &s_evt_id).join() {
       // First I process any events
-      let init_rotation = rotation.clone();
+      let init_rotation = transform.clone();
       events_channel.for_each(&event_id.0, |evt| {
         match evt.code {
-          Event::KeyDown(KeyCode::W) => position.0 += init_rotation.front().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::A) => position.0 -= init_rotation.right().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::S) => position.0 -= init_rotation.front().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::D) => position.0 += init_rotation.right().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::Q) => position.0 -= init_rotation.up().normalize_to   (0.04f32),
-          Event::KeyDown(KeyCode::E) => position.0 += init_rotation.up().normalize_to   (0.04f32),
+          Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f32),
+          Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f32),
+          Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f32),
+          Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f32),
+          Event::KeyDown(KeyCode::Q) => transform.translation -= init_rotation.up().normalize_to   (0.04f32),
+          Event::KeyDown(KeyCode::E) => transform.translation += init_rotation.up().normalize_to   (0.04f32),
           Event::MouseMoved => {
             if let Some(payload) = &evt.payload {
               match payload {
                 EventPayload::MouseMove(vec) => {
-                  rotation.rotate(vec.x * 0.05, vec.y * 0.05)
+                  // transform.push_rotation(Vec3F::unit_x(), vec.x * 0.05);
+                  // transform.push_rotation(Vec3F::unit_y(), vec.y * 0.05);
+                  transform.rotate(vec.x * 0.05, vec.y * 0.05)
                 },
                 _ => panic!(format!("Received a payload of {:?} on MouseMoved event!", payload))
               }
@@ -45,20 +48,20 @@ impl<'a> System<'a> for CameraDebugger {
           _ => panic!("Encountered unexpected key code in camera debugger")
         }
       });
-      self.refresh_camera(&position, &rotation, &mut camera);
+      self.refresh_camera(&transform, &mut camera);
 
       // Then I work on updating the panel
       if panel.empty() {
         panel.push(Box::from(LineBreak));
-        panel.push(Box::from(LabeledText::new(&to_string!(position.0), "Position")));
-        panel.push(Box::from(LabeledText::new(&to_string!(rotation.front()), "Forward")));
+        panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
+        panel.push(Box::from(LabeledText::new(&to_string!(transform.front()), "Forward")));
         panel.push(Box::from(LabeledText::new(
           &format!("{0:.3}", dt.0 * 1000f32),
           "Frame Time",
         )));
       } else {
-        panel.lines[1] = Box::from(LabeledText::new(&to_string!(position.0), "Position"));
-        panel.lines[2] = Box::from(LabeledText::new(&to_string!(rotation.front()), "Forward"));
+        panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
+        panel.lines[2] = Box::from(LabeledText::new(&to_string!(transform.front()), "Forward"));
         panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.0 * 1000f32), "Frame Time"));
       }
     }
@@ -79,11 +82,12 @@ impl<'a> System<'a> for CameraDebugger {
     };
     world.register::<GuiInputPanel>();
     world.register::<Camera>();
+    let mut tc = TransformComponent::new(Vec3F::unit_z() * -20f32, Vec3F::new(1f32, 1f32, 1f32), QuatF::from_angle_x(Rad::from(Deg(90f32))));
+    tc.rotation = Vec3F::unit_y() * 90f32;
     world.create_entity()
       .with(Camera::default())
-      .with(Rotation(Vec2F::new(0f32, 90f32)))
+      .with(tc)
       .with(GuiInputPanel::new("Camera Info"))
-      .with(Position(Vec3F::new(0f32, 0f32, -20f32)))
       .with(receiver)
       .build();
   }
@@ -91,9 +95,9 @@ impl<'a> System<'a> for CameraDebugger {
 
 impl CameraDebugger {
 
-  fn refresh_camera(&self, pos: &Position, rot: &Rotation, cam: &mut Camera) {
-    let location = cgmath::Point3::<f32>::new(pos.0.x, pos.0.y, pos.0.z);
-    let pov = pos.0 + rot.front();
+  fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
+    let location = cgmath::Point3::<f32>::new(t.translation.x, t.translation.y, t.translation.z);
+    let pov = t.translation + t.front();
     let center = cgmath::Point3::<f32>::new(pov.x, pov.y, pov.z);
     let up = Vec3F::unit_y();
     let matrix = Mat4F::look_at(location, center, up);

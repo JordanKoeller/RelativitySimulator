@@ -1,9 +1,8 @@
 use specs::prelude::{ReadStorage, Entity, Write};
-use ecs::components::Transform;
 use ecs::{EntityDelegate, MyBuilder};
 use renderer::{DrawableId, Material, Texture, Drawable, Renderer};
 use utils::*;
-
+use physics::TransformComponent;
 use app::{Cube, FaceCube, AxisAlignedCubeCollision};
 
 #[derive(Clone, Debug)]
@@ -73,7 +72,8 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
     material.diffuse_texture(texture);
     let model = Cube::new(material).state();
     let builder = constructor();
-    let transform = stack.pop();
+    let matrix = stack.pop();
+    let transform = TransformComponent::from(matrix);
     let ent = builder.with(model).with(AxisAlignedCubeCollision::from_transform(&transform)).with(transform).build();
     vec![ent]
   }
