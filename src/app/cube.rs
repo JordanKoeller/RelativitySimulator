@@ -5,7 +5,7 @@ use cgmath::prelude::{InnerSpace};
 use renderer::{Drawable, Material, Texture};
 use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
 
-use ecs::{Collision, CollisionSummary};
+use physics::{Collision, CollisionSummary};
 
 use utils::{Vec3F, Vec4F, swizzle_down, swizzle_up, Mat3F};
 use physics::TransformComponent;

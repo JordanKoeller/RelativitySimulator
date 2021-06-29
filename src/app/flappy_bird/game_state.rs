@@ -3,8 +3,7 @@ use specs::prelude::*;
 
 use app::AxisAlignedCubeCollision;
 use ecs::components::{EventReceiver, Player};
-use ecs::CanCollide;
-use ecs::Collision;
+use physics::{CanCollide, Collision};
 use gui::{GuiInputPanel, LabeledText, LineBreak};
 use renderer::{DrawableId, Renderer, Uniform};
 use utils::{random, Mat4F, Timestep, Vec2F, Vec3F};

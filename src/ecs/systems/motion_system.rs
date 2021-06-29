@@ -1,7 +1,7 @@
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
 use cgmath::prelude::*;
-use ecs::{CanCollide, Collision, CollisionQueue, CollisionSummary};
+use physics::{CanCollide, Collision, CollisionQueue, CollisionSummary};
 use utils::*;
 
 use physics::{TransformComponent, RigidBody, Gravity, Drag};

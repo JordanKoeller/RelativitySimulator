@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 
 use ecs::components::{EventReceiver,Player};
 use ecs::entity::EntityCrudEvent;
-use ecs::CanCollide;
+use physics::CanCollide;
 use events::{Event, EventChannel, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
 use renderer::{Drawable, DrawableState};
 use shapes::Sprite;

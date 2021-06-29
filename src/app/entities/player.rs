@@ -5,7 +5,7 @@ use ecs::*;
 use events::{EventChannel, StatelessEventChannel, WindowEvent, Event, KeyCode};
 use utils::{Vec3F, Vec2F, QuatF};
 use gui::GuiInputPanel;
-use physics::{TransformComponent, RigidBody};
+use physics::{TransformComponent, RigidBody, CanCollide};
 
 pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
   let receiver = {
@@ -25,10 +25,7 @@ pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
     .with(Player)
     .with(TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero()))
     .with(RigidBody::new_stationary())
-    // .with(Rotation(Vec2F::new(0f32, 0f32)))
-    // .with(Kinetics::default())
     .with(receiver)
-    // .with(Position(pos))
     .with(CanCollide {radius: 1f32})
     .with(GuiInputPanel::new("Player"))
     .build();
