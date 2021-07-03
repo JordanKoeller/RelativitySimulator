@@ -2,24 +2,12 @@ use std::ops::Deref;
 
 use specs::prelude::*;
 use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
+use cgmath::prelude::*;
 
-use events::ReceiverID;
 use utils::*;
 
-use cgmath::prelude::*;
-use ecs::Debugger;
 
 use renderer::LIGHT_SPEED;
-
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct Player;
-
-#[derive(Component, Default, Debug)]
-#[storage(VecStorage)]
-pub struct EventReceiver(pub ReceiverID);
-
 
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]

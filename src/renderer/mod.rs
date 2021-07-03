@@ -2,6 +2,7 @@ pub mod platform;
 pub mod renderer;
 pub mod renderer_config;
 pub mod render_command;
+pub mod render_queue;
 pub mod modeling;
 // pub mod camera;
 // pub mod ui;
@@ -15,5 +16,5 @@ pub use self::modeling::*;
 pub use self::renderer_config::*;
 pub use self::asset_library::*;
 pub use self::render_command::*;
-
+pub use self::render_queue::*;
 pub const LIGHT_SPEED: f32 = 12.0;

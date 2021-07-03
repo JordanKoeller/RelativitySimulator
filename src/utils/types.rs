@@ -50,6 +50,6 @@ pub fn GetMutRef<T>(v: T) -> MutRef<T> {
 }
 
 #[allow(dead_code, non_snake_case)]
-pub fn GetSyncMutRef<T>(v: T) -> SyncMutRef<T> {
+pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
   Arc::new(Mutex::new(v))
 }

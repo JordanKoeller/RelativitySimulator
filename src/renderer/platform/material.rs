@@ -4,7 +4,7 @@ use utils::*;
 
 use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Material {
   pub uniforms: Vec<(CString, Uniform)>,
 }
@@ -21,8 +21,8 @@ impl Material {
   pub fn specular(&mut self, v: Vec3F) {
     self.upsert_uniform(c_str!("specular"), Uniform::Vec3(v));
   }
+  
   #[allow(dead_code)]
-
   pub fn shininess(&mut self, v: f32) {
     self.upsert_uniform(c_str!("shininess"), Uniform::Float(v));
   }

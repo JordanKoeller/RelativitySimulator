@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use specs::{Component, VecStorage};
 use imgui::{ImString, Ui};
-use utils::{SyncMutRef, GetSyncMutRef, Color};
+use utils::{SyncMutRef, getSyncMutRef, Color};
 
 /******************************
  * Widget Interface
