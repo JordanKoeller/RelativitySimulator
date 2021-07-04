@@ -35,7 +35,7 @@ impl<'a> System<'a> for RenderSystem {
   );
 
   fn run(&mut self, (entities, drawables, transforms, materials, mut timestep, mut renderer): Self::SystemData) {
-    let window = self.window.borrow_mut();
+    let mut window = self.window.borrow_mut();
     for (entity, drawable) in (&entities, &drawables).join() {
       let cmd = DrawCall {
         drawable: drawable.clone(),
@@ -44,6 +44,7 @@ impl<'a> System<'a> for RenderSystem {
       self.render_queue.push(cmd);
     }
     // let mut window = self.window.borrow_mut();
+    renderer.init_frame(&mut window);
     let start = window.glfw_token.get_time() as f32;
     renderer.draw_scene(self.render_queue.consume(), &materials, &transforms);
     timestep.set_render_time(window.glfw_token.get_time() as f32 - start);
@@ -93,10 +94,8 @@ impl<'a> System<'a> for StartFrameSystem {
       }
       _ => {}
     });
-    renderer.init_frame(&mut window);
     for camera in (&camera_storage).join() {
       renderer.start_scene(&camera, &timestep);
-
     }
     // events.process_events(&mut )
     // window.clear_framebuffer();

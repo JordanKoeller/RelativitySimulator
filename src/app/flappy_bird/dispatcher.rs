@@ -27,11 +27,11 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   //   .with(GameState::default(), "game_state", &["player_controller", "wall_spawner"])
   // )
   Box::new(|builder: DispatcherBuilder<'a, 'b>| builder
-    .with_thread_local(PlayerSystem::default())
-    .with_thread_local(EntityManager::<PlayerTailDelegate>::default())
-    .with_thread_local(CameraDebugger)
-    .with_thread_local(WallSpawner::default())
-    .with_thread_local(GameState::default())
+    .with(PlayerSystem::default(), "player_controller", &[])
+    .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &["player_controller"])
+    .with(CameraDebugger, "camera_debugger", &[])
+    .with(WallSpawner::default(), "wall_spawner", &[])
+    .with(GameState::default(), "game_state", &["player_controller", "wall_spawner"])
   )
 }
 
