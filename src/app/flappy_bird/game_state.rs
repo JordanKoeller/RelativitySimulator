@@ -2,10 +2,10 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 
 use app::AxisAlignedCubeCollision;
-use ecs::components::{EventReceiver, Player};
+use ecs::components::{EventReceiver, Player, DrawableId, Material};
 use physics::{CanCollide, Collision};
 use gui::{GuiInputPanel, LabeledText, LineBreak};
-use renderer::{DrawableId, Renderer, Uniform};
+use renderer::{Renderer, Uniform};
 use utils::{random, Mat4F, Timestep, Vec2F, Vec3F};
 
 use physics::{Gravity, RigidBody, TransformComponent};
@@ -23,7 +23,7 @@ impl<'a> System<'a> for GameState {
     ReadStorage<'a, TransformComponent>,
     WriteStorage<'a, GuiInputPanel>,
     ReadStorage<'a, AxisAlignedCubeCollision>,
-    Write<'a, Renderer>,
+    WriteStorage<'a, Material>,
   );
 
   fn run(
@@ -36,14 +36,14 @@ impl<'a> System<'a> for GameState {
       transform_storage,
       mut gui_storage,
       aacc_storage,
-      mut renderer,
+      mut material_storage
     ): Self::SystemData,
   ) {
     let mut is_colliding = false;
     for (_player, rigid_body, transform, collider) in
       (&player_storage, &rigid_storage, &transform_storage, &collide_storage).join()
     {
-      for (_wall_collision, wall_transform, d_id) in (&aacc_storage, &transform_storage, &drawable_storage).join() {
+      for (_wall_collision, wall_transform, d_id, material) in (&aacc_storage, &transform_storage, &drawable_storage, &mut material_storage).join() {
         let mut collision_transform = wall_transform.clone();
         collision_transform.scale.y = collision_transform.scale.y.abs();
         let wall_collidable = AxisAlignedCubeCollision::from_transform(&collision_transform);
@@ -51,11 +51,13 @@ impl<'a> System<'a> for GameState {
           (&transform.translation, &collider.radius),
           &(Vec3F::unit_x() * -0.001f32),
         );
-        // let dist = wall_collidable.distance_to(&position.0);
+        // let dist = wall_collidable.distance_to(&transform.translation);
         if let Some(collision) = colliding {
           if collision.time < 160f32 {
-            renderer.submit_uniform(d_id, "ambient", Uniform::Vec3(Vec3F::new(1f32, 0.5f32, 0.5f32)));
-            break;
+            is_colliding = true;
+            material.ambient(Vec3F::new(0.5f32, 0.5f32, 0.5f32));
+            // renderer.submit_uniform(d_id, "ambient", Uniform::Vec3(Vec3F::new(1f32, 0.5f32, 0.5f32)));
+            // break;
           }
         }
       }

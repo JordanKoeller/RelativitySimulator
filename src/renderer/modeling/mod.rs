@@ -1,5 +1,7 @@
 pub mod drawable;
-pub mod loaded_asset;
+mod mesh;
+// pub mod loaded_asset;
 
 pub use self::drawable::*;
-pub use self::loaded_asset::*;
+pub use self::mesh::Mesh;
+// pub use self::loaded_asset::*;

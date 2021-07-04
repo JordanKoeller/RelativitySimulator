@@ -2,13 +2,15 @@ use std::ops::Deref;
 use specs::prelude::*;
 use specs::{Component, VecStorage};
 use cgmath::prelude::{InnerSpace};
-use renderer::{Drawable, Material, Texture};
+use renderer::{Drawable, Texture};
 use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
 
 use physics::{Collision, CollisionSummary};
 
 use utils::{Vec3F, Vec4F, swizzle_down, swizzle_up, Mat3F};
 use physics::TransformComponent;
+
+use ecs::Material;
 
 pub struct TexturedCube {
   filename: String

@@ -1,6 +1,7 @@
-use renderer::{Drawable, Material, CubeMap};
+use renderer::{Drawable, CubeMap};
 use renderer::{AttributeType, BufferLayout, IndexBuffer, Uniform, VertexArray, VertexBuffer};
 
+use ecs::Material;
 
 pub struct Skybox {
   texture_name: String

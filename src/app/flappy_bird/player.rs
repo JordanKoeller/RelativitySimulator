@@ -2,11 +2,11 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 use rand::{thread_rng, Rng};
 
-use ecs::components::{EventReceiver,Player};
+use ecs::components::{EventReceiver,Player, MeshComponent};
 use ecs::entity::EntityCrudEvent;
 use physics::CanCollide;
 use events::{Event, EventChannel, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
-use renderer::{Drawable, DrawableState};
+use renderer::{Drawable, Mesh};
 use shapes::Sprite;
 use gui::{GuiInputPanel, LabeledText, LineBreak};
 
@@ -102,7 +102,7 @@ impl<'a> System<'a> for PlayerSystem {
     world.register::<TransformComponent>();
     world.register::<EventReceiver>();
     world.register::<Gravity>();
-    world.register::<DrawableState>();
+    world.register::<MeshComponent>();
     world.register::<GuiInputPanel>();
     world.register::<CanCollide>();
     let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
@@ -114,7 +114,8 @@ impl<'a> System<'a> for PlayerSystem {
       .with(RigidBody::new_stationary())
       .with(receiver)
       .with(Gravity)
-      .with(sprite.state())
+      .with(sprite.mesh_component())
+      .with(sprite.material())
       .with(CanCollide {radius: 0.5f32})
       .with(GuiInputPanel::new("Player"))
       .build();

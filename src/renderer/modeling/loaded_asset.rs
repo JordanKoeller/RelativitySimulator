@@ -2,9 +2,11 @@
 use tobj;
 
 use renderer::{
-  AttributeType, BufferLayout, DrawableState, IndexBuffer, Material, Texture, VertexArray, VertexBuffer, WHITE_TEXTURE,
+  AttributeType, BufferLayout, IndexBuffer, Texture, VertexArray, VertexBuffer, WHITE_TEXTURE,
 };
 use utils::*;
+
+use ecs::Material;
 
 // struct Mesh {
 //   vertex_array: VertexArray,
@@ -15,7 +17,7 @@ use utils::*;
 pub struct Model {
   filename: String,
   shader: String,
-  pub meshes: Vec<Box<DrawableState>>,
+  pub meshes: Vec<MeshComponent>,
 }
 
 impl Model {

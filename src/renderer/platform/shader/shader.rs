@@ -51,6 +51,9 @@ impl ShaderStep {
   }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ShaderId(pub usize);
+
 pub struct Shader {
   id: u32,
   pub name: String,

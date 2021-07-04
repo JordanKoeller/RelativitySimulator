@@ -1,23 +1,13 @@
 
 use renderer::*;
+use ecs::{Material, DrawableId};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ShaderId(pub usize);
-
-
-
-#[derive(Clone, Debug)]
-pub struct DrawableMemo {
-  pub vertex_array: VertexArray,
-  pub material: Material,
-  pub shader_id: ShaderId,
-}
 
 #[derive(Default)]
 pub struct AssetLibrary {
   shader_lookup: std::collections::HashMap<String, usize>,
   shaders: Vec<Shader>,
-  models: Vec<DrawableMemo>,
+  models: Vec<Mesh>,
 }
 
 
@@ -29,15 +19,16 @@ impl AssetLibrary {
     self.shaders.push(shader);
   }
 
-  pub fn register_asset(&mut self, asset: DrawableState) -> DrawableId {
+  pub fn register_asset(&mut self, mut asset: Mesh) -> DrawableId {
     let s_id = ShaderId(*self.shader_lookup.get(&asset.shader_name).expect(&format!("Shader {} not registered", asset.shader_name)));
     let ret = DrawableId(self.models.len());
-    let elem = DrawableMemo {
-      vertex_array: asset.vertex_array,
-      material: asset.material,
-      shader_id: s_id
-    };
-    self.models.push(elem);
+    asset.registry = Some((ret.clone(), s_id));
+    // let elem = DrawableMemo {
+    //   vertex_array: asset.vertex_array,
+    //   material: asset.material,
+    //   shader_id: s_id
+    // };
+    self.models.push(asset);
     ret
   }
 
@@ -45,11 +36,11 @@ impl AssetLibrary {
     &self.shaders[id.0]
   }
 
-  pub fn get_asset(&self, id: &DrawableId) -> &DrawableMemo {
+  pub fn get_asset(&self, id: &DrawableId) -> &Mesh {
     &self.models[id.0]
   }
 
-  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut DrawableMemo {
+  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut Mesh {
     &mut self.models[id.0]
   }
 }

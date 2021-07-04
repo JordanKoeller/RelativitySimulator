@@ -1,6 +1,6 @@
 use specs::prelude::{ReadStorage, Entity, Write};
-use ecs::{EntityDelegate, MyBuilder};
-use renderer::{DrawableId, Material, Texture, Drawable, Renderer};
+use ecs::{EntityDelegate, MyBuilder, Material};
+use renderer::{DrawableId, Texture, Drawable, Renderer};
 use utils::*;
 use physics::TransformComponent;
 use app::{Cube, FaceCube, AxisAlignedCubeCollision};

@@ -2,7 +2,7 @@ use specs::prelude::*;
 use cgmath::prelude::*;
 
 use ecs::*;
-use renderer::{Drawable, DrawableId, DrawableState, Material, Renderer, Texture};
+use renderer::{Drawable, Renderer, Texture};
 use shapes::Sprite;
 
 use utils::*;
@@ -24,7 +24,8 @@ pub struct WallSpawner {
   min_spawn_gap: f32,
   spawn_window_length: f32,
   gap_length: f32,
-  sprite: Option<DrawableId>,
+  id: Option<DrawableId>,
+  material: Option<Material>,
 }
 
 impl <'a> System<'a> for WallSpawner {
@@ -48,11 +49,10 @@ impl <'a> System<'a> for WallSpawner {
 
   fn setup(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let mut state = Sprite::new("resources/flappy_bird/pipe.png").state();
-    state.refresh();
-    let id = renderer.submit_model(state);
-    println!("Registered wall spawner! {:?}", id);
-    self.sprite = Some(id)
+    let state = Sprite::new("resources/flappy_bird/pipe.png");
+    let d_id = renderer.submit_model(state.mesh());
+    self.id = Some(d_id);
+    self.material = Some(state.material())
   }
 }
 
@@ -83,7 +83,7 @@ impl WallSpawner {
     let scaled = Vec3F::new(1f32, (scaled_end - scaled_start) * invert, 1f32);
     let transform = TransformComponent::new(position, scaled, QuatF::zero());
     // let position = Vec3F::unit_x();
-    if let Some(d_id) = &self.sprite {
+    if let Some(d_id) = &self.id {
       ent.with(
         Particle {
           lifetime: 50f32
@@ -92,6 +92,7 @@ impl WallSpawner {
       .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))
       // .with(Sprite::new("resources/flappy_bird/pipe.png").state())
       .with(d_id.clone())
+      .with(self.material.clone().expect("Material was NONE on the wall spawner"))
       .with(AxisAlignedCubeCollision::from_transform(&transform))
       .with(transform)
       .build();
@@ -106,7 +107,8 @@ impl Default for WallSpawner {
       min_spawn_gap: 1.8f32,
       spawn_window_length: 1f32,
       gap_length: 0.15f32,
-      sprite: None,
+      id: None,
+      material: None,
     }
   }
 }

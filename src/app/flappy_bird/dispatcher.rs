@@ -2,7 +2,8 @@ use specs::prelude::*;
 use ecs::*;
 use events::*;
 
-use renderer::{Drawable, DrawableState};
+use renderer::{Drawable, Mesh};
+use physics::TransformComponent;
 
 use app::flappy_bird::{PlayerSystem, PlayerTailDelegate, CameraDebugger, WallSpawner, GameState};
 use app::Skybox;
@@ -30,8 +31,12 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
 
 pub fn setup_world<'a, 'b>(world: &mut World) {
   let skybox = Skybox::new("resources/flappy_bird/skybox");
-  world.register::<DrawableState>();
+  world.register::<MeshComponent>();
+  world.register::<Material>();
+  world.register::<TransformComponent>();
   world.create_entity()
-    .with(skybox.state())
+    .with(skybox.material())
+    .with(skybox.mesh_component())
+    .with(TransformComponent::identity())
     .build();
 }

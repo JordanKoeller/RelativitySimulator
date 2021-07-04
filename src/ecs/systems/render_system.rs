@@ -1,9 +1,9 @@
 use cgmath::prelude::*;
 use specs::prelude::*;
 
-use ecs::components::{Player, Camera};
+use ecs::components::{Player, Camera, DrawableId, MeshComponent, Material};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
-use renderer::{DrawCommand, DrawableId, Renderer, Window, DrawableMemo, DrawableState};
+use renderer::{DrawCommand, Renderer, Window, Mesh, RenderCommand};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
 use physics::{TransformComponent};
@@ -16,24 +16,31 @@ impl<'a> System<'a> for RenderSystem {
   type SystemData = (
     ReadStorage<'a, DrawableId>,
     ReadStorage<'a, TransformComponent>,
+    ReadStorage<'a, Material>,
     Write<'a, Timestep>,
     Write<'a, Renderer>,
   );
 
-  fn run(&mut self, (drawables, transforms, mut timestep, mut renderer): Self::SystemData) {
+  fn run(&mut self, (drawables, transforms, materials, mut timestep, mut renderer): Self::SystemData) {
     let window = self.window.borrow_mut();
-    for (drawable, maybe_transform) in (&drawables, (&transforms).maybe()).join() {
-      if let Some(transform) = maybe_transform {
-        renderer.submit(DrawCommand {
-          id: drawable.clone(),
-          transform: transform.matrix(),
-        });
-      } else {
-        renderer.submit(DrawCommand {
-          id: drawable.clone(),
-          transform: Mat4F::identity(),
-        });
-      }
+    for (drawable, transform, material) in (&drawables, &transforms, &materials).join() {
+      let cmd = RenderCommand::Draw {
+        id: drawable.clone(),
+        transform: transform.matrix(),
+        material: material.clone()
+      };
+      renderer.submit(cmd);
+      // if let Some(transform) = maybe_transform {
+      //   renderer.submit(DrawCommand {
+      //     id: drawable.clone(),
+      //     transform: transform.matrix(),
+      //   });
+      // } else {
+      //   renderer.submit(DrawCommand {
+      //     id: drawable.clone(),
+      //     transform: Mat4F::identity(),
+      //   });
+      // }
     }
     // let mut window = self.window.borrow_mut();
     let start = window.glfw_token.get_time() as f32;
@@ -119,7 +126,7 @@ pub struct RegisterDrawableSystem;
 impl<'a> System<'a> for RegisterDrawableSystem {
   type SystemData = (
     Write<'a, Renderer>,
-    WriteStorage<'a, DrawableState>,
+    WriteStorage<'a, MeshComponent>,
     Entities<'a>,
     Read<'a, LazyUpdate>,
   );
@@ -132,15 +139,14 @@ impl<'a> System<'a> for RegisterDrawableSystem {
       updater
     ): Self::SystemData
   ) {
-    for (entity, drawable_state) in (&entities, &mut drawables_storage).join() {
-      drawable_state.refresh();
-      let id = renderer.submit_model(drawable_state.clone());
-      updater.remove::<DrawableState>(entity);
+    for (entity, mesh) in (&entities, &mut drawables_storage).join() {
+      let id = renderer.submit_model(mesh.mesh.clone());
+      updater.remove::<MeshComponent>(entity);
       updater.insert(entity, id);
     }
   }
 
   fn setup(&mut self, world: &mut World) {
-    world.register::<DrawableState>();
+    world.register::<MeshComponent>();
   }
 }

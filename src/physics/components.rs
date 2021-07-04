@@ -22,6 +22,14 @@ impl TransformComponent {
     }
   }
 
+  pub fn identity() -> Self {
+    Self {
+      translation: Vec3F::zero(),
+      scale: Vec3F::new(1f32, 1f32, 1f32),
+      rotation: Vec3F::zero(),
+    }
+  }
+
   pub fn matrix(&self) -> Mat4F {
     Mat4F::from_translation(self.translation) * nonunif_scale(self.scale)
   }

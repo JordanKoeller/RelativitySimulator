@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use specs::prelude::*;
 
 use ecs::*;
-use renderer::{Drawable, DrawableId, DrawableState, Material, Renderer, Texture};
+use renderer::{Drawable, Mesh, Renderer, Texture};
 use shapes::Sprite;
 use utils::*;
 
@@ -42,6 +42,7 @@ type PlayerTailStateData<'a> = ReadStorage<'a, DrawableId>;
 #[derive(Default, Debug)]
 pub struct PlayerTailDelegate {
   id: Option<DrawableId>,
+  material: Option<Material>,
 }
 impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
   type State = PlayerTailParticleState;
@@ -62,6 +63,7 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
         })
         .with(RigidBody::new(state.impulse, -Vec3F::unit_y()))
         .with(d_id.clone())
+        .with(self.material.clone().expect("Player Tail Material was NONE"))
         .with(Gravity)
         // .with(Transform(
         //   Mat4F::from_translation(state.position) * Mat4F::from_scale(0.5f32),
@@ -74,10 +76,10 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
 
   fn setup_delegate(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let mut state = Sprite::new("resources/flappy_bird/spark.png").state();
-    state.refresh();
-    let id = renderer.submit_model(state);
-    println!("Registered! {:?}", id);
-    self.id = Some(id);
+    let state = Sprite::new("resources/flappy_bird/spark.png");
+    let d_id = renderer.submit_model(state.mesh());
+    println!("Registered! {:?}", d_id);
+    self.id = Some(d_id);
+    self.material = Some(state.material())
   }
 }

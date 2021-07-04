@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use cgmath::prelude::*;
-use renderer::{DrawableState, Drawable, Material, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
-use ecs::MyBuilder;
+use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
+use ecs::{MyBuilder, components::Material};
 
 pub static QUAD_VERTICES: [f32; 20] = [
   0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right

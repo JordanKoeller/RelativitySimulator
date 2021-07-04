@@ -9,7 +9,7 @@ use utils::*;
 
 use physics::TransformComponent;
 
-use renderer::{Drawable, Material, Renderer};
+use renderer::{Drawable, Renderer};
 
 pub fn build_grid_scene(center: Vec3F, world: &mut World) {
   let player_pos = Vec3F::new(0f32, 0f32, 0f32);

@@ -6,7 +6,7 @@ use utils::*;
 use renderer::platform::VertexArray;
 use renderer::*;
 
-use ecs::Camera;
+use ecs::{Camera, DrawableId, MeshComponent, Material};
 
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 
@@ -27,7 +27,7 @@ pub struct Renderer {
 
   // Asset management
   assets: AssetLibrary,
-  queued_drawables: MultiMap<ShaderId, DrawCommand>,
+  queued_drawables: MultiMap<ShaderId, RenderCommand>,
 
   // Config
   config: RendererConfig,
@@ -88,20 +88,21 @@ impl Renderer {
     self.assets.register_shader(shader);
   }
 
-  pub fn submit_model(&mut self, model: DrawableState) -> DrawableId {
+  pub fn submit_model(&mut self, mut model: Mesh) -> DrawableId {
+    model.refresh();
     self.assets.register_asset(model)
   }
 
-  // TODO: This is temporary code:
-  pub fn submit_uniform(&mut self, d_id: &DrawableId, uniform_name: &str, uniform: Uniform) {
-    let asset = self.assets.get_asset_mut(d_id);
-    asset.material.unknown_uniform(uniform_name, uniform);
-  }
-
-  pub fn submit(&mut self, cmd: DrawCommand) {
-    let s_id = self.assets.get_asset(&cmd.id).shader_id.clone();
+  pub fn submit(&mut self, cmd: RenderCommand) {
+    match &cmd {
+      RenderCommand::Draw {id, ..} => {
+        if let Some((_, s_id)) = &self.assets.get_asset(&id).registry {
+          self.queued_drawables.push(s_id.clone(), cmd);
+        }
+      },
+      _ => panic!("Render Command {:?} Not supported", cmd),
+    }
     // let s_id = self.assets.get_shader(&active_shader);
-    self.queued_drawables.push(s_id, cmd);
   }
 
 
@@ -152,10 +153,9 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_drawable(&self, cmd: &DrawCommand, shader: &ShaderId) {
-    let memo = self.assets.get_asset(&cmd.id);
+  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &ShaderId) {
     let mut texture_slot = 1;
-    for (unif_name, unif) in memo.material.uniforms() {
+    for (unif_name, unif) in material.uniforms() {
       match unif {
         Uniform::Texture(tex) => {
           self
@@ -177,19 +177,25 @@ impl Renderer {
     self
       .assets
       .get_shader(&shader)
-      .set_uniform(c_str!("model"), &Uniform::Mat4(cmd.transform));
-    memo.vertex_array.bind();
-    memo.vertex_array.draw(&self.assets.get_shader(&shader).element_type);
+      .set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
+    mesh.vao.bind();
+    mesh.vao.draw(&self.assets.get_shader(&shader).element_type);
   }
 
-  pub fn draw_scene(&mut self) {
+  pub fn draw_scene(&mut self, ) {
     let mut active_shader: ShaderId = ShaderId(usize::MAX);
     for (s_id, cmd) in self.queued_drawables.iter() {
       if s_id != &active_shader {
         active_shader = s_id.clone();
         self.switch_shader(self.assets.get_shader(&s_id));
       }
-      self.draw_drawable(&cmd, &s_id);
+      match cmd {
+        RenderCommand::Draw {id, transform, material} => {
+          let mesh = self.assets.get_asset(id);
+          self.draw_drawable(mesh, transform, material, &active_shader);
+        },
+        _ => panic!("Render Command {:?} Not Supported", cmd),
+      }
     }
 
     #[cfg(feature = "debug")]

@@ -93,7 +93,7 @@ pub fn create_floor<'a>(height: f32, cube_scale: f32, world: &'a mut World) {
   //   renderer.submit_model(floor.state())
   // };
     world.create_entity()
-    .with(floor.state())
+    .with_drawable(&floor)
     .with(transform)
     .build();
 }

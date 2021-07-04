@@ -1,5 +1,8 @@
-use renderer::{DrawableId, Material};
+use specs::Entity;
+
+use ecs::{DrawableId};
 use utils::Mat4F;
+use ecs::Material;
 
 #[derive(Clone, Debug)]
 pub struct DrawCommand {
@@ -9,7 +12,7 @@ pub struct DrawCommand {
 
 #[derive(Clone, Debug)]
 pub enum RenderCommand {
-  Draw {id: DrawableId },
-  SetTransform {id: DrawableId, transform: Mat4F},
+  Draw {id: DrawableId, transform: Mat4F, material: Material },
+  // SetTransform {id: DrawableId, transform: Mat4F},
   
 }
