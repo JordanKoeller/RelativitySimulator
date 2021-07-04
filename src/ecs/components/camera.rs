@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use specs::prelude::*;
-use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
+use specs::{Component, VecStorage, NullStorage};
 use cgmath::prelude::*;
 
 use utils::*;

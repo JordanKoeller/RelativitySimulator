@@ -51,7 +51,7 @@ impl ShaderStep {
   }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd)]
 pub struct ShaderId(pub usize);
 
 pub struct Shader {
@@ -158,7 +158,7 @@ impl Shader {
     }
   }
 
-  pub fn set_texture(&self, slot: u32, name: &CStr, texture: &dyn TextureLike) {
+  pub fn set_texture<T: TextureLike>(&self, slot: u32, name: &CStr, texture: &T) {
     texture.bind(slot);
     let unif = Uniform::Int(slot as i32);
     self.set_uniform(name, &unif);

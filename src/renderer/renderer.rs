@@ -3,11 +3,14 @@ use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use utils::*;
 
+use specs::prelude::*;
+
 use renderer::platform::VertexArray;
 use renderer::*;
 
 use ecs::{Camera, DrawableId, MeshComponent, Material};
 
+use physics::TransformComponent;
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 
 type TransformStack = Vec<Mat4F>;
@@ -27,7 +30,6 @@ pub struct Renderer {
 
   // Asset management
   assets: AssetLibrary,
-  queued_drawables: MultiMap<ShaderId, RenderCommand>,
 
   // Config
   config: RendererConfig,
@@ -42,7 +44,6 @@ impl Default for Renderer {
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
-      queued_drawables: MultiMap::new(),
       config: RendererConfig::default(),
       receiver_id: 0,
     }
@@ -62,7 +63,6 @@ impl Renderer {
       config_uniforms: HashMap::new(),
       common_uniforms: HashMap::new(),
       assets: AssetLibrary::default(),
-      queued_drawables: MultiMap::new(),
       config: RendererConfig::default(),
       receiver_id,
     }
@@ -93,17 +93,17 @@ impl Renderer {
     self.assets.register_asset(model)
   }
 
-  pub fn submit(&mut self, cmd: RenderCommand) {
-    match &cmd {
-      RenderCommand::Draw {id, ..} => {
-        if let Some((_, s_id)) = &self.assets.get_asset(&id).registry {
-          self.queued_drawables.push(s_id.clone(), cmd);
-        }
-      },
-      _ => panic!("Render Command {:?} Not supported", cmd),
-    }
-    // let s_id = self.assets.get_shader(&active_shader);
-  }
+  // pub fn submit(&mut self, cmd: RenderCommand) {
+  //   match &cmd {
+  //     RenderCommand::Draw {id, ..} => {
+  //       if let Some((_, s_id)) = &self.assets.get_asset(&id).registry {
+  //         self.queued_drawables.push(s_id.clone(), cmd);
+  //       }
+  //     },
+  //     _ => panic!("Render Command {:?} Not supported", cmd),
+  //   }
+  //   // let s_id = self.assets.get_shader(&active_shader);
+  // }
 
 
   pub fn submit_config(&mut self, config: RendererConfig) {
@@ -153,62 +153,58 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &ShaderId) {
+  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader) {
     let mut texture_slot = 1;
     for (unif_name, unif) in material.uniforms() {
       match unif {
         Uniform::Texture(tex) => {
-          self
-            .assets
-            .get_shader(&shader)
-            .set_texture(texture_slot, unif_name, tex);
+          shader.set_texture(texture_slot, unif_name, tex);
           texture_slot += 1;
         }
         Uniform::CubeMap(tex) => {
-          self
-            .assets
-            .get_shader(&shader)
-            .set_texture(texture_slot, unif_name, tex);
+          shader.set_texture(texture_slot, unif_name, tex);
           texture_slot += 1;
         }
-        _ => self.assets.get_shader(&shader).set_uniform(&unif_name, &unif),
+        _ => shader.set_uniform(&unif_name, &unif),
       }
     }
-    self
-      .assets
-      .get_shader(&shader)
-      .set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
-    mesh.vao.bind();
-    mesh.vao.draw(&self.assets.get_shader(&shader).element_type);
+    shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
+    mesh.vao.draw(&shader.element_type);
   }
 
-  pub fn draw_scene(&mut self, ) {
-    let mut active_shader: ShaderId = ShaderId(usize::MAX);
-    for (s_id, cmd) in self.queued_drawables.iter() {
-      if s_id != &active_shader {
-        active_shader = s_id.clone();
-        self.switch_shader(self.assets.get_shader(&s_id));
+  pub fn draw_scene<'a>(&mut self,
+    queue: RenderQueueConsumer<'a>,
+    materials: &ReadStorage<'a, Material>,
+    transforms: &ReadStorage<'a, TransformComponent>) {
+    let mut active_shader: Option<usize> = None;
+    let mut active_drawable: Option<usize> = None;
+    queue.for_each(|draw_call| {
+      let default_transform = TransformComponent::identity();
+      let default_material = Material::new();
+      let (mesh_ref, shader_ref) = self.assets.get_shader_and_mesh(&draw_call.drawable);
+      let transform_ref = transforms.get(draw_call.entity).unwrap_or(&default_transform);
+      let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
+      // Switch shader if none activ else update active
+      if let Some(shader_id) = active_shader {
+        if shader_id != draw_call.drawable.1 {
+          self.switch_shader(shader_ref);
+          active_shader = Some(draw_call.drawable.1);
+        }
+      } else {
+        self.switch_shader(self.assets.get_shader(&draw_call.drawable.1));
+        active_shader = Some(draw_call.drawable.1);
       }
-      match cmd {
-        RenderCommand::Draw {id, transform, material} => {
-          let mesh = self.assets.get_asset(id);
-          self.draw_drawable(mesh, transform, material, &active_shader);
-        },
-        _ => panic!("Render Command {:?} Not Supported", cmd),
+      // Switch drawable if none activ else update active
+      if let Some(d_id) = active_drawable {
+        if d_id != draw_call.drawable.0 {
+          mesh_ref.vao.bind();
+        }
+      } else {
+        mesh_ref.vao.bind();
+        active_drawable = Some(draw_call.drawable.0);
       }
-    }
-
-    #[cfg(feature = "debug")]
-    if self.config.debug {
-      let debug_id = ShaderId(0);
-      self.switch_shader(self.assets.get_shader(&debug_id));
-      for (_, cmd) in self.queued_drawables.iter() {
-        self.draw_drawable(&cmd, &debug_id);
-      }
-    }
-    // self.ui_renderer.draw(window);
-    // self.ui_renderer.clear();
-    self.queued_drawables.clear();
+      self.draw_drawable(mesh_ref, &transform_ref.matrix(), mtl_ref, shader_ref);
+    });
     self.common_uniforms.clear();
   }
 

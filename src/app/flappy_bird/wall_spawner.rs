@@ -86,7 +86,7 @@ impl WallSpawner {
     if let Some(d_id) = &self.id {
       ent.with(
         Particle {
-          lifetime: 50f32
+          lifetime: 10f32
         }
       )
       .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))

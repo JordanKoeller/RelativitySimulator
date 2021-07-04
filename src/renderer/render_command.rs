@@ -13,6 +13,5 @@ pub struct DrawCommand {
 #[derive(Clone, Debug)]
 pub enum RenderCommand {
   Draw {id: DrawableId, transform: Mat4F, material: Material },
-  // SetTransform {id: DrawableId, transform: Mat4F},
   
 }

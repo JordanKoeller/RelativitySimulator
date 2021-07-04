@@ -1,19 +1,32 @@
+use std::time::{Instant, Duration};
+
 use cgmath::prelude::*;
 use specs::prelude::*;
 
 use ecs::components::{Player, Camera, DrawableId, MeshComponent, Material};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
-use renderer::{DrawCommand, Renderer, Window, Mesh, RenderCommand};
+use renderer::{DrawCommand, Renderer, Window, Mesh, RenderQueue, DrawCall};
 use utils::{Mat4F, MutRef, Running, Timestep};
 
 use physics::{TransformComponent};
 
 pub struct RenderSystem {
   pub window: MutRef<Window>,
+  render_queue: RenderQueue,
+}
+
+impl RenderSystem {
+  pub fn new(window: MutRef<Window>) -> Self {
+    Self {
+      window,
+      render_queue: RenderQueue::default(),
+    }
+  }
 }
 
 impl<'a> System<'a> for RenderSystem {
   type SystemData = (
+    Entities<'a>,
     ReadStorage<'a, DrawableId>,
     ReadStorage<'a, TransformComponent>,
     ReadStorage<'a, Material>,
@@ -21,30 +34,18 @@ impl<'a> System<'a> for RenderSystem {
     Write<'a, Renderer>,
   );
 
-  fn run(&mut self, (drawables, transforms, materials, mut timestep, mut renderer): Self::SystemData) {
+  fn run(&mut self, (entities, drawables, transforms, materials, mut timestep, mut renderer): Self::SystemData) {
     let window = self.window.borrow_mut();
-    for (drawable, transform, material) in (&drawables, &transforms, &materials).join() {
-      let cmd = RenderCommand::Draw {
-        id: drawable.clone(),
-        transform: transform.matrix(),
-        material: material.clone()
+    for (entity, drawable) in (&entities, &drawables).join() {
+      let cmd = DrawCall {
+        drawable: drawable.clone(),
+        entity,
       };
-      renderer.submit(cmd);
-      // if let Some(transform) = maybe_transform {
-      //   renderer.submit(DrawCommand {
-      //     id: drawable.clone(),
-      //     transform: transform.matrix(),
-      //   });
-      // } else {
-      //   renderer.submit(DrawCommand {
-      //     id: drawable.clone(),
-      //     transform: Mat4F::identity(),
-      //   });
-      // }
+      self.render_queue.push(cmd);
     }
     // let mut window = self.window.borrow_mut();
     let start = window.glfw_token.get_time() as f32;
-    renderer.draw_scene();
+    renderer.draw_scene(self.render_queue.consume(), &materials, &transforms);
     timestep.set_render_time(window.glfw_token.get_time() as f32 - start);
 
   }

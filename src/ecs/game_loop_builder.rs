@@ -54,7 +54,7 @@ impl<'a, 'b> GameLoopBuilder<'a, 'b> {
     let window_handle3 = MutRef::clone(&self.window);
     self.builder
     .with_thread_local(DiagnosticsPanel)
-    .with_thread_local(RenderSystem { window: window_handle })
+    .with_thread_local(RenderSystem::new(window_handle))
     .with_thread_local(GuiRenderer {window: window_handle2})
     .with_thread_local(EndFrameSystem {window: window_handle3})
     .build()

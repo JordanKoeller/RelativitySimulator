@@ -63,14 +63,14 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         receiver_id: self.r_id,
       })
       .with_thread_local(RegisterDrawableSystem)
-      .with(EventProcessingSystem::default(), "event processing", &[])
-      .with(ParticleUpdater, "particle_updater", &[])
+      .with_thread_local(EventProcessingSystem::default())
+      .with_thread_local(ParticleUpdater)
       .with_barrier();
       
       let dispatcher = func(dispatcher);
       dispatcher
-      .with(MotionSystem, "motion", &["player_controller"])
-      .with_thread_local(RenderSystem { window: window_handle })
+      .with_thread_local(MotionSystem)
+      .with_thread_local(RenderSystem::new(window_handle))
       .with_thread_local(GuiRenderer {window: window_handle2})
       .with_thread_local(EndFrameSystem {window: window_handle3})
       .build()

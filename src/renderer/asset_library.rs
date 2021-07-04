@@ -20,9 +20,9 @@ impl AssetLibrary {
   }
 
   pub fn register_asset(&mut self, mut asset: Mesh) -> DrawableId {
-    let s_id = ShaderId(*self.shader_lookup.get(&asset.shader_name).expect(&format!("Shader {} not registered", asset.shader_name)));
-    let ret = DrawableId(self.models.len());
-    asset.registry = Some((ret.clone(), s_id));
+    let s_id = *self.shader_lookup.get(&asset.shader_name).expect(&format!("Shader {} not registered", asset.shader_name));
+    let ret = DrawableId(self.models.len(), s_id);
+    asset.registry = Some(ret.clone());
     // let elem = DrawableMemo {
     //   vertex_array: asset.vertex_array,
     //   material: asset.material,
@@ -32,15 +32,19 @@ impl AssetLibrary {
     ret
   }
 
-  pub fn get_shader(&self, id: &ShaderId) -> &Shader {
-    &self.shaders[id.0]
+  pub fn get_shader(&self, id: &usize) -> &Shader {
+    &self.shaders[*id]
   }
 
-  pub fn get_asset(&self, id: &DrawableId) -> &Mesh {
-    &self.models[id.0]
+  pub fn get_asset(&self, id: &usize) -> &Mesh {
+    &self.models[*id]
   }
 
-  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut Mesh {
-    &mut self.models[id.0]
+  pub fn get_asset_mut(&mut self, id: &usize) -> &mut Mesh {
+    &mut self.models[*id]
+  }
+
+  pub fn get_shader_and_mesh(&self, id: &DrawableId) -> (&Mesh, &Shader) {
+    (self.get_asset(&id.0), self.get_shader(&id.1))
   }
 }

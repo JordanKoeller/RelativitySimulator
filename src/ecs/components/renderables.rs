@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
+use specs::{Component, VecStorage, NullStorage,};
 
 use renderer::{VertexArray, Mesh};
 
@@ -10,7 +10,7 @@ use utils::*;
 use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
 
-#[derive(Debug, Clone, Component)]
+#[derive(Debug, Clone, Default, Component)]
 #[storage(VecStorage)]
 pub struct Material { // Boilerplate implementation at end of file.
   uniforms: Vec<(CString, Uniform)>
@@ -25,9 +25,9 @@ pub struct MeshComponent {
   needs_refresh: bool,
 }
 
-#[derive(Clone, Debug, Component, Default)]
-#[storage(DefaultVecStorage)]
-pub struct DrawableId(pub usize);
+#[derive(Clone, Debug, Component, Default, Eq, PartialEq, PartialOrd)]
+#[storage(VecStorage)]
+pub struct DrawableId(pub usize, pub usize);
 
 impl MeshComponent {
   pub fn new(va: VertexArray, shader_name: String) -> Self { 

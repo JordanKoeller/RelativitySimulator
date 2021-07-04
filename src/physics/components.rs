@@ -1,12 +1,12 @@
 use cgmath::prelude::*;
 use cgmath::{Deg, Rad, Rotation3};
 use specs::prelude::*;
-use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
+use specs::{Component, VecStorage, NullStorage};
 use utils::*;
 
 
 #[derive(Component, Debug, Clone)]
-#[storage(DefaultVecStorage)]
+#[storage(VecStorage)]
 pub struct TransformComponent {
   pub translation: Vec3F,
   pub scale: Vec3F,

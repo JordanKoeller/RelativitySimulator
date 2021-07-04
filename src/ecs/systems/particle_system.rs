@@ -6,7 +6,7 @@ use ecs::entity::MyBuilder;
 
 use utils::Timestep;
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Default, Clone)]
 #[storage(VecStorage)]
 pub struct Particle {
   pub lifetime: f32,

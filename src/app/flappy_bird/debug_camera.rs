@@ -59,10 +59,15 @@ impl<'a> System<'a> for CameraDebugger {
           &format!("{0:.3}", dt.0 * 1000f32),
           "Frame Time",
         )));
+        panel.push(Box::from(LabeledText::new(
+          &format!("{0:.3}", dt.1 * 1000f32),
+          "Render Time",
+        )));
       } else {
         panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
         panel.lines[2] = Box::from(LabeledText::new(&to_string!(transform.front()), "Forward"));
         panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.0 * 1000f32), "Frame Time"));
+        panel.lines[4] = Box::from(LabeledText::new(&format!("{0:.3}", dt.1 * 1000f32), "Render Time"));
       }
     }
   }

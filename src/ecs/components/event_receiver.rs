@@ -1,6 +1,6 @@
 
 use specs::prelude::*;
-use specs::{Component, VecStorage, NullStorage, DefaultVecStorage};
+use specs::{Component, VecStorage, NullStorage};
 
 use events::ReceiverID;
 

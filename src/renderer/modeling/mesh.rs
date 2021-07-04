@@ -6,7 +6,7 @@ use ecs::DrawableId;
 pub struct Mesh {
   pub vao: VertexArray,
   pub shader_name: String,
-  pub registry: Option<(DrawableId, ShaderId)>,
+  pub registry: Option<DrawableId>,
 }
 
 impl Mesh {
