@@ -31,6 +31,8 @@ impl Window {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
     glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
+    // glfw.window_hint(glfw::WindowHint::RefreshRate(Some(0)));
+    // glfw.window_hint(glfw::WindowHint::DoubleBuffer);
     // glfw.window_hint(glfw::WindowHint::OpenGlDebugContext(true)); // comment this line in a release build!
 
     #[cfg(target_os = "macos")]
@@ -69,6 +71,7 @@ impl Window {
       gl::Enable(gl::DEPTH_TEST);
       gl::DepthFunc(gl::LESS);
       gl::ClearColor(0.2, 0.1, 0.0, 1.0);
+      glfw.set_swap_interval(glfw::SwapInterval::None);
 
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
 
