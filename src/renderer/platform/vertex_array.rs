@@ -7,16 +7,18 @@ use super::{IndexBuffer, DataBuffer};
 #[derive(Debug, Clone)]
 pub struct VertexArray {
   id: u32,
-  pub vertex_buffers: Vec<DataBuffer>,
   index_buffer: IndexBuffer,
+  vertex_buffer: DataBuffer,
+  pub instancing_buffer: Option<DataBuffer>,
 }
 
 impl VertexArray {
-  pub fn new(vertex_buffers: Vec<DataBuffer>, index_buffer: IndexBuffer) -> VertexArray {
+  pub fn new(vertex_buffer: DataBuffer, index_buffer: IndexBuffer) -> VertexArray {
     VertexArray {
       id: 0,
-      vertex_buffers: vertex_buffers,
+      vertex_buffer: vertex_buffer,
       index_buffer,
+      instancing_buffer: None,
     }
   }
 
@@ -25,11 +27,12 @@ impl VertexArray {
       gl::CreateVertexArrays(1, &mut self.id);
       gl::BindVertexArray(self.id);
     }
-    for vb_i in 0..self.vertex_buffers.len() {
-      self.vertex_buffers[vb_i].init();
-      self.vertex_buffers[vb_i].refresh();
-    }
+    self.vertex_buffer.init();
+    self.vertex_buffer.refresh();
     self.index_buffer.refresh();
+    // if let Some(instancing_buffer) = &mut self.instancing_buffer {
+    //   instancing_buffer.refresh();
+    // }
     self.unbind();
   }
 
@@ -42,6 +45,16 @@ impl VertexArray {
   pub fn bind(&self) {
     unsafe {
       gl::BindVertexArray(self.id);
+    }
+  }
+
+  pub fn add_instancing_buffer(&mut self, vbo: DataBuffer, auto_refresh: bool) {
+    if let Some(old_vbo) = &mut self.instancing_buffer {
+      old_vbo.destroy();
+    }
+    self.instancing_buffer = Some(vbo);
+    if auto_refresh {
+      self.refresh();
     }
   }
 

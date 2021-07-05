@@ -21,7 +21,7 @@ impl Drawable for Skybox {
     let layout = BufferLayout::new(vec![AttributeType::Float3]);
     let vert_buff = DataBuffer::static_buffer(&SKYBOX_VERTICES, layout);
     let ind_buff = IndexBuffer::create(SKYBOX_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
 
   fn material(&self) -> Material {

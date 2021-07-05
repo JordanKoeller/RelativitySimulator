@@ -1,4 +1,6 @@
 use utils::*;
+use cgmath::Matrix;
+use std::ffi::c_void;
 
 use renderer::{Texture, CubeMap};
 
@@ -18,6 +20,51 @@ pub enum Uniform {
     Texture(Texture),
     CubeMap(CubeMap),
     UniformBuffer(UniformBuffer),
+}
+
+impl Uniform {
+  pub unsafe fn serialize_into(&self, collector: &mut [f32]) {
+    match self {
+      Uniform::Int(elem) => collector[0] = *(elem as *const i32 as *const c_void as *const f32),
+      Uniform::Float(elem) => collector[0] = *elem,
+      Uniform::Vec2(v) => {
+        collector[0] = v.x;
+        collector[1] = v.y;
+      },
+      Uniform::Vec3(v) => {
+        collector[0] = v.x;
+        collector[1] = v.y;
+        collector[2] = v.z;
+      },
+      Uniform::Vec4(v) => {
+        collector[0] = v.x;
+        collector[1] = v.y;
+        collector[2] = v.z;
+        collector[3] = v.w;
+      },
+      Uniform::Mat3(m) => {
+        let m_sz = 9;
+        let m_ptr = {
+          let ptr = m.clone().as_ptr();
+          std::slice::from_raw_parts(ptr, m_sz)
+        };
+        for i in 0..m_sz {
+            collector[i] = m_ptr[i];
+        }
+      },
+      Uniform::Mat4(m) => {
+        let m_sz = 16;
+        let m_ptr = {
+          let ptr = m.clone().as_ptr();
+          std::slice::from_raw_parts(ptr, m_sz)
+        };
+        for i in 0..m_sz {
+            collector[i] = m_ptr[i];
+        }
+      },
+      _ => println!("Uniform of type {:?} not supported", self)
+    }
+  }
 }
 
 #[derive(Clone)]

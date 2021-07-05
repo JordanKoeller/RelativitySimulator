@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use specs::{Component, VecStorage, NullStorage,};
 
-use renderer::{VertexArray, Mesh};
+use renderer::{VertexArray, Mesh, AttributeType};
 
 use std::ffi::{CStr, CString};
 
@@ -35,6 +35,12 @@ impl MeshComponent {
       mesh: Mesh::new(va, shader_name),
       generation: 0u32,
       needs_refresh: true,
+    }
+  }
+
+  pub fn from(m: Mesh) -> Self {
+    Self {
+      mesh: m, generation: 0u32, needs_refresh: false
     }
   }
 
@@ -106,6 +112,7 @@ impl Material {
   pub fn uniforms(&self) -> &Vec<(CString, Uniform)> {
     &self.uniforms
   }
+
   pub fn new() -> Material {
     let mut ret = Material { uniforms: Vec::new() };
     ret.diffuse_texture(WHITE_TEXTURE.clone());
@@ -135,6 +142,11 @@ impl Material {
     }
   }
 
+  fn get_by_name(&self, name: &str) -> Option<&Uniform> {
+    let c_name = CString::new(name).unwrap();
+    self.uniforms.iter().find(|(unif, value)| &c_name == unif).map(|(_, value)| value)
+  }
+
   pub fn refresh(&mut self) {
     self.uniforms.iter_mut().for_each(|(_, uniform)| {
       match uniform {
@@ -143,5 +155,18 @@ impl Material {
         _ => {}
       }
     });
+  }
+
+  pub fn serialize_into(&self, collector: &mut [f32], order: &Vec<(String, AttributeType)>) {
+    let mut offset: usize = 0;
+    for i in 0..order.len() {
+      if let Some(uniform) = self.get_by_name(&order[i].0) {
+        let elem_width = order[i].1.width() as usize;
+        unsafe {
+          uniform.serialize_into(&mut collector[offset..offset+elem_width]);
+        }
+        offset += elem_width;
+      }
+    }
   }
 }

@@ -27,6 +27,7 @@ pub struct DataBuffer {
 struct BufferConfig {
   storage_type: gl::types::GLenum,
   buffer_type: gl::types::GLenum,
+  attrib_divisor: u32,
 }
 
 impl BufferConfig {
@@ -34,12 +35,14 @@ impl BufferConfig {
     Self {
       storage_type: gl::DYNAMIC_DRAW,
       buffer_type: gl::UNIFORM_BUFFER,
+      attrib_divisor: 0,
     }
   }
   pub fn static_vbo() -> Self {
     Self {
       storage_type: gl::STATIC_DRAW,
       buffer_type: gl::ARRAY_BUFFER,
+      attrib_divisor: 0,
     }
   }
 
@@ -47,6 +50,15 @@ impl BufferConfig {
     Self {
       storage_type: gl::DYNAMIC_DRAW,
       buffer_type: gl::ARRAY_BUFFER,
+      attrib_divisor: 0,
+    }
+  }
+
+  pub fn instancing_buffer() -> Self {
+    Self {
+      storage_type: gl::DYNAMIC_DRAW,
+      buffer_type: gl::ARRAY_BUFFER,
+      attrib_divisor: 1,
     }
   }
 }
@@ -71,6 +83,12 @@ impl DataBuffer {
     Self::validate_construct(data, layout, BufferConfig::dynamic_vbo(), u32::MAX)
   }
 
+  pub fn instancing_buffer(layout: BufferLayout, num_elems: u32) -> DataBuffer {
+    let mut reservation: Vec<f32> = Vec::with_capacity((num_elems * layout.stride()) as usize);
+    reservation.push(0f32);
+    Self::validate_construct(&reservation, layout, BufferConfig::instancing_buffer(), num_elems)
+  } 
+
   pub fn ubo<E>(layout: BufferLayout) -> DataBuffer {
     let mut data: Vec<E> = Vec::new();
     data.reserve(layout.stride() as usize);
@@ -88,6 +106,7 @@ impl DataBuffer {
     }
   }
 
+
 }
 
 //////////////////////////////////
@@ -97,11 +116,11 @@ impl DataBuffer {
 type Elem = f32;
 impl DataBuffer {
 
-  pub fn read_slice(&self, start: usize, end: usize) -> &[Elem] {
+  pub fn read_slice(&self, start: usize, end: usize) -> &[f32] {
     unsafe {self.data.get_unchecked(start..end)}
   }
 
-  pub fn splice_inplace<F: FnOnce(&mut [Elem]) -> ()>(&mut self, start: usize, end: usize, f: F)
+  pub fn splice_inplace<F: FnOnce(&mut [f32]) -> ()>(&mut self, start: usize, end: usize, f: F)
   {
     f(unsafe {self.data.get_unchecked_mut(start..end)});
     self.set_sub_buffer(start, end);
@@ -115,9 +134,24 @@ impl DataBuffer {
     //   std::slice::from_raw_parts_mut(raw_ptr, end - start)
     // };
     let slice = unsafe {
-      cast_slice_mut::<f32, E>(self.data.get_unchecked_mut(start..end))
+      cast_slice_mut::<f32, E>(&mut self.data)
     };
-    f(slice);
+    f(&mut slice[start..end]);
+    let offset = start * size_of::<E>() / size_of::<f32>();
+    let len = (end - start) * size_of::<E>() / size_of::<f32>();
+    self.set_sub_buffer(offset, len);
+  }
+
+  pub fn zero_out<E: Sized>(&mut self, start: usize, end: usize) {
+    let elem_sz = size_of::<E>() / size_of::<f32>();
+    let offset = start * elem_sz;
+    let length = (end - start) * elem_sz;
+    self.splice_inplace(offset, length, move |slc| {
+      for i in 0..slc.len() {
+        slc[i] = 0f32;
+      }
+    });
+
   }
 
   pub fn len(&self) -> usize {
@@ -149,6 +183,7 @@ impl DataBuffer {
           stride as i32,
           offset as *const u32 as *const c_void,
         );
+        gl::VertexAttribDivisor(i as u32, self.config.attrib_divisor);
       }
     }
   }
@@ -192,6 +227,13 @@ impl DataBuffer {
   pub fn unbind(&self) {
     unsafe {
       gl::BindBuffer(self.config.buffer_type, 0);
+    }
+  }
+
+  pub fn destroy(&mut self) {
+    unsafe {
+      gl::DeleteBuffers(1, &self.id);
+      self.id = u32::MAX;
     }
   }
 }
@@ -285,9 +327,9 @@ unsafe fn cast_slice<F, T>(data: &[F]) -> &[T] {
 }
 
 unsafe fn cast_slice_mut<F, T>(data: &mut [F]) -> &mut [T] {
-  let raw_ptr = &mut data[0] as *mut F as *mut c_void as *mut T;
   let old_sz = size_of::<F>();
   let new_sz = size_of::<T>();
+  let raw_ptr = &mut data[0] as *mut F as *mut c_void as *mut T;
   if new_sz < old_sz {
     std::slice::from_raw_parts_mut(raw_ptr, data.len() * old_sz / new_sz)
   } else if old_sz < new_sz {

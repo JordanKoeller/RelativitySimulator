@@ -41,7 +41,7 @@ impl Sprite {
     tex.refresh();
     let vertex_buff = Sprite::rescale_vertices((tex.height as f32) / (tex.width as f32));
     let ind_buff = IndexBuffer::create(QUAD_INDICES.to_vec());
-    let vertex_array = VertexArray::new(vec![vertex_buff], ind_buff);
+    let vertex_array = VertexArray::new(vertex_buff, ind_buff);
     mat.diffuse_texture(tex);
     Self {
       material: mat,
@@ -65,5 +65,13 @@ impl Drawable for Sprite {
 
   fn material(&self) -> Material {
     self.material.clone()
+  }
+
+  fn instance_attributes(&self) -> Option<Vec<(String, AttributeType)>> {
+    Some(vec![
+      ("model".to_string(), AttributeType::Mat4),
+      ("diffuse_texture".to_string(), AttributeType::Int),
+      ("ambient".to_string(), AttributeType::Float3),
+    ])
   }
 }

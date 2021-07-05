@@ -21,7 +21,7 @@ impl Drawable for TexturedCube {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);
     let vert_buff = DataBuffer::static_buffer(&TEXTURE_CUBE_VERTICES, layout);
     let ind_buff = IndexBuffer::create(TEXTURE_CUBE_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
   fn material(&self) -> Material {
     let mut material = Material::new();
@@ -53,7 +53,7 @@ impl Drawable for Cube {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);
     let vert_buff = DataBuffer::static_buffer(&TEXTURE_CUBE_VERTICES, layout);
     let ind_buff = IndexBuffer::create(TEXTURE_CUBE_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
   fn material(&self) -> Material {
     self.material.clone()

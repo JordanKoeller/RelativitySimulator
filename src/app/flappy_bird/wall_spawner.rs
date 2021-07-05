@@ -79,7 +79,7 @@ impl WallSpawner {
     let half_height = 8.25f32;
     let scaled_start = lerp(0f32, 1f32, -half_height, half_height, start);
     let scaled_end = lerp(0f32, 1f32, -half_height, half_height, end);
-    let position = Vec3F::new(-10f32, avg(scaled_start, scaled_end), 0f32);
+    let position = Vec3F::new(-12f32, avg(scaled_start, scaled_end), 0f32);
     let scaled = Vec3F::new(1f32, (scaled_end - scaled_start) * invert, 1f32);
     let transform = TransformComponent::new(position, scaled, QuatF::zero());
     // let position = Vec3F::unit_x();

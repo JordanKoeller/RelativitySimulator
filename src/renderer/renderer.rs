@@ -291,10 +291,10 @@ fn create_screen(w: i32, h: i32) -> Screen {
 
   let inds = vec![0, 1, 2, 3, 4, 5];
   let mut screen_quad = VertexArray::new(
-    vec![DataBuffer::static_buffer(
+    DataBuffer::static_buffer(
       &verts,
       BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]),
-    )],
+    ),
     IndexBuffer::create(inds),
   );
   let shader = Shader::from_file("renderer_screen", "shaders/screen_shader.glsl");

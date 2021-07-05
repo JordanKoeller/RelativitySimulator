@@ -82,6 +82,12 @@ impl BufferLayout {
   }
 }
 
+impl From<&Vec<(String, AttributeType)>> for BufferLayout {
+  fn from(atts: &Vec<(String, AttributeType)>) -> Self {
+    Self(atts.iter().map(|x| x.1).collect())
+  }
+}
+
 //////////////////////////////////
 /// HELPER FUNCTIONS /////////////
 //////////////////////////////////
