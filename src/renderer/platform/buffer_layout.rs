@@ -52,6 +52,13 @@ impl AttributeType {
       AttributeType::Bool => 1,
     }
   }
+
+  pub fn num_calls(&self) -> u32 {
+    match self {
+      AttributeType::Mat4 => 4,
+      _ => 1
+    }
+  }
 }
 
 
@@ -69,14 +76,22 @@ impl BufferLayout {
 
   pub fn ind_offset_attrib(&self) -> Vec<(usize, u32, AttributeType)> {
     let mut summation = 0;
+    let mut i = 0;
     self
       .0
       .iter()
-      .enumerate()
-      .map(|(i, &x)| {
-        let v = summation.clone();
-        summation += x.width();
-        (i, v * size_of::<f32>() as u32, x)
+      .flat_map(|&attribute| {
+        let v: Vec<(usize, u32, AttributeType)> = (0..attribute.num_calls()).into_iter().map(|_| {
+          let v = summation.clone();
+          summation += attribute.width() / attribute.num_calls();
+          let ret = (i, v * size_of::<f32>() as u32, attribute);
+          i += 1;
+          ret
+        }).collect();
+        v
+        // let v = summation.clone();
+        // summation += x.width();
+        // (i, v * size_of::<f32>() as u32, x)
       })
       .collect()
   }

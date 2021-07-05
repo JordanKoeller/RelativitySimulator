@@ -8,7 +8,9 @@ pub mod framebuffer;
 pub mod gl_bus;
 mod buffer_layout;
 mod instancing_table;
+mod texture_binder;
 
+pub use self::texture_binder::*;
 pub use self::instancing_table::*;
 pub use self::gl_bus::*;
 pub use self::buffer_layout::*;

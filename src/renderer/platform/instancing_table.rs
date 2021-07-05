@@ -56,6 +56,10 @@ impl InstancingTable {
       self.instances_table.len()
     }
   }
+  
+  pub fn num_instances(&self) -> usize {
+    self.instances_table.len()
+  }
 
   fn calc_offset(&self, ind: &usize) -> usize {
     ind * self.stride_cache

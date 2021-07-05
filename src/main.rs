@@ -71,6 +71,8 @@ pub fn main() {
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");
   render.submit_shader(shader);
+  let shader = renderer::Shader::from_file("instanced", "shaders/simple_instanced.glsl");
+  render.submit_shader(shader);
   let shader = renderer::Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");

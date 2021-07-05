@@ -84,8 +84,7 @@ impl DataBuffer {
   }
 
   pub fn instancing_buffer(layout: BufferLayout, num_elems: u32) -> DataBuffer {
-    let mut reservation: Vec<f32> = Vec::with_capacity((num_elems * layout.stride()) as usize);
-    reservation.push(0f32);
+    let reservation: Vec<f32> = (0..(num_elems * layout.stride()) as usize).into_iter().map(|_| 0f32).collect();
     Self::validate_construct(&reservation, layout, BufferConfig::instancing_buffer(), num_elems)
   } 
 
@@ -169,23 +168,32 @@ impl DataBuffer {
 
 impl DataBuffer {
 
-  pub fn refresh(&mut self) {
+  pub fn refresh(&mut self, attrib_start: u32) {
+    println!("REFRESHING DATA BUFFER");
     let stride = self.layout.stride();
     for &(i, offset, attrib) in self.layout.ind_offset_attrib().iter() {
-      // println!("Setting Attribute {} {} {} {}", i, attrib.width(), stride, offset);
-      unsafe {
-        gl::EnableVertexAttribArray(i as u32);
-        gl::VertexAttribPointer(
-          i as u32,
-          attrib.width() as i32,
-          gl::FLOAT,
-          gl::FALSE,
-          stride as i32,
-          offset as *const u32 as *const c_void,
-        );
-        gl::VertexAttribDivisor(i as u32, self.config.attrib_divisor);
-      }
+      let attrib_length = attrib.width() / attrib.num_calls();
+      let attrib_index = i as u32 + attrib_start;
+      println!("Setting Attribute {} {} {} {} {}", attrib_index, attrib_length, stride, offset, self.config.attrib_divisor);
+      // for iteration in 0..attrib.num_calls() {
+        unsafe {
+          gl::EnableVertexAttribArray(attrib_index);
+          gl::VertexAttribPointer(
+            attrib_index,
+            attrib_length as i32,
+            gl::FLOAT,
+            gl::FALSE,
+            stride as i32,
+            offset as *const u32 as *const c_void,
+          );
+          gl::VertexAttribDivisor(attrib_index, self.config.attrib_divisor);
+        }
+      // }
     }
+  }
+
+  pub fn num_attributes(&self) -> u32 {
+    self.layout.ind_offset_attrib().len() as u32
   }
 
   pub fn init(&mut self) {

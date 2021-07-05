@@ -28,11 +28,12 @@ impl VertexArray {
       gl::BindVertexArray(self.id);
     }
     self.vertex_buffer.init();
-    self.vertex_buffer.refresh();
+    self.vertex_buffer.refresh(0);
+    if let Some(instancing_buffer) = &mut self.instancing_buffer {
+      instancing_buffer.init();
+      instancing_buffer.refresh(self.vertex_buffer.num_attributes());
+    }
     self.index_buffer.refresh();
-    // if let Some(instancing_buffer) = &mut self.instancing_buffer {
-    //   instancing_buffer.refresh();
-    // }
     self.unbind();
   }
 
@@ -76,6 +77,17 @@ impl VertexArray {
   //     }
   //   }
   // }
+  pub fn draw_instanced(&self, elem_type: &gl::types::GLenum, instance_count: usize) {
+    unsafe {
+      gl::DrawElementsInstanced(
+        *elem_type,
+        self.index_buffer.len() as i32,
+        gl::UNSIGNED_INT,
+        ptr::null(),
+        instance_count as i32
+      );
+    }
+  }
 
   pub fn draw(&self, elem_type: &gl::types::GLenum) {
     unsafe {

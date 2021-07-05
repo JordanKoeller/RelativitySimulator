@@ -32,10 +32,11 @@ static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
 pub struct Sprite {
   material: Material,
   vertex_array: VertexArray,
+  instanced: bool
 }
 
 impl Sprite {
-  pub fn new(texture: &str) -> Self {
+  pub fn new(texture: &str, instanced: bool) -> Self {
     let mut mat = Material::new();
     let mut tex = Texture::from_file(texture);
     tex.refresh();
@@ -46,6 +47,7 @@ impl Sprite {
     Self {
       material: mat,
       vertex_array: vertex_array,
+      instanced,
     }
   }
   
@@ -57,7 +59,11 @@ impl Sprite {
 
 impl Drawable for Sprite {
   fn shader_name(&self) -> String {
-    "default_texture".to_string()
+    if self.instanced {
+      "instanced".to_string()
+    } else {
+      "default_texture".to_string()
+    }
   }
   fn vertex_array(&self) -> VertexArray {
     self.vertex_array.clone()
@@ -68,10 +74,16 @@ impl Drawable for Sprite {
   }
 
   fn instance_attributes(&self) -> Option<Vec<(String, AttributeType)>> {
-    Some(vec![
-      ("model".to_string(), AttributeType::Mat4),
-      ("diffuse_texture".to_string(), AttributeType::Int),
-      ("ambient".to_string(), AttributeType::Float3),
-    ])
+    if self.instanced {
+      Some(vec![
+        ("model".to_string(), AttributeType::Mat4),
+        // ("diffuse_texture".to_string(), AttributeType::Int),
+        // ("ambient".to_string(), AttributeType::Float3),
+        // ("ambient".to_string(), AttributeType::Float3),
+        // ("ambient".to_string(), AttributeType::Float3),
+      ])
+    } else {
+      None
+    }
   }
 }

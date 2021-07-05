@@ -157,72 +157,73 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader) {
-    let mut texture_slot = 1;
+  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader, texture_binder: &mut TextureBinder) {
     for (unif_name, unif) in material.uniforms() {
       match unif {
         Uniform::Texture(tex) => {
-          shader.set_texture(texture_slot, unif_name, tex);
-          texture_slot += 1;
+          let slot = texture_binder.get_slot(tex.id());
+          if let Some(slot_num) = slot {
+            shader.set_texture(slot_num, unif_name, tex);
+          }
         }
         Uniform::CubeMap(tex) => {
-          shader.set_texture(texture_slot, unif_name, tex);
-          texture_slot += 1;
+          let slot = texture_binder.get_slot(tex.id());
+          if let Some(slot_num) = slot {
+            shader.set_texture(slot_num, unif_name, tex);
+          }
         }
         _ => shader.set_uniform(&unif_name, &unif),
       }
     }
     shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
-    mesh.vao.draw(&shader.element_type);
+    mesh.draw(&shader.element_type);
   }
 
   pub fn draw_scene<'a>(&mut self,
     queue: RenderQueueConsumer<'a>,
     materials: &ReadStorage<'a, Material>,
     transforms: &ReadStorage<'a, TransformComponent>) {
-    let mut active_shader: Option<usize> = None;
+    let mut binder = TextureBinder::new(1);
+    // let mut active_shader: Option<usize> = None;
     let mut active_drawable: Option<usize> = None;
     queue.for_each(|draw_call| {
       let default_transform = TransformComponent::identity();
       let default_material = Material::new();
-      let (mesh_ref, shader_ref) = self.assets.get_shader_and_mesh(&draw_call.drawable);
       let transform_ref = transforms.get(draw_call.entity).unwrap_or(&default_transform);
       let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
-      // Switch shader if none activ else update active
-      if let Some(shader_id) = active_shader {
-        if shader_id != draw_call.drawable.1 {
-          self.switch_shader(shader_ref);
-          active_shader = Some(draw_call.drawable.1);
+      if let Some(old_id) = active_drawable {
+        let old_ref = self.assets.get_asset(&old_id);
+        let next_ref = self.assets.get_asset(&draw_call.drawable.0);
+        if old_ref.instanced() && !next_ref.instanced() {
+          old_ref.draw(&self.assets.get_active_shader().element_type);
         }
-      } else {
-        self.switch_shader(self.assets.get_shader(&draw_call.drawable.1));
-        active_shader = Some(draw_call.drawable.1);
       }
-      // Switch drawable if none activ else update active
-      if let Some(d_id) = active_drawable {
-        if d_id != draw_call.drawable.0 {
+      let needs_draw = {
+        let mesh_ref = self.assets.activate_get_mesh(&draw_call.drawable, &[&self.config_uniforms, &self.common_uniforms]);
+        if let Some(d_id) = active_drawable {
+          if d_id != draw_call.drawable.0 {
+            mesh_ref.vao.bind();
+          }
+        } else {
           mesh_ref.vao.bind();
+          active_drawable = Some(draw_call.drawable.0);
         }
-      } else {
-        mesh_ref.vao.bind();
-        active_drawable = Some(draw_call.drawable.0);
+        if mesh_ref.instanced() {
+          mesh_ref.upsert_instance(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
+          false
+        } else {
+          true
+        }
+      };
+      if needs_draw {
+        let (mesh_ref, shader_ref) = self.assets.get_shader_and_mesh(&draw_call.drawable);
+        self.draw_drawable(mesh_ref, &transform_ref.matrix(), mtl_ref, shader_ref, &mut binder);
       }
-      self.draw_drawable(mesh_ref, &transform_ref.matrix(), mtl_ref, shader_ref);
     });
     self.common_uniforms.clear();
   }
 
   // Private helper functions
-
-  fn switch_shader(&self, shader: &Shader) {
-    shader.bind();
-    for (unif_name, unif_value) in self.config_uniforms.iter() {
-      shader.set_uniform(&unif_name, unif_value);
-    }
-    for (unif_name, unif_value) in self.common_uniforms.iter() {
-      shader.set_uniform(&unif_name, unif_value);
-    }
-  }
 
   fn extract_camera_uniforms(&mut self, camera: &Camera) {
     self
@@ -254,6 +255,7 @@ impl Renderer {
       CString::new("changeOfBasisInverse").unwrap(),
       Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
     );
+
   }
 
   pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {

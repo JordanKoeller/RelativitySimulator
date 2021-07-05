@@ -2,7 +2,7 @@ use utils::*;
 use cgmath::Matrix;
 use std::ffi::c_void;
 
-use renderer::{Texture, CubeMap};
+use renderer::{Texture, TextureLike, CubeMap, TextureBinder};
 
 
 #[derive(Clone, Debug)]
@@ -23,7 +23,7 @@ pub enum Uniform {
 }
 
 impl Uniform {
-  pub unsafe fn serialize_into(&self, collector: &mut [f32]) {
+  pub unsafe fn serialize_into(&self, collector: &mut [f32], textures: &mut TextureBinder) {
     match self {
       Uniform::Int(elem) => collector[0] = *(elem as *const i32 as *const c_void as *const f32),
       Uniform::Float(elem) => collector[0] = *elem,
@@ -62,6 +62,22 @@ impl Uniform {
             collector[i] = m_ptr[i];
         }
       },
+      Uniform::Texture(texture) => {
+        // let slot_opt = textures.get_slot(texture.id());
+        // if let Some(slot) = slot_opt {
+          texture.bind(0)
+        // } else {
+        //   println!("Could not find an available bind point for texture");
+        // }
+      },
+      Uniform::CubeMap(texture) => {  
+        // let slot_opt = textures.get_slot(texture.id());
+        // if let Some(slot) = slot_opt {
+          texture.bind(0)
+        // } else {
+        //   println!("Could not find an available bind point for texture");
+        // }
+      }
       _ => println!("Uniform of type {:?} not supported", self)
     }
   }

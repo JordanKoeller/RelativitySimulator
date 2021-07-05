@@ -1,5 +1,5 @@
 use specs::Entity;
-use renderer::platform::{VertexArray, ShaderId, InstancingTable, AttributeType, DataBuffer, BufferLayout};
+use renderer::platform::{VertexArray, ShaderId, InstancingTable, AttributeType, DataBuffer, BufferLayout, TextureBinder};
 use ecs::{DrawableId, Material};
 use utils::Mat4F;
 use cgmath::Matrix;
@@ -29,14 +29,27 @@ impl Mesh {
     }
   }
 
+  pub fn instanced(&self) -> bool {
+    self.instance_table.is_some()
+  }
+
+  pub fn draw(&self, elem_type: &gl::types::GLenum) {
+    if self.instanced() {
+      self.vao.draw_instanced(elem_type, self.instance_table.as_ref().unwrap().num_instances())
+    } else {
+      self.vao.draw(elem_type);
+    }
+  }
+
 
   pub fn refresh(&mut self) {
+    println!("Drawing with shader {}", self.shader_name);
     self.vao.refresh();
   }
 
-  pub fn upsert_instance(&mut self, entity: &Entity, transform: &Mat4F, material: &mut Material) {
+  pub fn upsert_instance(&mut self, entity: &Entity, transform: &Mat4F, material: &Material, texture_binder: &mut TextureBinder) {
     if let Some(table) = &mut self.instance_table {
-      let mut collector: Vec<f32> = Vec::with_capacity(table.stride());
+      let mut collector: Vec<f32> = (0..table.stride()).into_iter().map(|_| 0f32).collect();
       let transform_sz = AttributeType::Mat4.width() as usize;
       let transform_ptr = unsafe {
         let ptr = transform.as_ptr();
@@ -46,14 +59,13 @@ impl Mesh {
           collector[i] = transform_ptr[i];
       }
       let offset = table.upsert_instance(entity);
-      material.serialize_into(&mut collector, &table.attribute_offsets);
-      self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, collector.len(), move |slc| {
+      material.serialize_into(&mut collector, &table.attribute_offsets, texture_binder);
+      self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, offset + collector.len(), move |slc| {
         for i in 0..collector.len() {
           slc[i] = collector[i];
         }
       })
     }
-
   }
 
 }

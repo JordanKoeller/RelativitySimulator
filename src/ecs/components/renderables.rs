@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use specs::{Component, VecStorage, NullStorage,};
 
-use renderer::{VertexArray, Mesh, AttributeType};
+use renderer::{VertexArray, Mesh, AttributeType, TextureBinder};
 
 use std::ffi::{CStr, CString};
 
@@ -157,13 +157,13 @@ impl Material {
     });
   }
 
-  pub fn serialize_into(&self, collector: &mut [f32], order: &Vec<(String, AttributeType)>) {
+  pub fn serialize_into(&self, collector: &mut [f32], order: &Vec<(String, AttributeType)>, texture_binder: &mut TextureBinder) {
     let mut offset: usize = 0;
     for i in 0..order.len() {
       if let Some(uniform) = self.get_by_name(&order[i].0) {
         let elem_width = order[i].1.width() as usize;
         unsafe {
-          uniform.serialize_into(&mut collector[offset..offset+elem_width]);
+          uniform.serialize_into(&mut collector[offset..offset+elem_width], texture_binder);
         }
         offset += elem_width;
       }
