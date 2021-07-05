@@ -2,7 +2,7 @@
 use tobj;
 
 use renderer::{
-  AttributeType, BufferLayout, IndexBuffer, Texture, VertexArray, VertexBuffer, WHITE_TEXTURE,
+  AttributeType, BufferLayout, IndexBuffer, Texture, VertexArray, DataBuffer, WHITE_TEXTURE,
 };
 use utils::*;
 
@@ -72,7 +72,7 @@ fn get_vertex_array(mesh: &tobj::Mesh) -> VertexArray {
       buffer.push(mesh.texcoords[i * 2 + 1]);
     }
   }
-  let buff = VertexBuffer::create(buffer, BufferLayout::new(atts));
+  let buff = DataBuffer::static_buffer(buffer, BufferLayout::new(atts));
   let inds = IndexBuffer::create(mesh.indices.clone());
   VertexArray::new(vec![buff], inds)
 }

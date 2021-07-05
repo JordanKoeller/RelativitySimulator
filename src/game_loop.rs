@@ -48,6 +48,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         running = running_v.0;
       }
     }
+    let mut window_ref = self.window.borrow_mut();
+    window_ref.close()
   }
 
   fn initialize(&mut self) -> Dispatcher<'a, 'b> {

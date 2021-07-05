@@ -147,4 +147,10 @@ impl Window {
     self.imgui_glfw.draw(ui, &mut self.window);
 
   }
+
+  pub fn close(&mut self) {
+    unsafe {
+      glfw::terminate();
+    }
+  }
 }

@@ -93,6 +93,10 @@ impl Renderer {
     self.assets.register_asset(model)
   }
 
+  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut Mesh {
+    self.assets.get_asset_mut(&id.0)
+  }
+
   // pub fn submit(&mut self, cmd: RenderCommand) {
   //   match &cmd {
   //     RenderCommand::Draw {id, ..} => {
@@ -279,7 +283,7 @@ impl Renderer {
 }
 
 fn create_screen(w: i32, h: i32) -> Screen {
-  let verts = vec![
+  let verts = [
     // Positions  // uv
     -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32, -1f32,
     1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
@@ -287,8 +291,8 @@ fn create_screen(w: i32, h: i32) -> Screen {
 
   let inds = vec![0, 1, 2, 3, 4, 5];
   let mut screen_quad = VertexArray::new(
-    vec![VertexBuffer::create(
-      verts,
+    vec![DataBuffer::static_buffer(
+      &verts,
       BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]),
     )],
     IndexBuffer::create(inds),

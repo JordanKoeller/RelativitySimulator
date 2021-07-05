@@ -1,18 +1,33 @@
 use specs::prelude::*;
 use cgmath::prelude::*;
-use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
+use utils::{Vec3F, Vec2F};
+use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, DataBuffer};
 use ecs::{MyBuilder, components::Material};
 
-pub static QUAD_VERTICES: [f32; 20] = [
-  0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right
-  0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32, // bottom right
- -0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32, // bottom left
- -0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32  // top left 
+#[repr(C)]
+#[derive(Clone)]
+struct SpriteVertex {
+  pub position: Vec3F,
+  pub uv: Vec2F
+}
+
+impl SpriteVertex {
+  pub const fn new(a: f32, b: f32, c: f32, d: f32, e: f32) -> Self {
+    Self {
+      position: Vec3F::new(a, b, c),
+      uv: Vec2F::new(d, e)
+    }
+  }
+}
+
+static QUAD_VERTICES: [SpriteVertex; 4] = [
+  SpriteVertex::new( 0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32), // top right
+  SpriteVertex::new( 0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32), // bottom right
+  SpriteVertex::new(-0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32), // bottom left
+  SpriteVertex::new(-0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32)  // top left 
 ];
 
-pub static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
-
-
+static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
 
 pub struct Sprite {
   material: Material,
@@ -34,21 +49,9 @@ impl Sprite {
     }
   }
   
-  fn rescale_vertices(aspect_ratio: f32) -> VertexBuffer {
+  fn rescale_vertices(aspect_ratio: f32) -> DataBuffer {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
-    let mut vertices = QUAD_VERTICES.to_vec();
-    if aspect_ratio < 1f32 {
-      vertices[1] *= aspect_ratio;
-      vertices[6] *= aspect_ratio;
-      vertices[11] *= aspect_ratio;
-      vertices[16] *= aspect_ratio;
-    } else {
-      vertices[0] /= aspect_ratio;
-      vertices[5] /= aspect_ratio;
-      vertices[10] /= aspect_ratio;
-      vertices[15] /= aspect_ratio;
-    }
-    VertexBuffer::create(vertices, layout)
+    DataBuffer::static_buffer(&QUAD_VERTICES, layout)
   } 
 }
 
