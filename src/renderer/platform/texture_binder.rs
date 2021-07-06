@@ -12,7 +12,7 @@ pub struct TextureBinder {
 
 impl TextureBinder {
   pub fn new(reserved: usize) -> Self {
-    let sz = 32;
+    let sz = 16;
     Self {
       slots: (0 .. sz).into_iter().map(|_| BoundState::Unbound).collect(),
       top: reserved + 1,

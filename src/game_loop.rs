@@ -30,6 +30,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     self.app_system = Some(func);
   }
 
+  // pub fn with_resources(&mut self, )
+
   pub fn run(
     &mut self,
   ) {

@@ -88,7 +88,7 @@ impl Shader {
       binder,
       unbinder,
     };
-    gl_check_error!();
+    gl_check_error!("Nope");
     shader
   }
   pub fn from_file(name: &str, shader_path: &str) -> Self {
@@ -135,7 +135,7 @@ impl Shader {
   }
 
   pub fn set_uniform(&self, name: &CStr, unif: &Uniform) {
-    println!("Setting uniform {:?} on {} with value {:?}", name, self.name, unif);
+    // println!("Setting uniform {:?} on {} with value {:?}", name, self.name, unif);
     let some_loc = {
       let opt = self.uniforms.read().unwrap();
       let op = opt.get(name.clone());

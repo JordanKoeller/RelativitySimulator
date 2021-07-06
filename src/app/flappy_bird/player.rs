@@ -94,7 +94,7 @@ impl<'a> System<'a> for PlayerSystem {
         WindowEvent::new(Event::KeyDown(KeyCode::LeftShift))
         ]))
     };
-    let sprite = Sprite::new("resources/flappy_bird/ship.png", false);
+    let sprite = Sprite::new("resources/flappy_bird/ship.png", true);
     let pos = Vec3F::unit_x() * 4f32;
     // world.setup::<Self::SystemData>();
     world.register::<Player>();

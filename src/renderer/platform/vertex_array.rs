@@ -1,6 +1,7 @@
 use gl;
 use std::os::raw::c_void;
 use std::ptr;
+use debug::*;
 
 use super::{IndexBuffer, DataBuffer};
 
@@ -30,6 +31,7 @@ impl VertexArray {
     self.vertex_buffer.init();
     self.vertex_buffer.refresh(0);
     if let Some(instancing_buffer) = &mut self.instancing_buffer {
+      println!("REfreshing instancing buffer {}", instancing_buffer.len());
       instancing_buffer.init();
       instancing_buffer.refresh(self.vertex_buffer.num_attributes());
     }
@@ -59,36 +61,6 @@ impl VertexArray {
     }
   }
 
-  // pub fn refresh_vertex_buffer(&self, buff: &DataBuffer) {
-  //   self.bind();
-  //   let stride = buff.layout.stride();
-  //   for &(i, offset, attrib) in buff.layout.ind_offset_attrib().iter() {
-  //     // println!("Setting Attribute {} {} {} {}", i, attrib.width(), stride, offset);
-  //     unsafe {
-  //       gl::EnableVertexAttribArray(i as u32);
-  //       gl::VertexAttribPointer(
-  //         i as u32,
-  //         attrib.width() as i32,
-  //         gl::FLOAT,
-  //         gl::FALSE,
-  //         stride as i32,
-  //         offset as *const u32 as *const c_void,
-  //       );
-  //     }
-  //   }
-  // }
-  pub fn draw_instanced(&self, elem_type: &gl::types::GLenum, instance_count: usize) {
-    unsafe {
-      gl::DrawElementsInstanced(
-        *elem_type,
-        self.index_buffer.len() as i32,
-        gl::UNSIGNED_INT,
-        ptr::null(),
-        instance_count as i32
-      );
-    }
-  }
-
   pub fn draw(&self, elem_type: &gl::types::GLenum) {
     unsafe {
       gl::DrawElements(
@@ -99,13 +71,18 @@ impl VertexArray {
       );
     }
   }
-}
+  
+  pub fn draw_instanced(&self, elem_type: &gl::types::GLenum, instance_count: usize) {
+    unsafe {
+      gl::DrawElementsInstanced(
+        *elem_type,
+        self.index_buffer.len() as i32,
+        gl::UNSIGNED_INT,
+        ptr::null(),
+        instance_count as i32
+      );
+    }
+    // gl_check_error!(&format!("count = {} instancecounty = {}", self.index_buffer.len(),instance_count));
+  }
 
-// impl Drop for VertexArray {
-//   fn drop(&mut self) {
-//     self.unbind();
-//     unsafe {
-//       gl::DeleteVertexArrays(1, &mut self.id);
-//     }
-//   }
-// }
+}

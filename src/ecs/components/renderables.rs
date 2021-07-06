@@ -9,7 +9,6 @@ use utils::*;
 
 use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
-
 #[derive(Debug, Clone, Default, Component)]
 #[storage(VecStorage)]
 pub struct Material { // Boilerplate implementation at end of file.
@@ -25,7 +24,7 @@ pub struct MeshComponent {
   needs_refresh: bool,
 }
 
-#[derive(Clone, Debug, Component, Default, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Component, Default, Eq, PartialEq)]
 #[storage(VecStorage)]
 pub struct DrawableId(pub usize, pub usize);
 

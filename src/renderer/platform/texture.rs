@@ -36,12 +36,14 @@ pub struct Texture {
 impl Texture {
   pub fn from_file(path: &str) -> Texture {
     let src = TextureSource::File(path.to_string());
-    Texture {
+    let mut ret = Texture {
       source_data: src,
       width: u32::MAX,
       height: u32::MAX,
       id: u32::MAX,
-    }
+    };
+    ret.refresh();
+    ret
   }
 
   pub fn pre_made(id: u32, width: u32, height: u32) -> Texture {
@@ -67,12 +69,12 @@ impl TextureLike for Texture {
       TextureSource::File(path) => {
         let (data, width, height, format) = texture_helpers::load_file(&path, true);
         self.id = texture_helpers::create_2d_buffer(&data, &width, &height, &format);
+        println!("Loaded in texture {}. ID = {}", path, self.id);
         self.width = width;
         self.height = height;
       }
       _ => {}
     }
-    
   }
 
 }
@@ -119,6 +121,7 @@ impl TextureLike for CubeMap {
         });
         let (id, width, height) = texture_helpers::create_cubemap_buffer(&mut imgs);
         self.id = id;
+        println!("Loaded in texture {}. ID = {}", dirpath, self.id);
         self.width = width;
         self.height = height;
       }
@@ -132,12 +135,14 @@ impl TextureLike for CubeMap {
 impl CubeMap {
   pub fn from_file(dirpath: &str) -> CubeMap {
 
-    CubeMap {
+    let mut ret = CubeMap {
       source_data: TextureSource::File(dirpath.to_string()),
       width: u32::MAX,
       height: u32::MAX,
       id: u32::MAX
-    }
+    };
+    ret.refresh();
+    ret
   }
 }
 

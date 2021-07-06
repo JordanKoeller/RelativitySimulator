@@ -94,9 +94,9 @@ pub fn main() {
   world.insert(utils::Running(true));
   world.insert(render);
   world.insert(world_id);
-  app::flappy_bird::setup_world(&mut world);
   // app::build_city(&mut world);
-
+  
+  app::flappy_bird::setup_world(&mut world);
   let mut runtime = GameLoop::new(window, world, world_id);
   runtime.with_systems(app::flappy_bird::get_system_registration());
   runtime.run();

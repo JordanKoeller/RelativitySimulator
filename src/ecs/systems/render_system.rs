@@ -36,7 +36,7 @@ impl<'a> System<'a> for RenderSystem {
 
   fn run(&mut self, (entities, drawables, transforms, materials, mut timestep, mut renderer): Self::SystemData) {
     let mut window = self.window.borrow_mut();
-    for (entity, drawable) in (&entities, &drawables).join() {
+    for (entity, drawable) in (&entities, &drawables, ).join() {
       let cmd = DrawCall {
         drawable: drawable.clone(),
         entity,

@@ -2,7 +2,7 @@
 use std::os::raw::c_void;
 use std::ffi::CStr;
 
-pub fn gl_check_error_(file: &str, line: u32) -> u32 {
+pub fn gl_check_error_(file: &str, line: u32, msg: &str) -> u32 {
   unsafe {
     let mut error_code = gl::GetError();
     while error_code != gl::NO_ERROR {
@@ -17,7 +17,7 @@ pub fn gl_check_error_(file: &str, line: u32) -> u32 {
             _ => "unknown GL error code"
         };
 
-        println!("{} | {} ({})", error, file, line);
+        println!("{} | {} ({}): {}", error, file, line, msg);
 
         error_code = gl::GetError();
     }
@@ -27,8 +27,8 @@ pub fn gl_check_error_(file: &str, line: u32) -> u32 {
 
 #[allow(unused_macros)]
 macro_rules! gl_check_error {
-    () => (
-        gl_check_error_(file!(), line!())
+    ($msg:expr) => (
+        gl_check_error_(file!(), line!(), $msg)
     )
 }
 

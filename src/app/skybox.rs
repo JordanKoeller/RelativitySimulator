@@ -1,7 +1,7 @@
 use renderer::{Drawable, CubeMap};
-use renderer::{AttributeType, BufferLayout, IndexBuffer, Uniform, VertexArray, DataBuffer};
+use renderer::{AttributeType, BufferLayout, IndexBuffer, Uniform, VertexArray, DataBuffer, TextureLike};
 
-use ecs::Material;
+use ecs::{Material};
 
 pub struct Skybox {
   texture_name: String
@@ -26,7 +26,9 @@ impl Drawable for Skybox {
 
   fn material(&self) -> Material {
     let mut material = Material::new();
-    material.unknown_uniform("skybox", Uniform::CubeMap(CubeMap::from_file(&self.texture_name)));
+    let cube_map = CubeMap::from_file(&self.texture_name);
+    // cube_map.refresh();
+    material.unknown_uniform("skybox", Uniform::CubeMap(cube_map));
     material
   }
 

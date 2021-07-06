@@ -20,11 +20,11 @@ impl SpriteVertex {
   }
 }
 
-static QUAD_VERTICES: [SpriteVertex; 4] = [
-  SpriteVertex::new( 0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32), // top right
-  SpriteVertex::new( 0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32), // bottom right
-  SpriteVertex::new(-0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32), // bottom left
-  SpriteVertex::new(-0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32)  // top left 
+static QUAD_VERTICES: [f32; 20] = [
+   0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right
+   0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32, // bottom right
+  -0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32, // bottom left
+  -0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32  // top left 
 ];
 
 static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
@@ -33,14 +33,14 @@ pub struct Sprite {
   material: Material,
   vertex_array: VertexArray,
   instanced: bool,
-  aspect_ratio: Vec2F,
+  // aspect_ratio: Vec2F,
 }
 
 impl Sprite {
   pub fn new(texture: &str, instanced: bool) -> Self {
     let mut mat = Material::new();
-    let mut tex = Texture::from_file(texture);
-    tex.refresh();
+    let tex = Texture::from_file(texture);
+    // tex.refresh();
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
     let vertex_buff = DataBuffer::static_buffer(&QUAD_VERTICES, layout);
 
@@ -51,7 +51,7 @@ impl Sprite {
       material: mat,
       vertex_array: vertex_array,
       instanced,
-      aspect_ratio: Vec2F::new(1f32, 1f32),
+      // aspect_ratio: Vec2F::new(1f32, 1f32),
     }
   }
 }

@@ -113,8 +113,8 @@ impl Renderer {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
-    #[cfg(feature = "debug")]
-    self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
+    // #[cfg(feature = "debug")]
+    // self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
   }
 
   pub fn init_frame(&mut self, window: &mut Window) {
@@ -166,6 +166,7 @@ impl Renderer {
     materials: &ReadStorage<'a, Material>,
     transforms: &ReadStorage<'a, TransformComponent>
   ) {
+    // println!("Drawing a scene!");
     let mut binder = TextureBinder::new(1);
     let default_transform = TransformComponent::identity();
     let default_material = Material::new();

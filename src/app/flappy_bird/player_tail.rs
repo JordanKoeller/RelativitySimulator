@@ -65,9 +65,6 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
         .with(d_id.clone())
         .with(self.material.clone().expect("Player Tail Material was NONE"))
         .with(Gravity)
-        // .with(Transform(
-        //   Mat4F::from_translation(state.position) * Mat4F::from_scale(0.5f32),
-        // ))
         .build()]
     } else {
       panic!("Tried to make a sprite but it hasn't been pre-initialized!");
@@ -78,7 +75,7 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
     let mut renderer = world.write_resource::<Renderer>();
     let state = Sprite::new("resources/flappy_bird/spark.png", false);
     let d_id = renderer.submit_model(state.mesh());
-    println!("Registered! {:?}", d_id);
+    println!("Registered player tail! {:?}", d_id);
     self.id = Some(d_id);
     self.material = Some(state.material())
   }

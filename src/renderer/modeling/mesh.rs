@@ -35,7 +35,8 @@ impl Mesh {
 
   pub fn draw(&self, elem_type: &gl::types::GLenum) {
     if self.instanced() {
-      self.vao.draw_instanced(elem_type, self.instance_table.as_ref().unwrap().num_instances())
+      let num_instances = self.instance_table.as_ref().unwrap().num_instances();
+      self.vao.draw_instanced(elem_type, num_instances);
     } else {
       self.vao.draw(elem_type);
     }
@@ -59,7 +60,7 @@ impl Mesh {
           collector[i] = transform_ptr[i];
       }
       let offset = table.upsert_instance(entity);
-      material.serialize_into(&mut collector, &table.attribute_offsets, texture_binder);
+      // material.serialize_into(&mut collector, &table.attribute_offsets, texture_binder);
       self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, offset + collector.len(), move |slc| {
         for i in 0..collector.len() {
           slc[i] = collector[i];

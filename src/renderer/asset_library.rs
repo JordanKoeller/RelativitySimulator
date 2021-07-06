@@ -22,6 +22,7 @@ impl AssetLibrary {
   pub fn register_shader(&mut self, shader: Shader) {
     let name = shader.name.clone();
     let ind = self.shaders.len();
+    println!("Registered shader {} as ID {}", name, ind);
     self.shader_lookup.insert(name, ind);
     self.shaders.push(shader);
   }
@@ -68,24 +69,6 @@ impl AssetLibrary {
     (self.get_asset(&id.0), self.get_shader(&id.1))
   }
 
-  // pub fn activate_get_mesh(&mut self, id: &DrawableId, uniforms: &[&HashMap<CString, Uniform>]) -> &mut Mesh {
-  //   if let Some(s_id) = self.active_shader_id {
-  //     if s_id != id.1 {
-  //       let s_ref = self.get_shader(&id.1);
-  //       self.activate_shader(s_ref, uniforms);
-  //       self.active_shader_id = Some(id.1);
-  //       self.get_asset_mut(&id.0)
-  //     } else {
-  //       self.get_asset_mut(&id.0)
-  //     }
-  //   } else {
-  //     let s_ref = self.get_shader(&id.1);
-  //     self.activate_shader(s_ref, uniforms);
-  //     self.active_shader_id = Some(id.1);
-  //     self.get_asset_mut(&id.0)
-  //   }
-  // }
-
   #[inline]
   pub fn active_is_instanced(&self) -> bool {
     if let Some(id) = self.active_asset_id {
@@ -98,6 +81,7 @@ impl AssetLibrary {
   #[inline]
   pub fn upsert_instance_data(&mut self, entity: &Entity, model: &Mat4F, material: &Material, textures: &mut TextureBinder) {
     self.get_active_asset_mut().upsert_instance(entity, model, material, textures);
+    // println!("Instance table contains {} instances", self.get_active_asset().instance_table.as_ref().unwrap().num_instances());
   }
 
   pub fn draw_active_mesh(&mut self, model: Mat4F, material: &Material, textures: &mut TextureBinder) {
@@ -149,6 +133,7 @@ impl AssetLibrary {
   #[inline]
   fn activate_mesh(&mut self, id: usize) {
     self.active_asset_id = Some(id);
+    self.get_active_asset().vao.bind();
   }
 
   fn activate_shader(&mut self, s_id: usize, uniforms: &[&HashMap<CString, Uniform>]) {
@@ -167,6 +152,7 @@ impl AssetLibrary {
 
   #[inline]
   fn enable_shader(&self, shader: &Shader, uniforms: &[&HashMap<CString, Uniform>]) {
+    // println!("Activating shader {}, {}", shader.name, self.active_shader_id.unwrap());
      shader.bind();
      for mgr in uniforms.iter() {
       for (unif_name, unif_value) in mgr.iter() {
