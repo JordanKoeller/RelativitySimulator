@@ -63,17 +63,17 @@ impl Uniform {
         }
       },
       Uniform::Texture(texture) => {
+        texture.bind(textures.get_slot(texture.id()));
         // let slot_opt = textures.get_slot(texture.id());
         // if let Some(slot) = slot_opt {
-          texture.bind(0)
         // } else {
         //   println!("Could not find an available bind point for texture");
         // }
       },
       Uniform::CubeMap(texture) => {  
+        texture.bind(textures.get_slot(texture.id()));
         // let slot_opt = textures.get_slot(texture.id());
         // if let Some(slot) = slot_opt {
-          texture.bind(0)
         // } else {
         //   println!("Could not find an available bind point for texture");
         // }
