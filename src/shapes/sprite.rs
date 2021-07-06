@@ -32,7 +32,8 @@ static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
 pub struct Sprite {
   material: Material,
   vertex_array: VertexArray,
-  instanced: bool
+  instanced: bool,
+  aspect_ratio: Vec2F,
 }
 
 impl Sprite {
@@ -40,7 +41,9 @@ impl Sprite {
     let mut mat = Material::new();
     let mut tex = Texture::from_file(texture);
     tex.refresh();
-    let vertex_buff = Sprite::rescale_vertices((tex.height as f32) / (tex.width as f32));
+    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
+    let vertex_buff = DataBuffer::static_buffer(&QUAD_VERTICES, layout);
+
     let ind_buff = IndexBuffer::create(QUAD_INDICES.to_vec());
     let vertex_array = VertexArray::new(vertex_buff, ind_buff);
     mat.diffuse_texture(tex);
@@ -48,18 +51,14 @@ impl Sprite {
       material: mat,
       vertex_array: vertex_array,
       instanced,
+      aspect_ratio: Vec2F::new(1f32, 1f32),
     }
   }
-  
-  fn rescale_vertices(aspect_ratio: f32) -> DataBuffer {
-    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
-    DataBuffer::static_buffer(&QUAD_VERTICES, layout)
-  } 
 }
 
 impl Drawable for Sprite {
   fn shader_name(&self) -> String {
-    if self.instanced {
+    if self.instance_attributes().is_some() {
       "instanced".to_string()
     } else {
       "default_texture".to_string()
@@ -78,8 +77,6 @@ impl Drawable for Sprite {
       Some(vec![
         ("model".to_string(), AttributeType::Mat4),
         // ("diffuse_texture".to_string(), AttributeType::Int),
-        // ("ambient".to_string(), AttributeType::Float3),
-        // ("ambient".to_string(), AttributeType::Float3),
         // ("ambient".to_string(), AttributeType::Float3),
       ])
     } else {

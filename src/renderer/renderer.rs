@@ -97,18 +97,6 @@ impl Renderer {
     self.assets.get_asset_mut(&id.0)
   }
 
-  // pub fn submit(&mut self, cmd: RenderCommand) {
-  //   match &cmd {
-  //     RenderCommand::Draw {id, ..} => {
-  //       if let Some((_, s_id)) = &self.assets.get_asset(&id).registry {
-  //         self.queued_drawables.push(s_id.clone(), cmd);
-  //       }
-  //     },
-  //     _ => panic!("Render Command {:?} Not supported", cmd),
-  //   }
-  //   // let s_id = self.assets.get_shader(&active_shader);
-  // }
-
 
   pub fn submit_config(&mut self, config: RendererConfig) {
     self.submit_common_uniform(
@@ -161,16 +149,10 @@ impl Renderer {
     for (unif_name, unif) in material.uniforms() {
       match unif {
         Uniform::Texture(tex) => {
-          let slot = texture_binder.get_slot(tex.id());
-          if let Some(slot_num) = slot {
-            shader.set_texture(slot_num, unif_name, tex);
-          }
+          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
         }
         Uniform::CubeMap(tex) => {
-          let slot = texture_binder.get_slot(tex.id());
-          if let Some(slot_num) = slot {
-            shader.set_texture(slot_num, unif_name, tex);
-          }
+          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
         }
         _ => shader.set_uniform(&unif_name, &unif),
       }
@@ -182,44 +164,23 @@ impl Renderer {
   pub fn draw_scene<'a>(&mut self,
     queue: RenderQueueConsumer<'a>,
     materials: &ReadStorage<'a, Material>,
-    transforms: &ReadStorage<'a, TransformComponent>) {
+    transforms: &ReadStorage<'a, TransformComponent>
+  ) {
     let mut binder = TextureBinder::new(1);
-    // let mut active_shader: Option<usize> = None;
-    let mut active_drawable: Option<usize> = None;
+    let default_transform = TransformComponent::identity();
+    let default_material = Material::new();
     queue.for_each(|draw_call| {
-      let default_transform = TransformComponent::identity();
-      let default_material = Material::new();
+      let default_uniforms = &[&self.config_uniforms, &self.common_uniforms];
       let transform_ref = transforms.get(draw_call.entity).unwrap_or(&default_transform);
       let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
-      if let Some(old_id) = active_drawable {
-        let old_ref = self.assets.get_asset(&old_id);
-        let next_ref = self.assets.get_asset(&draw_call.drawable.0);
-        if old_ref.instanced() && !next_ref.instanced() {
-          old_ref.draw(&self.assets.get_active_shader().element_type);
-        }
-      }
-      let needs_draw = {
-        let mesh_ref = self.assets.activate_get_mesh(&draw_call.drawable, &[&self.config_uniforms, &self.common_uniforms]);
-        if let Some(d_id) = active_drawable {
-          if d_id != draw_call.drawable.0 {
-            mesh_ref.vao.bind();
-          }
-        } else {
-          mesh_ref.vao.bind();
-          active_drawable = Some(draw_call.drawable.0);
-        }
-        if mesh_ref.instanced() {
-          mesh_ref.upsert_instance(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
-          false
-        } else {
-          true
-        }
-      };
-      if needs_draw {
-        let (mesh_ref, shader_ref) = self.assets.get_shader_and_mesh(&draw_call.drawable);
-        self.draw_drawable(mesh_ref, &transform_ref.matrix(), mtl_ref, shader_ref, &mut binder);
+      self.assets.flush_and_activate_drawable(&draw_call.drawable, default_uniforms);
+      if self.assets.active_is_instanced() {
+        self.assets.upsert_instance_data(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
+      } else {
+        self.assets.draw_active_mesh(transform_ref.matrix(), mtl_ref, &mut binder);
       }
     });
+    self.assets.flush_instances();
     self.common_uniforms.clear();
   }
 

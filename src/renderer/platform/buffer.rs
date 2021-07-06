@@ -121,7 +121,7 @@ impl DataBuffer {
 
   pub fn splice_inplace<F: FnOnce(&mut [f32]) -> ()>(&mut self, start: usize, end: usize, f: F)
   {
-    f(unsafe {self.data.get_unchecked_mut(start..end)});
+    f(unsafe {self.data.get_mut(start..end).expect("Tried to splice DataBuffer out of bounds")});
     self.set_sub_buffer(start, end);
   }
 

@@ -135,6 +135,7 @@ impl Shader {
   }
 
   pub fn set_uniform(&self, name: &CStr, unif: &Uniform) {
+    println!("Setting uniform {:?} on {} with value {:?}", name, self.name, unif);
     let some_loc = {
       let opt = self.uniforms.read().unwrap();
       let op = opt.get(name.clone());

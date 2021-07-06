@@ -49,7 +49,7 @@ impl <'a> System<'a> for WallSpawner {
 
   fn setup(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/pipe.png", true);
+    let state = Sprite::new("resources/flappy_bird/pipe.png", false);
     let d_id = renderer.submit_model(state.mesh());
     self.id = Some(d_id);
     self.material = Some(state.material())
@@ -90,7 +90,6 @@ impl WallSpawner {
         }
       )
       .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))
-      // .with(Sprite::new("resources/flappy_bird/pipe.png").state())
       .with(d_id.clone())
       .with(self.material.clone().expect("Material was NONE on the wall spawner"))
       .with(AxisAlignedCubeCollision::from_transform(&transform))
