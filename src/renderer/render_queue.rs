@@ -9,27 +9,37 @@ use std::cmp::Reverse;
 use utils::{SyncMutRef, getSyncMutRef, Mat4F};
 
 use ecs::{DrawableId, Material};
+use renderer::RenderCommand;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct DrawCall {
   pub drawable: DrawableId,
   pub entity: Entity,
+  pub cmd: RenderCommand
 }
 
 impl Ord for DrawCall {
   fn cmp(&self, other: &Self) -> Ordering {
-      let shader_cmp = self.drawable.1.cmp(&other.drawable.1);
-      match shader_cmp {
-        Ordering::Equal => {
-          match self.drawable.0.cmp(&other.drawable.0) {
-            Ordering::Equal => Ordering::Equal,
-            Ordering::Less => Ordering::Greater,
-            Ordering::Greater => Ordering::Less
-          }
-        },
-        Ordering::Greater => Ordering::Less,
-        Ordering::Less => Ordering::Greater,
-      }
+    let enum_cmp = self.cmd.priority().cmp(&other.cmd.priority());
+    match enum_cmp {
+      Ordering::Equal => {
+        let shader_cmp = self.drawable.1.cmp(&other.drawable.1);
+        match shader_cmp {
+          Ordering::Equal => {
+            match self.drawable.0.cmp(&other.drawable.0) {
+              Ordering::Equal => Ordering::Equal,
+              Ordering::Less => Ordering::Greater,
+              Ordering::Greater => Ordering::Less
+            }
+          },
+          Ordering::Greater => Ordering::Less,
+          Ordering::Less => Ordering::Greater,
+        }
+      },
+      Ordering::Less => Ordering::Greater,
+      Ordering::Greater => Ordering::Less,
+    }
+    
   }
 }
 
@@ -46,11 +56,12 @@ pub struct RenderQueue {
 }
 
 impl RenderQueue {
-  pub fn push(&mut self, cmd: DrawCall) {
+
+  pub fn push(&self, cmd: DrawCall) {
     self.queue.lock().expect("Could not unlock Render Command Queue").push(cmd);
   }
 
-  pub fn pop(&mut self) -> Option<DrawCall> {
+  pub fn pop(&self) -> Option<DrawCall> {
     self.queue.lock().expect("Could not unlock Render Command Queue").pop()
   }
   

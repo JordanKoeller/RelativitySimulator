@@ -9,10 +9,12 @@ use utils::*;
 
 use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
-#[derive(Debug, Clone, Default, Component)]
-#[storage(VecStorage)]
+#[derive(Debug, Clone, Default)]
 pub struct Material { // Boilerplate implementation at end of file.
   uniforms: Vec<(CString, Uniform)>
+}
+impl Component for Material {
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 
@@ -24,9 +26,12 @@ pub struct MeshComponent {
   needs_refresh: bool,
 }
 
-#[derive(Clone, Debug, Component, Default, Eq, PartialEq)]
-#[storage(VecStorage)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DrawableId(pub usize, pub usize);
+
+impl Component for DrawableId {
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
 
 impl MeshComponent {
   pub fn new(va: VertexArray, shader_name: String) -> Self { 

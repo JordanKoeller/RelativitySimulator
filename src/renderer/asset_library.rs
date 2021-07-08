@@ -84,6 +84,11 @@ impl AssetLibrary {
     // println!("Instance table contains {} instances", self.get_active_asset().instance_table.as_ref().unwrap().num_instances());
   }
 
+  #[inline]
+  pub fn free_instance(&mut self, entity: &Entity) {
+    self.get_active_asset_mut().clear_instance(entity);
+  }
+
   pub fn draw_active_mesh(&mut self, model: Mat4F, material: &Material, textures: &mut TextureBinder) {
     if !self.active_is_instanced() {
       let shader = self.get_active_shader();
@@ -121,6 +126,7 @@ impl AssetLibrary {
     if self.active_is_instanced() {
       let et = self.get_active_shader().element_type;
       self.get_active_asset().draw(&et);
+      println!("Drawing {} instances", self.get_active_asset().instance_table.as_ref().unwrap().len());
     }
   }
 

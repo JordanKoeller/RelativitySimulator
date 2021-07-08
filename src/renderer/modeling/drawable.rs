@@ -15,7 +15,7 @@ pub trait Drawable {
 
   fn mesh(&self) -> Mesh {
     if let Some(instance_attributes) = self.instance_attributes() {
-      Mesh::new_instanced(self.vertex_array(), self.shader_name(), instance_attributes, 1)
+      Mesh::new_instanced(self.vertex_array(), self.shader_name(), instance_attributes, 500)
     } else {
       Mesh::new(self.vertex_array(), self.shader_name())
     }

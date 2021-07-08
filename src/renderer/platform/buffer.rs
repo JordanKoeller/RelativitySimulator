@@ -3,6 +3,8 @@ use std::mem::size_of;
 use std::os::raw::c_void;
 use std::slice::SliceIndex;
 
+use debug::gl_debug::*;
+
 use renderer::platform::BufferLayout;
 
 
@@ -85,7 +87,7 @@ impl DataBuffer {
 
   pub fn instancing_buffer(layout: BufferLayout, num_elems: u32) -> DataBuffer {
     let reservation: Vec<f32> = (0..(num_elems * layout.stride()) as usize).into_iter().map(|_| 0f32).collect();
-    Self::validate_construct(&reservation, layout, BufferConfig::instancing_buffer(), num_elems)
+    Self::validate_construct(&reservation, layout, BufferConfig::instancing_buffer(), u32::MAX)
   } 
 
   pub fn ubo<E>(layout: BufferLayout) -> DataBuffer {
@@ -169,6 +171,15 @@ impl DataBuffer {
 impl DataBuffer {
 
   pub fn refresh(&mut self, attrib_start: u32) {
+    self.bind();
+    unsafe {
+      gl::BufferData(
+        self.config.buffer_type,
+        buff_sz(&self.data),
+        buff_ptr(&self.data),
+        self.config.storage_type,
+      );
+    }
     println!("REFRESHING DATA BUFFER");
     let stride = self.layout.stride();
     for &(i, offset, attrib) in self.layout.ind_offset_attrib().iter() {
@@ -202,15 +213,7 @@ impl DataBuffer {
         gl::GenBuffers(1, &mut self.id);
       }
     }
-    self.bind();
-    unsafe {
-      gl::BufferData(
-        self.config.buffer_type,
-        buff_sz(&self.data),
-        buff_ptr(&self.data),
-        self.config.storage_type,
-      );
-    }
+
   }
 
   pub fn set_sub_buffer(&self, start: usize, end: usize) {
@@ -227,6 +230,9 @@ impl DataBuffer {
   }
 
   pub fn bind(&self) {
+    if self.id == u32::MAX {
+      panic!("Tried to bind a buffer that has not been initialized!");
+    }
     unsafe {
       gl::BindBuffer(self.config.buffer_type, self.id);
     }

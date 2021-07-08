@@ -41,6 +41,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     let mut dispatcher = self.initialize();
     dispatcher.setup(&mut self.world);
     while running && window_open {
+    // dispatcher.dispatch_seq(&self.world);
+    // dispatcher.dispatch_thread_local(&self.world);
       dispatcher.dispatch(&self.world);
       self.world.maintain();
       {

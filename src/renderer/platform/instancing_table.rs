@@ -40,10 +40,12 @@ impl InstancingTable {
     }
   }
 
-  pub fn remove_instance(&mut self, entity: &Entity) {
-    if let Some(table_entry) = self.instances_table.get(entity) {
-      self.holes.push_back(*table_entry);
+  pub fn remove_instance(&mut self, entity: &Entity) -> usize {
+    let entry_opt = self.instances_table.get(entity).map(|x| x.clone());
+    if let Some(table_entry) = entry_opt {
+      self.holes.push_back(table_entry);
       self.instances_table.remove(entity);
+      table_entry
     } else {
       panic!("Tried to remove an entity that does not exist in this InstancingTable!");
     }
@@ -59,6 +61,10 @@ impl InstancingTable {
   
   pub fn num_instances(&self) -> usize {
     self.instances_table.len()
+  }
+
+  pub fn len(&self) -> usize {
+    self.instances_table.len() - self.holes.len()
   }
 
   fn calc_offset(&self, ind: &usize) -> usize {

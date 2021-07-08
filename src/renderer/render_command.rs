@@ -1,17 +1,22 @@
+use std::cmp::{Ord, Ordering};
 use specs::Entity;
 
 use ecs::{DrawableId};
 use utils::Mat4F;
 use ecs::Material;
 
-#[derive(Clone, Debug)]
-pub struct DrawCommand {
-  pub id: DrawableId,
-  pub transform: Mat4F
+
+#[derive(Eq, PartialEq, Debug)]
+pub enum RenderCommand {
+  Draw,
+  Free
 }
 
-#[derive(Clone, Debug)]
-pub enum RenderCommand {
-  Draw {id: DrawableId, transform: Mat4F, material: Material },
-  
+impl RenderCommand {
+  pub fn priority(&self) -> u32 {
+    match self { // smaller numbers will happen FIRST
+      RenderCommand::Free => 1,
+      RenderCommand::Draw => 0,
+    }
+  }
 }

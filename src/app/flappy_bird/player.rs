@@ -60,7 +60,7 @@ impl<'a> System<'a> for PlayerSystem {
             // transform.translation += Vec3F::unit_y() * 0.1;
             rigid_body.velocity = Vec3F::unit_y() * 7f32;
             for _ in 0..10 {
-              self.spawn_tail_particle(transform.translation, 2f32, &mut spawner);
+              self.spawn_tail_particle(transform.translation, 0.5f32, &mut spawner);
             }
           },
           Event::KeyDown(KeyCode::LeftShift) => {
@@ -69,6 +69,12 @@ impl<'a> System<'a> for PlayerSystem {
           _ => panic!(format!("Received a subbed event {:?} with no handler!", evt.code)),
         };
       });
+      if transform.translation.y < -16f32 {
+        transform.translation.y = -16f32;
+      }
+      if transform.translation.y > 16f32 {
+        transform.translation.y = 16f32;
+      }
       // let front_vec = rigid_body.velocity.normalize();
       let new_time = self.time_since_spawn + dt.0;
       if new_time > 0.1f32 {
@@ -94,7 +100,7 @@ impl<'a> System<'a> for PlayerSystem {
         WindowEvent::new(Event::KeyDown(KeyCode::LeftShift))
         ]))
     };
-    let sprite = Sprite::new("resources/flappy_bird/ship.png", true);
+    let sprite = Sprite::new("resources/flappy_bird/ship.png", false);
     let pos = Vec3F::unit_x() * 4f32;
     // world.setup::<Self::SystemData>();
     world.register::<Player>();

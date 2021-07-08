@@ -69,4 +69,16 @@ impl Mesh {
     }
   }
 
+  pub fn clear_instance(&mut self, entity: &Entity) {
+    if let Some(table) = &mut self.instance_table {
+      let offset = table.remove_instance(entity);
+      let stride = table.stride();
+      self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, offset + stride, move |s| {
+        for i in 0..s.len() {
+          s[i] = 0f32;
+        }
+      });
+    }
+  }
+
 }

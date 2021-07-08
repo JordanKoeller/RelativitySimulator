@@ -73,7 +73,7 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
 
   fn setup_delegate(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/spark.png", false);
+    let state = Sprite::new("resources/flappy_bird/spark.png", true);
     let d_id = renderer.submit_model(state.mesh());
     println!("Registered player tail! {:?}", d_id);
     self.id = Some(d_id);

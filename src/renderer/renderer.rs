@@ -176,7 +176,14 @@ impl Renderer {
       let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
       self.assets.flush_and_activate_drawable(&draw_call.drawable, default_uniforms);
       if self.assets.active_is_instanced() {
-        self.assets.upsert_instance_data(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
+        match draw_call.cmd {
+          RenderCommand::Draw => {
+            self.assets.upsert_instance_data(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
+          },
+          RenderCommand::Free => {
+            self.assets.free_instance(&draw_call.entity);
+          }
+        }
       } else {
         self.assets.draw_active_mesh(transform_ref.matrix(), mtl_ref, &mut binder);
       }
