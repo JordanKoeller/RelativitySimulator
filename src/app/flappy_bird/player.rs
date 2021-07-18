@@ -66,7 +66,7 @@ impl<'a> System<'a> for PlayerSystem {
           Event::KeyDown(KeyCode::LeftShift) => {
             // transform.translation -= Vec3F::unit_y() * 0.1;
           }
-          _ => panic!(format!("Received a subbed event {:?} with no handler!", evt.code)),
+          _ => panic!("Received a subbed event {:?} with no handler!", evt.code)
         };
       });
       if transform.translation.y < -16f32 {

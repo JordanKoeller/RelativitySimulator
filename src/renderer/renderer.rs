@@ -107,6 +107,8 @@ impl Renderer {
     self.config = config;
   }
 
+
+
   // Methods that do something instead of just get/set things
 
   pub fn start_scene<'a>(&mut self, camera: &Camera, timestep: &Timestep) {
@@ -189,6 +191,7 @@ impl Renderer {
       }
     });
     self.assets.flush_instances();
+    self.assets.deactivate_all();
     self.common_uniforms.clear();
   }
 

@@ -2,11 +2,10 @@ use specs::Entity;
 
 use std::collections::HashMap;
 
-use std::ffi::{CString, CStr};
+use ecs::{DrawableId, Material};
 use renderer::*;
-use ecs::{Material, DrawableId};
+use std::ffi::{CStr, CString};
 use utils::Mat4F;
-
 
 #[derive(Default)]
 pub struct AssetLibrary {
@@ -16,7 +15,6 @@ pub struct AssetLibrary {
   active_shader_id: Option<usize>,
   active_asset_id: Option<usize>,
 }
-
 
 impl AssetLibrary {
   pub fn register_shader(&mut self, shader: Shader) {
@@ -28,7 +26,10 @@ impl AssetLibrary {
   }
 
   pub fn register_asset(&mut self, mut asset: Mesh) -> DrawableId {
-    let s_id = *self.shader_lookup.get(&asset.shader_name).expect(&format!("Shader {} not registered", asset.shader_name));
+    let s_id = *self
+      .shader_lookup
+      .get(&asset.shader_name)
+      .expect(&format!("Shader {} not registered", asset.shader_name));
     let ret = DrawableId(self.models.len(), s_id);
     asset.registry = Some(ret.clone());
     self.models.push(asset);
@@ -79,8 +80,16 @@ impl AssetLibrary {
   }
 
   #[inline]
-  pub fn upsert_instance_data(&mut self, entity: &Entity, model: &Mat4F, material: &Material, textures: &mut TextureBinder) {
-    self.get_active_asset_mut().upsert_instance(entity, model, material, textures);
+  pub fn upsert_instance_data(
+    &mut self,
+    entity: &Entity,
+    model: &Mat4F,
+    material: &Material,
+    textures: &mut TextureBinder,
+  ) {
+    self
+      .get_active_asset_mut()
+      .upsert_instance(entity, model, material, textures);
     // println!("Instance table contains {} instances", self.get_active_asset().instance_table.as_ref().unwrap().num_instances());
   }
 
@@ -126,7 +135,7 @@ impl AssetLibrary {
     if self.active_is_instanced() {
       let et = self.get_active_shader().element_type;
       self.get_active_asset().draw(&et);
-      println!("Drawing {} instances", self.get_active_asset().instance_table.as_ref().unwrap().len());
+      // println!("Drawing {} instances", self.get_active_asset().instance_table.as_ref().unwrap().len());
     }
   }
 
@@ -159,11 +168,16 @@ impl AssetLibrary {
   #[inline]
   fn enable_shader(&self, shader: &Shader, uniforms: &[&HashMap<CString, Uniform>]) {
     // println!("Activating shader {}, {}", shader.name, self.active_shader_id.unwrap());
-     shader.bind();
-     for mgr in uniforms.iter() {
+    shader.bind();
+    for mgr in uniforms.iter() {
       for (unif_name, unif_value) in mgr.iter() {
         shader.set_uniform(&unif_name, unif_value);
       }
-     }
-   }
+    }
+  }
+
+  pub fn deactivate_all(&mut self) {
+    self.active_shader_id = None;
+    self.active_asset_id = None;
+  }
 }

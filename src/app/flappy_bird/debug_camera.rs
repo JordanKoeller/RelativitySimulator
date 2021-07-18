@@ -41,7 +41,7 @@ impl<'a> System<'a> for CameraDebugger {
                   // transform.push_rotation(Vec3F::unit_y(), vec.y * 0.05);
                   transform.rotate(vec.x * 0.05, vec.y * 0.05)
                 },
-                _ => panic!(format!("Received a payload of {:?} on MouseMoved event!", payload))
+                _ => panic!("Received a payload of {:?} on MouseMoved event!", payload)
               }
             }
           },
