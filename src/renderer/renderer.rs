@@ -93,17 +93,9 @@ impl Renderer {
     self.assets.register_asset(model)
   }
 
-  // pub fn submit(&mut self, cmd: RenderCommand) {
-  //   match &cmd {
-  //     RenderCommand::Draw {id, ..} => {
-  //       if let Some((_, s_id)) = &self.assets.get_asset(&id).registry {
-  //         self.queued_drawables.push(s_id.clone(), cmd);
-  //       }
-  //     },
-  //     _ => panic!("Render Command {:?} Not supported", cmd),
-  //   }
-  //   // let s_id = self.assets.get_shader(&active_shader);
-  // }
+  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut Mesh {
+    self.assets.get_asset_mut(&id.0)
+  }
 
 
   pub fn submit_config(&mut self, config: RendererConfig) {
@@ -115,14 +107,16 @@ impl Renderer {
     self.config = config;
   }
 
+
+
   // Methods that do something instead of just get/set things
 
   pub fn start_scene<'a>(&mut self, camera: &Camera, timestep: &Timestep) {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
-    #[cfg(feature = "debug")]
-    self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
+    // #[cfg(feature = "debug")]
+    // self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
   }
 
   pub fn init_frame(&mut self, window: &mut Window) {
@@ -153,72 +147,55 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader) {
-    let mut texture_slot = 1;
+  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader, texture_binder: &mut TextureBinder) {
     for (unif_name, unif) in material.uniforms() {
       match unif {
         Uniform::Texture(tex) => {
-          shader.set_texture(texture_slot, unif_name, tex);
-          texture_slot += 1;
+          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
         }
         Uniform::CubeMap(tex) => {
-          shader.set_texture(texture_slot, unif_name, tex);
-          texture_slot += 1;
+          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
         }
         _ => shader.set_uniform(&unif_name, &unif),
       }
     }
     shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
-    mesh.vao.draw(&shader.element_type);
+    mesh.draw(&shader.element_type);
   }
 
   pub fn draw_scene<'a>(&mut self,
     queue: RenderQueueConsumer<'a>,
     materials: &ReadStorage<'a, Material>,
-    transforms: &ReadStorage<'a, TransformComponent>) {
-    let mut active_shader: Option<usize> = None;
-    let mut active_drawable: Option<usize> = None;
+    transforms: &ReadStorage<'a, TransformComponent>
+  ) {
+    // println!("Drawing a scene!");
+    let mut binder = TextureBinder::new(1);
+    let default_transform = TransformComponent::identity();
+    let default_material = Material::new();
     queue.for_each(|draw_call| {
-      let default_transform = TransformComponent::identity();
-      let default_material = Material::new();
-      let (mesh_ref, shader_ref) = self.assets.get_shader_and_mesh(&draw_call.drawable);
+      let default_uniforms = &[&self.config_uniforms, &self.common_uniforms];
       let transform_ref = transforms.get(draw_call.entity).unwrap_or(&default_transform);
       let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
-      // Switch shader if none activ else update active
-      if let Some(shader_id) = active_shader {
-        if shader_id != draw_call.drawable.1 {
-          self.switch_shader(shader_ref);
-          active_shader = Some(draw_call.drawable.1);
+      self.assets.flush_and_activate_drawable(&draw_call.drawable, default_uniforms);
+      if self.assets.active_is_instanced() {
+        match draw_call.cmd {
+          RenderCommand::Draw => {
+            self.assets.upsert_instance_data(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
+          },
+          RenderCommand::Free => {
+            self.assets.free_instance(&draw_call.entity);
+          }
         }
       } else {
-        self.switch_shader(self.assets.get_shader(&draw_call.drawable.1));
-        active_shader = Some(draw_call.drawable.1);
+        self.assets.draw_active_mesh(transform_ref.matrix(), mtl_ref, &mut binder);
       }
-      // Switch drawable if none activ else update active
-      if let Some(d_id) = active_drawable {
-        if d_id != draw_call.drawable.0 {
-          mesh_ref.vao.bind();
-        }
-      } else {
-        mesh_ref.vao.bind();
-        active_drawable = Some(draw_call.drawable.0);
-      }
-      self.draw_drawable(mesh_ref, &transform_ref.matrix(), mtl_ref, shader_ref);
     });
+    self.assets.flush_instances();
+    self.assets.deactivate_all();
     self.common_uniforms.clear();
   }
 
   // Private helper functions
-
-  fn switch_shader(&self, shader: &Shader) {
-    shader.bind();
-    for (unif_name, unif_value) in self.config_uniforms.iter() {
-      shader.set_uniform(&unif_name, unif_value);
-    }
-    for (unif_name, unif_value) in self.common_uniforms.iter() {
-      shader.set_uniform(&unif_name, unif_value);
-    }
-  }
 
   fn extract_camera_uniforms(&mut self, camera: &Camera) {
     self
@@ -250,6 +227,7 @@ impl Renderer {
       CString::new("changeOfBasisInverse").unwrap(),
       Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
     );
+
   }
 
   pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {
@@ -279,7 +257,7 @@ impl Renderer {
 }
 
 fn create_screen(w: i32, h: i32) -> Screen {
-  let verts = vec![
+  let verts = [
     // Positions  // uv
     -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32, -1f32,
     1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
@@ -287,10 +265,10 @@ fn create_screen(w: i32, h: i32) -> Screen {
 
   let inds = vec![0, 1, 2, 3, 4, 5];
   let mut screen_quad = VertexArray::new(
-    vec![VertexBuffer::create(
-      verts,
+    DataBuffer::static_buffer(
+      &verts,
       BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]),
-    )],
+    ),
     IndexBuffer::create(inds),
   );
   let shader = Shader::from_file("renderer_screen", "shaders/screen_shader.glsl");

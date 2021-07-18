@@ -40,7 +40,7 @@ impl Drawable for Floor {
     let uv_mult = num_tiles / 4f32;
     let cube_verts = cube_verts(uv_mult);
     let inds = vec![2, 1, 0, 0, 3, 2];
-    let vert_buff = VertexBuffer::create(cube_verts, layout);
+    let vert_buff = DataBuffer::static_buffer(cube_verts, layout);
     let ind_buff = IndexBuffer::create(inds);
     VertexArray::new(vec![vert_buff], ind_buff)
   }

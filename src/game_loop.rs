@@ -30,6 +30,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     self.app_system = Some(func);
   }
 
+  // pub fn with_resources(&mut self, )
+
   pub fn run(
     &mut self,
   ) {
@@ -39,6 +41,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     let mut dispatcher = self.initialize();
     dispatcher.setup(&mut self.world);
     while running && window_open {
+    // dispatcher.dispatch_seq(&self.world);
+    // dispatcher.dispatch_thread_local(&self.world);
       dispatcher.dispatch(&self.world);
       self.world.maintain();
       {
@@ -57,11 +61,6 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       let window_handle2 = MutRef::clone(&self.window);
       let window_handle3 = MutRef::clone(&self.window);
       let dispatcher = DispatcherBuilder::new()
-      .with_thread_local(StartFrameSystem {
-        window: window_handle1,
-        last_time: 0f32,
-        receiver_id: self.r_id,
-      })
       .with_thread_local(RegisterDrawableSystem)
       .with(EventProcessingSystem::default(), "event processing", &[])
       .with(ParticleUpdater, "particle_updater", &[])
@@ -70,6 +69,11 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       let dispatcher = func(dispatcher);
       dispatcher
       .with(MotionSystem, "motion", &["player_controller"])
+      .with_thread_local(StartFrameSystem {
+        window: window_handle1,
+        last_time: 0f32,
+        receiver_id: self.r_id,
+      })
       .with_thread_local(RenderSystem::new(window_handle))
       .with_thread_local(GuiRenderer {window: window_handle2})
       .with_thread_local(EndFrameSystem {window: window_handle3})

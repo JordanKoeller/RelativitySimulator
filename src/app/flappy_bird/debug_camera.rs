@@ -41,7 +41,7 @@ impl<'a> System<'a> for CameraDebugger {
                   // transform.push_rotation(Vec3F::unit_y(), vec.y * 0.05);
                   transform.rotate(vec.x * 0.05, vec.y * 0.05)
                 },
-                _ => panic!(format!("Received a payload of {:?} on MouseMoved event!", payload))
+                _ => panic!("Received a payload of {:?} on MouseMoved event!", payload)
               }
             }
           },
@@ -76,12 +76,12 @@ impl<'a> System<'a> for CameraDebugger {
     let receiver = {
       let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
       EventReceiver(listener.register_with_subs(&[
-        // WindowEvent::new(Event::KeyDown(KeyCode::W)),
-        // WindowEvent::new(Event::KeyDown(KeyCode::A)),
-        // WindowEvent::new(Event::KeyDown(KeyCode::S)),
-        // WindowEvent::new(Event::KeyDown(KeyCode::D)),
-        // WindowEvent::new(Event::KeyDown(KeyCode::Q)),
-        // WindowEvent::new(Event::KeyDown(KeyCode::E)),
+        WindowEvent::new(Event::KeyDown(KeyCode::W)),
+        WindowEvent::new(Event::KeyDown(KeyCode::A)),
+        WindowEvent::new(Event::KeyDown(KeyCode::S)),
+        WindowEvent::new(Event::KeyDown(KeyCode::D)),
+        WindowEvent::new(Event::KeyDown(KeyCode::Q)),
+        WindowEvent::new(Event::KeyDown(KeyCode::E)),
         // WindowEvent::new(Event::MouseMoved),
         ]))
     };

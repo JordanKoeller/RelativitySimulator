@@ -49,7 +49,7 @@ impl <'a> System<'a> for WallSpawner {
 
   fn setup(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/pipe.png");
+    let state = Sprite::new("resources/flappy_bird/pipe.png", false);
     let d_id = renderer.submit_model(state.mesh());
     self.id = Some(d_id);
     self.material = Some(state.material())
@@ -79,7 +79,7 @@ impl WallSpawner {
     let half_height = 8.25f32;
     let scaled_start = lerp(0f32, 1f32, -half_height, half_height, start);
     let scaled_end = lerp(0f32, 1f32, -half_height, half_height, end);
-    let position = Vec3F::new(-10f32, avg(scaled_start, scaled_end), 0f32);
+    let position = Vec3F::new(-12f32, avg(scaled_start, scaled_end), 0f32);
     let scaled = Vec3F::new(1f32, (scaled_end - scaled_start) * invert, 1f32);
     let transform = TransformComponent::new(position, scaled, QuatF::zero());
     // let position = Vec3F::unit_x();
@@ -90,7 +90,6 @@ impl WallSpawner {
         }
       )
       .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))
-      // .with(Sprite::new("resources/flappy_bird/pipe.png").state())
       .with(d_id.clone())
       .with(self.material.clone().expect("Material was NONE on the wall spawner"))
       .with(AxisAlignedCubeCollision::from_transform(&transform))

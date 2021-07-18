@@ -71,6 +71,8 @@ pub fn main() {
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");
   render.submit_shader(shader);
+  let shader = renderer::Shader::from_file("instanced", "shaders/simple_instanced.glsl");
+  render.submit_shader(shader);
   let shader = renderer::Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
@@ -92,9 +94,9 @@ pub fn main() {
   world.insert(utils::Running(true));
   world.insert(render);
   world.insert(world_id);
-  app::flappy_bird::setup_world(&mut world);
   // app::build_city(&mut world);
-
+  
+  app::flappy_bird::setup_world(&mut world);
   let mut runtime = GameLoop::new(window, world, world_id);
   runtime.with_systems(app::flappy_bird::get_system_registration());
   runtime.run();

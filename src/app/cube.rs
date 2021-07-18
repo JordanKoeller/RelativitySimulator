@@ -3,7 +3,7 @@ use specs::prelude::*;
 use specs::{Component, VecStorage};
 use cgmath::prelude::{InnerSpace};
 use renderer::{Drawable, Texture};
-use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
+use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, DataBuffer};
 
 use physics::{Collision, CollisionSummary};
 
@@ -19,9 +19,9 @@ pub struct TexturedCube {
 impl Drawable for TexturedCube {
   fn vertex_array(&self) -> VertexArray {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);
-    let vert_buff = VertexBuffer::create(TEXTURE_CUBE_VERTICES.to_vec(), layout);
+    let vert_buff = DataBuffer::static_buffer(&TEXTURE_CUBE_VERTICES, layout);
     let ind_buff = IndexBuffer::create(TEXTURE_CUBE_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
   fn material(&self) -> Material {
     let mut material = Material::new();
@@ -51,9 +51,9 @@ impl Cube {
 impl Drawable for Cube {
   fn vertex_array(&self) -> VertexArray {
     let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);
-    let vert_buff = VertexBuffer::create(TEXTURE_CUBE_VERTICES.to_vec(), layout);
+    let vert_buff = DataBuffer::static_buffer(&TEXTURE_CUBE_VERTICES, layout);
     let ind_buff = IndexBuffer::create(TEXTURE_CUBE_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
   fn material(&self) -> Material {
     self.material.clone()

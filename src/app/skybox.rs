@@ -1,7 +1,7 @@
 use renderer::{Drawable, CubeMap};
-use renderer::{AttributeType, BufferLayout, IndexBuffer, Uniform, VertexArray, VertexBuffer};
+use renderer::{AttributeType, BufferLayout, IndexBuffer, Uniform, VertexArray, DataBuffer, TextureLike};
 
-use ecs::Material;
+use ecs::{Material};
 
 pub struct Skybox {
   texture_name: String
@@ -19,14 +19,16 @@ pub fn new(texture: &str) -> Skybox {
 impl Drawable for Skybox {
   fn vertex_array(&self) -> VertexArray {
     let layout = BufferLayout::new(vec![AttributeType::Float3]);
-    let vert_buff = VertexBuffer::create(SKYBOX_VERTICES.to_vec(), layout);
+    let vert_buff = DataBuffer::static_buffer(&SKYBOX_VERTICES, layout);
     let ind_buff = IndexBuffer::create(SKYBOX_INDICES.to_vec());
-    VertexArray::new(vec![vert_buff], ind_buff)
+    VertexArray::new(vert_buff, ind_buff)
   }
 
   fn material(&self) -> Material {
     let mut material = Material::new();
-    material.unknown_uniform("skybox", Uniform::CubeMap(CubeMap::from_file(&self.texture_name)));
+    let cube_map = CubeMap::from_file(&self.texture_name);
+    // cube_map.refresh();
+    material.unknown_uniform("skybox", Uniform::CubeMap(cube_map));
     material
   }
 

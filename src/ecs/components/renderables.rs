@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use specs::{Component, VecStorage, NullStorage,};
 
-use renderer::{VertexArray, Mesh};
+use renderer::{VertexArray, Mesh, AttributeType, TextureBinder};
 
 use std::ffi::{CStr, CString};
 
@@ -9,11 +9,12 @@ use utils::*;
 
 use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
 
-
-#[derive(Debug, Clone, Default, Component)]
-#[storage(VecStorage)]
+#[derive(Debug, Clone, Default)]
 pub struct Material { // Boilerplate implementation at end of file.
   uniforms: Vec<(CString, Uniform)>
+}
+impl Component for Material {
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 
@@ -25,9 +26,12 @@ pub struct MeshComponent {
   needs_refresh: bool,
 }
 
-#[derive(Clone, Debug, Component, Default, Eq, PartialEq, PartialOrd)]
-#[storage(VecStorage)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DrawableId(pub usize, pub usize);
+
+impl Component for DrawableId {
+  type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
 
 impl MeshComponent {
   pub fn new(va: VertexArray, shader_name: String) -> Self { 
@@ -35,6 +39,12 @@ impl MeshComponent {
       mesh: Mesh::new(va, shader_name),
       generation: 0u32,
       needs_refresh: true,
+    }
+  }
+
+  pub fn from(m: Mesh) -> Self {
+    Self {
+      mesh: m, generation: 0u32, needs_refresh: false
     }
   }
 
@@ -106,6 +116,7 @@ impl Material {
   pub fn uniforms(&self) -> &Vec<(CString, Uniform)> {
     &self.uniforms
   }
+
   pub fn new() -> Material {
     let mut ret = Material { uniforms: Vec::new() };
     ret.diffuse_texture(WHITE_TEXTURE.clone());
@@ -135,6 +146,11 @@ impl Material {
     }
   }
 
+  fn get_by_name(&self, name: &str) -> Option<&Uniform> {
+    let c_name = CString::new(name).unwrap();
+    self.uniforms.iter().find(|(unif, value)| &c_name == unif).map(|(_, value)| value)
+  }
+
   pub fn refresh(&mut self) {
     self.uniforms.iter_mut().for_each(|(_, uniform)| {
       match uniform {
@@ -143,5 +159,18 @@ impl Material {
         _ => {}
       }
     });
+  }
+
+  pub fn serialize_into(&self, collector: &mut [f32], order: &Vec<(String, AttributeType)>, texture_binder: &mut TextureBinder) {
+    let mut offset: usize = 0;
+    for i in 0..order.len() {
+      if let Some(uniform) = self.get_by_name(&order[i].0) {
+        let elem_width = order[i].1.width() as usize;
+        unsafe {
+          uniform.serialize_into(&mut collector[offset..offset+elem_width], texture_binder);
+        }
+        offset += elem_width;
+      }
+    }
   }
 }

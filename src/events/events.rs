@@ -41,7 +41,7 @@ impl From<glfw::MouseButton> for  MouseButton {
       glfw::MouseButton::Button1 => MouseButton::LeftButton,
       glfw::MouseButton::Button2 => MouseButton::RightButton,
       glfw::MouseButton::Button3 => MouseButton::MiddleButton,
-      _ => panic!(format!("Could not match mouse button {:?}", button)),
+      _ => panic!("Could not match mouse button {:?}", button),
     }
   }
 }
@@ -53,7 +53,7 @@ impl From<usize> for MouseButton {
       1 => MouseButton::RightButton,
       2 => MouseButton::MiddleButton,
       3 => MouseButton::MouseButtonLength,
-      _ => panic!(format!("Could not match mouse button {}", u)),
+      _ => panic!("Could not match mouse button {}", u),
     }
   }
 }
@@ -169,7 +169,7 @@ impl From<GLKey> for KeyCode {
       GLKey::LeftControl => KeyCode::Control,
       GLKey::Escape => KeyCode::Esc,
       GLKey::Backspace => KeyCode::Backspace,
-      _ => panic!(format!("Could not parse code {:?}", code)),
+      _ => panic!("Could not parse code {:?}", code),
     }
   }
 }
@@ -236,7 +236,7 @@ impl From<usize> for KeyCode {
       u if u == Esc as usize => Esc,
       u if u == Backspace as usize => Backspace,
       u if u == KeyCodeLength as usize => KeyCodeLength,
-      _ => panic!(format!("Could not convert usize {} to a KeyCode", u))
+      _ => panic!("Could not convert usize {} to a KeyCode", u)
     }
   }
 }

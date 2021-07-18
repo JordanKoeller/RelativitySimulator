@@ -1,60 +1,68 @@
 use specs::prelude::*;
 use cgmath::prelude::*;
-use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, VertexBuffer};
+use utils::{Vec3F, Vec2F};
+use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, DataBuffer};
 use ecs::{MyBuilder, components::Material};
 
-pub static QUAD_VERTICES: [f32; 20] = [
-  0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right
-  0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32, // bottom right
- -0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32, // bottom left
- -0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32  // top left 
+#[repr(C)]
+#[derive(Clone)]
+struct SpriteVertex {
+  pub position: Vec3F,
+  pub uv: Vec2F
+}
+
+impl SpriteVertex {
+  pub const fn new(a: f32, b: f32, c: f32, d: f32, e: f32) -> Self {
+    Self {
+      position: Vec3F::new(a, b, c),
+      uv: Vec2F::new(d, e)
+    }
+  }
+}
+
+static QUAD_VERTICES: [f32; 20] = [
+   0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right
+   0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32, // bottom right
+  -0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32, // bottom left
+  -0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32  // top left 
 ];
 
-pub static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
-
-
+static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
 
 pub struct Sprite {
   material: Material,
   vertex_array: VertexArray,
+  instanced: bool,
+  // aspect_ratio: Vec2F,
 }
 
 impl Sprite {
-  pub fn new(texture: &str) -> Self {
+  pub fn new(texture: &str, instanced: bool) -> Self {
     let mut mat = Material::new();
-    let mut tex = Texture::from_file(texture);
-    tex.refresh();
-    let vertex_buff = Sprite::rescale_vertices((tex.height as f32) / (tex.width as f32));
+    let tex = Texture::from_file(texture);
+    // tex.refresh();
+    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
+    let vertex_buff = DataBuffer::static_buffer(&QUAD_VERTICES, layout);
+
     let ind_buff = IndexBuffer::create(QUAD_INDICES.to_vec());
-    let vertex_array = VertexArray::new(vec![vertex_buff], ind_buff);
+    let vertex_array = VertexArray::new(vertex_buff, ind_buff);
     mat.diffuse_texture(tex);
     Self {
       material: mat,
       vertex_array: vertex_array,
+      instanced,
+      // aspect_ratio: Vec2F::new(1f32, 1f32),
     }
   }
-  
-  fn rescale_vertices(aspect_ratio: f32) -> VertexBuffer {
-    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
-    let mut vertices = QUAD_VERTICES.to_vec();
-    if aspect_ratio < 1f32 {
-      vertices[1] *= aspect_ratio;
-      vertices[6] *= aspect_ratio;
-      vertices[11] *= aspect_ratio;
-      vertices[16] *= aspect_ratio;
-    } else {
-      vertices[0] /= aspect_ratio;
-      vertices[5] /= aspect_ratio;
-      vertices[10] /= aspect_ratio;
-      vertices[15] /= aspect_ratio;
-    }
-    VertexBuffer::create(vertices, layout)
-  } 
 }
 
 impl Drawable for Sprite {
   fn shader_name(&self) -> String {
-    "default_texture".to_string()
+    if self.instance_attributes().is_some() {
+      "instanced".to_string()
+    } else {
+      "default_texture".to_string()
+    }
   }
   fn vertex_array(&self) -> VertexArray {
     self.vertex_array.clone()
@@ -62,5 +70,17 @@ impl Drawable for Sprite {
 
   fn material(&self) -> Material {
     self.material.clone()
+  }
+
+  fn instance_attributes(&self) -> Option<Vec<(String, AttributeType)>> {
+    if self.instanced {
+      Some(vec![
+        ("model".to_string(), AttributeType::Mat4),
+        // ("diffuse_texture".to_string(), AttributeType::Int),
+        // ("ambient".to_string(), AttributeType::Float3),
+      ])
+    } else {
+      None
+    }
   }
 }
