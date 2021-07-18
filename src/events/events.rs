@@ -164,6 +164,8 @@ impl From<GLKey> for KeyCode {
       GLKey::Up => KeyCode::ArrowUP,
       GLKey::Down => KeyCode::ArrowDown,
       GLKey::LeftShift => KeyCode::LeftShift,
+      GLKey::LeftAlt => KeyCode::Alt,
+      GLKey::RightAlt => KeyCode::Alt,
       GLKey::Space => KeyCode::Space,
       GLKey::Tab => KeyCode::Tab,
       GLKey::LeftControl => KeyCode::Control,

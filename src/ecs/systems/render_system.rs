@@ -6,7 +6,7 @@ use specs::prelude::*;
 use ecs::components::{Player, Camera, DrawableId, MeshComponent, Material};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
 use renderer::{RenderCommand, Renderer, Window, Mesh, RenderQueue, DrawCall};
-use utils::{Mat4F, MutRef, Running, Timestep};
+use utils::{Mat4F, MutRef, RunningState, RunningEnum, Timestep};
 
 use physics::{TransformComponent};
 
@@ -57,7 +57,6 @@ impl<'a> System<'a> for RenderSystem {
 
 pub struct StartFrameSystem {
   pub window: MutRef<Window>,
-  pub last_time: f32,
   pub receiver_id: ReceiverID,
 }
 
@@ -67,7 +66,7 @@ impl<'a> System<'a> for StartFrameSystem {
     Write<'a, StatelessEventChannel<WindowEvent>>,
     Write<'a, WindowEventDispatcher>,
     Write<'a, Timestep>,
-    Write<'a, Running>,
+    Write<'a, RunningState>,
     ReadStorage<'a, Camera>,
   );
 
@@ -83,9 +82,10 @@ impl<'a> System<'a> for StartFrameSystem {
     ): Self::SystemData,
   ) {
     let mut window = self.window.borrow_mut();
-    let delta = window.glfw_token.get_time() as f32 - self.last_time;
-    self.last_time = self.last_time + delta;
-    timestep.set_click(delta);
+    timestep.click_frame(window.glfw_token.get_time() as f32);
+    // let delta = window.glfw_token.get_time() as f32 - self.last_time;
+    // self.last_time = self.last_time + delta;
+    // timestep.set_click(delta);
     window.poll_events();
     window_events.process_events(&mut events, &mut window);
     events.for_each(&self.receiver_id, |window_evt| match window_evt.code {
@@ -93,7 +93,26 @@ impl<'a> System<'a> for StartFrameSystem {
         window.toggle_cursor();
       }
       Event::KeyPressed(KeyCode::Esc) => {
-        running.set_value(false);
+
+        running.state = RunningEnum::Stopped;
+      }
+      Event::KeyPressed(KeyCode::Alt) => {
+        match running.state {
+          RunningEnum::Running => running.state = RunningEnum::StepFrameWait,
+          RunningEnum::StepFrameWait => running.state = RunningEnum::Running,
+          _ => {}
+        }
+        println!("Updated running state to {:?}", running.state);
+      }
+      Event::KeyPressed(KeyCode::F) => {
+
+        match running.state {
+          RunningEnum::StepFrameWait => {
+            running.state = RunningEnum::StepFrame;
+            println!("Stepping!");
+          },
+          _ => {}
+        }
       }
       _ => {}
     });

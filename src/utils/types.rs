@@ -23,26 +23,33 @@ pub type Mut<T> = RefCell<T>;
 
 pub type SyncMutRef<T> = Arc<Mutex<T>>;
 
-#[derive(Default)]
-pub struct Timestep(pub f32, pub f32);
+#[derive(Debug, Default)]
+pub struct Timestep {
+  pub last_time: f32,
+  pub click: f32,
+  pub render_time: f32,
+}
+
 impl Timestep {
-  pub fn set_click(&mut self, value: f32) {
-    self.0 = value;
+  pub fn click_frame(&mut self, timestamp: f32) {
+    self.click = timestamp - self.last_time;
+    self.last_time = timestamp;
   }
 
   pub fn set_render_time(&mut self, value: f32) {
-    self.1 = value;
+    self.render_time = value;
   }
 }
+// pub struct Timestep(pub f32, pub f32);
+// impl Timestep {
+//   pub fn set_click(&mut self, value: f32) {
+//     self.0 = value;
+//   }
 
-#[derive(Default)]
-pub struct Running(pub bool);
-impl Running {
-  pub fn set_value(&mut self, value: bool) {
-    self.0 = value;
-  }
-}
-
+//   pub fn set_render_time(&mut self, value: f32) {
+//     self.1 = value;
+//   }
+// }
 
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {

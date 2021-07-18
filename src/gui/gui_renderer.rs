@@ -31,7 +31,9 @@ impl GuiRenderer {
     let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
     let window_pos = [10f32, height];
     // let ui = window.get_ui();
-    ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
+    {
+      let _token = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
+    }
     let title = panel.title.clone();
     GuiRenderer::render_panel_helper(&ui, title, window_pos, &mut panel.lines, &mut panel.active);
     window.imgui_glfw.draw(ui, &mut window.window);

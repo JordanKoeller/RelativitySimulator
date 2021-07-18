@@ -33,7 +33,7 @@ impl <'a> System<'a> for ParticleUpdater {
 
   fn run(&mut self, (entities, drawable_id, mut particle_storage, dt, render_queue): Self::SystemData) {
     for (entity, drawable_id, particle) in (&entities, &drawable_id, &mut particle_storage).join() {
-      let remaining_time = particle.lifetime - dt.0;
+      let remaining_time = particle.lifetime - dt.click;
       if remaining_time <= 0f32 {
         render_queue.push(DrawCall {
           drawable: drawable_id.clone(),

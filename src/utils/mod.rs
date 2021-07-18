@@ -3,6 +3,9 @@ pub mod multi_map;
 pub mod math;
 pub mod transform_stack;
 pub mod random;
+pub mod running_state;
+
+pub use self::running_state::*;
 
 pub use self::transform_stack::*;
 pub use self::math::*;

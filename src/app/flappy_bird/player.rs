@@ -59,7 +59,7 @@ impl<'a> System<'a> for PlayerSystem {
           Event::KeyDown(KeyCode::Space) => {
             // transform.translation += Vec3F::unit_y() * 0.1;
             rigid_body.velocity = Vec3F::unit_y() * 7f32;
-            for _ in 0..10 {
+            for _ in 0..4 {
               self.spawn_tail_particle(transform.translation, 0.5f32, &mut spawner);
             }
           },
@@ -76,7 +76,7 @@ impl<'a> System<'a> for PlayerSystem {
         transform.translation.y = 16f32;
       }
       // let front_vec = rigid_body.velocity.normalize();
-      let new_time = self.time_since_spawn + dt.0;
+      let new_time = self.time_since_spawn + dt.click;
       if new_time > 0.1f32 {
         self.spawn_tail_particle(transform.translation, 2f32, &mut spawner);
         self.time_since_spawn = 0f32;

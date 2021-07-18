@@ -86,12 +86,14 @@ pub fn main() {
   let world_id = window_event_channel.register_with_subs(&[
     WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
     WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
+    WindowEvent::new(Event::KeyPressed(KeyCode::Alt)),
+    WindowEvent::new(Event::KeyPressed(KeyCode::F)),
   ]);
 
 
   world.insert(window_event_channel);
-  world.insert(utils::Timestep(0.016, 0.01));
-  world.insert(utils::Running(true));
+  world.insert(utils::Timestep::default());
+  world.insert(utils::RunningState::default());
   world.insert(render);
   world.insert(world_id);
   // app::build_city(&mut world);

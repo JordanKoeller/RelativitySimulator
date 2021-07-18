@@ -36,7 +36,7 @@ impl <'a> System<'a> for WallSpawner {
   );
 
   fn run(&mut self, (entities, lazy_update, dt): Self::SystemData) {
-    self.time_since_spawn += dt.0;
+    self.time_since_spawn += dt.click;
     if self.spawn_ready() {
       let wall_data = self.generate_wall();
       let ent1 = lazy_update.create_entity(&entities);

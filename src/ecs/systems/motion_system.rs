@@ -40,58 +40,8 @@ impl<'a> System<'a> for MotionSystem {
     )
       .join()
     {
-      self.compute_kinematics(rigid_body, gravity, drag, dt.0);
-      transform.push_translation(rigid_body.velocity * dt.0);
-      // let mut remaining_time = dt.0;
-      // if let Some(sphere) = collidable {
-      //   let speculative_collidables: Vec<&AxisAlignedCubeCollision> = colliders_storage
-      //     .join()
-      //     .filter(|&cube| cube.distance_to(&position.0) < kinetics.speed() * dt.0 + sphere.radius)
-      //     .collect();
-      //   let mut more_work = speculative_collidables.len() > 0;
-      //   while more_work {
-      //     more_work = false;
-      //     if let Some(collision_summary) =
-      //       speculative_collidables
-      //         .iter()
-      //         .fold(None, |acc: Option<CollisionSummary>, cube| {
-      //           cube
-      //             .sphere_collision((&position.0, &sphere.radius), &kinetics.velocity)
-      //             .map_or_else(
-      //               || acc,
-      //               |summary| {
-      //                 if summary.time < remaining_time {
-      //                   if let Some(best) = acc {
-      //                     if best.time < summary.time {
-      //                       Some(best)
-      //                     } else {
-      //                       Some(summary)
-      //                     }
-      //                   } else {
-      //                     Some(summary)
-      //                   }
-      //                 } else {
-      //                   acc
-      //                 }
-      //               },
-      //             )
-      //         })
-      //     {
-      //       // Process the next collision in here.
-      //       more_work = true;
-      //       remaining_time = remaining_time - collision_summary.time;
-      //       position.0 = collision_summary.position + collision_summary.surface_normal * 0.01;
-      //       let canceled_velocity = kinetics.velocity
-      //         - collision_summary.surface_normal * collision_summary.surface_normal.dot(kinetics.velocity);
-      //       kinetics.velocity = canceled_velocity;
-      //     }
-      //   }
-      // }
-      // let dr = kinetics.velocity * remaining_time;
-      // position.0 += dr;
-      // if let Some(matrix) = transform {
-      //   matrix.0 = Mat4F::from_translation(dr) * matrix.0;
-      // }
+      self.compute_kinematics(rigid_body, gravity, drag, dt.click);
+      transform.push_translation(rigid_body.velocity * dt.click);
     }
   }
 }

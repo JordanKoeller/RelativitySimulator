@@ -11,21 +11,7 @@ use utils::*;
 
 use game_loop::SystemsRegistration;
 
-pub fn register_systems<'a, 'b>(b: GameLoopBuilder<'a, 'b>) -> GameLoopBuilder<'a, 'b> {
-  b
-    .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &[])
-    .with_player_controller(PlayerSystem::default())
-    // .with()
-}
-
 pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
-  // Box::new(|builder: DispatcherBuilder<'a, 'b>| builder
-  //   .with(PlayerSystem::default(), "player_controller", &[])
-  //   .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &["player_controller"])
-  //   .with(CameraDebugger, "camera_debugger", &[])
-  //   .with(WallSpawner::default(), "wall_spawner", &[])
-  //   .with(GameState::default(), "game_state", &["player_controller", "wall_spawner"])
-  // )
   Box::new(|builder: DispatcherBuilder<'a, 'b>| builder
     .with(PlayerSystem::default(), "player_controller", &[])
     .with(EntityManager::<PlayerTailDelegate>::default(), "tail_spawner", &["player_controller"])
