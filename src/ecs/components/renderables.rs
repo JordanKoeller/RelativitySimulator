@@ -1,22 +1,22 @@
 use specs::prelude::*;
-use specs::{Component, VecStorage, NullStorage,};
+use specs::{Component, NullStorage, VecStorage};
 
-use renderer::{VertexArray, Mesh, AttributeType, TextureBinder};
+use renderer::{AttributeType, Mesh, Shader, TextureBinder, VertexArray};
 
 use std::ffi::{CStr, CString};
 
 use utils::*;
 
-use renderer::{Texture, Uniform, WHITE_TEXTURE, TextureLike, DEBUG_TEXTURE};
+use renderer::{Texture, TextureLike, Uniform, DEBUG_TEXTURE, WHITE_TEXTURE};
 
 #[derive(Debug, Clone, Default)]
-pub struct Material { // Boilerplate implementation at end of file.
-  uniforms: Vec<(CString, Uniform)>
+pub struct Material {
+  // Boilerplate implementation at end of file.
+  uniforms: Vec<(CString, Uniform)>,
 }
 impl Component for Material {
   type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
-
 
 #[derive(Debug, Clone, Component)]
 #[storage(VecStorage)]
@@ -34,7 +34,7 @@ impl Component for DrawableId {
 }
 
 impl MeshComponent {
-  pub fn new(va: VertexArray, shader_name: String) -> Self { 
+  pub fn new(va: VertexArray, shader_name: String) -> Self {
     Self {
       mesh: Mesh::new(va, shader_name),
       generation: 0u32,
@@ -44,7 +44,9 @@ impl MeshComponent {
 
   pub fn from(m: Mesh) -> Self {
     Self {
-      mesh: m, generation: 0u32, needs_refresh: false
+      mesh: m,
+      generation: 0u32,
+      needs_refresh: false,
     }
   }
 
@@ -56,7 +58,6 @@ impl MeshComponent {
     }
   }
 }
-
 
 impl Material {
   pub fn ambient(&mut self, v: Vec3F) {
@@ -70,7 +71,6 @@ impl Material {
   pub fn specular(&mut self, v: Vec3F) {
     self.upsert_uniform(c_str!("specular"), Uniform::Vec3(v));
   }
-  
   #[allow(dead_code)]
   pub fn shininess(&mut self, v: f32) {
     self.upsert_uniform(c_str!("shininess"), Uniform::Float(v));
@@ -127,7 +127,7 @@ impl Material {
     ret.ambient(Vec3F::new(1f32, 1f32, 1f32));
     ret.specular(Vec3F::new(1f32, 1f32, 1f32));
     ret.normal_texture(WHITE_TEXTURE.clone());
-    ret.unknown_uniform("debug_texture", Uniform::Texture(DEBUG_TEXTURE.clone()));
+    // ret.unknown_uniform("debug_texture", Uniform::Texture(DEBUG_TEXTURE.clone()));
     ret
   }
 
@@ -148,28 +148,55 @@ impl Material {
 
   fn get_by_name(&self, name: &str) -> Option<&Uniform> {
     let c_name = CString::new(name).unwrap();
-    self.uniforms.iter().find(|(unif, value)| &c_name == unif).map(|(_, value)| value)
+    self
+      .uniforms
+      .iter()
+      .find(|(unif, _)| &c_name == unif)
+      .map(|(_, value)| value)
   }
 
   pub fn refresh(&mut self) {
-    self.uniforms.iter_mut().for_each(|(_, uniform)| {
-      match uniform {
-        Uniform::CubeMap(c) => c.refresh(),
-        Uniform::Texture(t) => t.refresh(),
-        _ => {}
-      }
+    self.uniforms.iter_mut().for_each(|(_, uniform)| match uniform {
+      Uniform::CubeMap(c) => c.refresh(),
+      Uniform::Texture(t) => t.refresh(),
+      _ => {}
     });
   }
 
-  pub fn serialize_into(&self, collector: &mut [f32], order: &Vec<(String, AttributeType)>, texture_binder: &mut TextureBinder) {
+  pub fn serialize_into(
+    &self,
+    collector: &mut [f32],
+    order: &Vec<(String, AttributeType)>,
+    texture_binder: &mut TextureBinder,
+    shader: &Shader,
+  ) {
     let mut offset: usize = 0;
-    for i in 0..order.len() {
+    for i in 1..order.len() {
       if let Some(uniform) = self.get_by_name(&order[i].0) {
         let elem_width = order[i].1.width() as usize;
         unsafe {
-          uniform.serialize_into(&mut collector[offset..offset+elem_width], texture_binder);
+          uniform.serialize_into(
+            &mut collector[offset..offset + elem_width],
+            &order[i].0,
+            texture_binder,
+            shader,
+          );
         }
         offset += elem_width;
+      }
+    }
+  }
+
+  pub fn bind_to(&self, shader: &Shader, textures: &mut TextureBinder) {
+    for (unif_name, unif) in self.uniforms() {
+      match unif {
+        Uniform::Texture(tex) => {
+          shader.set_texture(textures.get_slot(tex.id()).0, unif_name, tex);
+        }
+        Uniform::CubeMap(tex) => {
+          shader.set_texture(textures.get_slot(tex.id()).0, unif_name, tex);
+        }
+        _ => shader.set_uniform(&unif_name, &unif),
       }
     }
   }

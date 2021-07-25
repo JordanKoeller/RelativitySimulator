@@ -1,12 +1,13 @@
 use specs::prelude::*;
-use specs::{Component, VecStorage};
 use specs::world::LazyBuilder;
+use specs::{Component, VecStorage};
 
 use ecs::entity::MyBuilder;
 use ecs::DrawableId;
 
+use debug::*;
+use renderer::{DrawCall, RenderCommand, RenderQueue};
 use utils::Timestep;
-use renderer::{RenderQueue, DrawCall, RenderCommand};
 
 #[derive(Component, Debug, Default, Clone)]
 #[storage(VecStorage)]
@@ -15,14 +16,9 @@ pub struct Particle {
   // pub decay: f32, // TODO: Add some shader support for a global alpha parameter.
 }
 
-
-
-
-
-
 pub struct ParticleUpdater;
 
-impl <'a> System<'a> for ParticleUpdater {
+impl<'a> System<'a> for ParticleUpdater {
   type SystemData = (
     Entities<'a>,
     ReadStorage<'a, DrawableId>,

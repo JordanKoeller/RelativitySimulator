@@ -10,36 +10,38 @@ use utils::{SyncMutRef, getSyncMutRef, Mat4F};
 
 use ecs::{DrawableId, Material};
 use renderer::RenderCommand;
+use debug::*;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub struct DrawCall {
   pub drawable: DrawableId,
   pub entity: Entity,
   pub cmd: RenderCommand
 }
 
+#[inline]
+fn reverse(o: Ordering) -> Ordering {
+  match o {
+    Ordering::Less => Ordering::Greater,
+    Ordering::Greater => Ordering::Less,
+    Ordering::Equal => Ordering::Equal,
+  }
+}
+
 impl Ord for DrawCall {
   fn cmp(&self, other: &Self) -> Ordering {
-    let enum_cmp = self.cmd.priority().cmp(&other.cmd.priority());
-    match enum_cmp {
-      Ordering::Equal => {
-        let shader_cmp = self.drawable.1.cmp(&other.drawable.1);
-        match shader_cmp {
-          Ordering::Equal => {
-            match self.drawable.0.cmp(&other.drawable.0) {
-              Ordering::Equal => Ordering::Equal,
-              Ordering::Less => Ordering::Greater,
-              Ordering::Greater => Ordering::Less
-            }
-          },
-          Ordering::Greater => Ordering::Less,
-          Ordering::Less => Ordering::Greater,
-        }
-      },
-      Ordering::Less => Ordering::Greater,
-      Ordering::Greater => Ordering::Less,
+    let comparisons: [Ordering; 4] = [
+      self.drawable.1.cmp(&other.drawable.1), // shader compare
+      self.drawable.0.cmp(&other.drawable.0), // drawable id compare
+      self.entity.cmp(&other.entity), // Entity compare
+      self.cmd.cmp(&other.cmd) // Command key compare
+    ];
+    for comparison in comparisons {
+      if comparison != Ordering::Equal {
+        return reverse(comparison)
+      }
     }
-    
+    Ordering::Equal
   }
 }
 
@@ -62,7 +64,35 @@ impl RenderQueue {
   }
 
   pub fn pop(&self) -> Option<DrawCall> {
-    self.queue.lock().expect("Could not unlock Render Command Queue").pop()
+    let ret = self.queue.lock().expect("Could not unlock Render Command Queue").pop();
+    if let Some(dc) = ret {
+      // step_debug!(format!("Dequeueing {:?}", dc.drawable));
+      Some(dc)
+    } else {
+      None
+    }
+  }
+
+  pub fn pop_if<F: FnOnce(&DrawCall) -> bool>(&self, cond: F) -> Option<DrawCall> {
+    let mut queue_ref = self.queue.lock().expect("Could not unlock Render Command Queue");
+    if queue_ref.peek().map(|x| if cond(x) { Some(true)} else {None}).flatten().is_some() {
+      queue_ref.pop()
+    } else {
+      None
+    }
+  }
+
+
+  pub fn peek(&self) -> Option<DrawCall> {
+    if let Some(v) = self.queue.lock().expect("Could not unlock Render Command Queue").peek() {
+      Some(v.clone())
+    } else {
+      None
+    }
+  }
+
+  pub fn len(&self) -> usize {
+    self.queue.lock().expect("Could not unlock Render Command Queue").len()
   }
   
   pub fn consume(&mut self) -> RenderQueueConsumer<'_> {
@@ -83,5 +113,19 @@ impl <'a> Iterator for RenderQueueConsumer<'a> {
 impl <'a> Drop for RenderQueueConsumer<'a> {
   fn drop(&mut self) {
     while self.next().is_some() {}
+  }
+}
+
+impl <'a> RenderQueueConsumer<'a> {
+  pub fn peek(&self) -> Option<DrawCall> {
+    self.0.peek()
+  }
+
+  pub fn pop_if<F: FnOnce(&DrawCall) -> bool>(&mut self, f: F) -> Option<DrawCall> {
+    self.0.pop_if(f)
+  }
+
+  pub fn consumed(&self) -> bool {
+    self.0.len() == 0
   }
 }

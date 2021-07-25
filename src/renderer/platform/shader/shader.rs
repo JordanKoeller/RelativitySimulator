@@ -97,10 +97,10 @@ impl Shader {
       unsafe {
         gl::UseProgram(slf.id);
       }
-    };
+    }
     fn unbinder(_slf: &Shader) {
       unsafe { gl::UseProgram(0) }
-    };
+    }
     Self::from_file_explicit(name, shader_path, binder, unbinder)
     // Self::new(name, &file_body, binder, unbinder)
   }
@@ -111,13 +111,13 @@ impl Shader {
         gl::DepthFunc(gl::LEQUAL);
         gl::UseProgram(slf.id);
       }
-    };
+    }
     fn unbinder(_slf: &Shader) {
       unsafe {
         gl::DepthFunc(gl::LESS);
         gl::UseProgram(0);
       }
-    };
+    }
     Self::from_file_explicit(name, shader_path, binder, unbinder)
     // Self::new(name, &file_body, binder, unbinder)
   }
@@ -135,7 +135,6 @@ impl Shader {
   }
 
   pub fn set_uniform(&self, name: &CStr, unif: &Uniform) {
-    // println!("Setting uniform {:?} on {} with value {:?}", name, self.name, unif);
     let some_loc = {
       let opt = self.uniforms.read().unwrap();
       let op = opt.get(name.clone());

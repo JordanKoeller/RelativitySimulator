@@ -42,7 +42,7 @@ type PlayerTailStateData<'a> = ReadStorage<'a, DrawableId>;
 #[derive(Default, Debug)]
 pub struct PlayerTailDelegate {
   id: Option<DrawableId>,
-  material: Option<Material>,
+  material: Vec<Material>,
 }
 impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
   type State = PlayerTailParticleState;
@@ -57,13 +57,12 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
     if let Some(d_id) = &self.id {
       vec![constructor()
         .with(TransformComponent::new(state.position, Vec3F::new(0.5f32, 0.5f32, 0.5f32), QuatF::zero()))
-        // .with(Position(state.position))
         .with(Particle {
           lifetime: state.lifetime,
         })
         .with(RigidBody::new(state.impulse, -Vec3F::unit_y()))
         .with(d_id.clone())
-        .with(self.material.clone().expect("Player Tail Material was NONE"))
+        .with(self.material[rand_ind(0, self.material.len())].clone())
         .with(Gravity)
         .build()]
     } else {
@@ -73,10 +72,20 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
 
   fn setup_delegate(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/spark.png", true);
+    let state = Sprite::new(SPARK_NAMES[0], true);
     let d_id = renderer.submit_model(state.mesh());
-    println!("Registered player tail! {:?}", d_id);
     self.id = Some(d_id);
-    self.material = Some(state.material())
+    self.material = SPARK_NAMES.iter().map(|tex_name| {
+      let mut mat = state.material();
+      let tex = Texture::from_file(tex_name);
+      mat.diffuse_texture(tex);
+      mat
+    }).collect()
   }
 }
+
+const SPARK_NAMES: [&str; 3] = [
+  "resources/flappy_bird/sparks/spark1.png",
+  "resources/flappy_bird/sparks/spark3.png",
+  "resources/flappy_bird/sparks/spark2.png",
+];

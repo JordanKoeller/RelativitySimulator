@@ -54,6 +54,13 @@ impl Texture {
       id
     }
   }
+
+  pub fn source_string(&self) -> String {
+    match &self.source_data {
+      TextureSource::File(s) => {format!("FILE {}", s)},
+      TextureSource::Null => {format!("NULL")}
+    }
+  }
 }
 
 impl TextureLike for Texture {
@@ -69,7 +76,6 @@ impl TextureLike for Texture {
       TextureSource::File(path) => {
         let (data, width, height, format) = texture_helpers::load_file(&path, true);
         self.id = texture_helpers::create_2d_buffer(&data, &width, &height, &format);
-        println!("Loaded in texture {}. ID = {}", path, self.id);
         self.width = width;
         self.height = height;
       }
@@ -121,7 +127,6 @@ impl TextureLike for CubeMap {
         });
         let (id, width, height) = texture_helpers::create_cubemap_buffer(&mut imgs);
         self.id = id;
-        println!("Loaded in texture {}. ID = {}", dirpath, self.id);
         self.width = width;
         self.height = height;
       }

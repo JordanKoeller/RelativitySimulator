@@ -76,7 +76,7 @@ impl Drawable for Sprite {
     if self.instanced {
       Some(vec![
         ("model".to_string(), AttributeType::Mat4),
-        // ("diffuse_texture".to_string(), AttributeType::Int),
+        ("diffuse_texture".to_string(), AttributeType::Int),
         // ("ambient".to_string(), AttributeType::Float3),
       ])
     } else {

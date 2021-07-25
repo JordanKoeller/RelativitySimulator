@@ -15,6 +15,7 @@ extern crate serde_json;
 extern crate specs;
 extern crate tobj;
 extern crate rand;
+extern crate either;
 
 mod macros;
 
@@ -65,20 +66,20 @@ pub fn main() {
   // -------------------------
   // let cube = app::ColoredCube::new(Vec3F::new(2.0, 0.0, -10.0), Color::new(0.5, 0.2, 0.8));
   // let cube: Ref<dyn renderer::Drawable> = Ref::new(cube);
-  let shader = renderer::Shader::from_file("debug", "shaders/debug_tessellation.glsl");
-  render.submit_shader(shader);
-  let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
-  render.submit_shader(shader);
+  // let shader = renderer::Shader::from_file("debug", "shaders/debug_tessellation.glsl");
+  // render.submit_shader(shader);
+  // let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
+  // render.submit_shader(shader);
   let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file("instanced", "shaders/simple_instanced.glsl");
   render.submit_shader(shader);
   let shader = renderer::Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
   render.submit_shader(shader);
-  let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
-  render.submit_shader(shader);
-  let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
-  render.submit_shader(shader);
+  // let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
+  // render.submit_shader(shader);
+  // let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
+  // render.submit_shader(shader);
 
 
   let mut world = World::new();

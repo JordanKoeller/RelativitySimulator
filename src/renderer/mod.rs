@@ -7,7 +7,9 @@ pub mod modeling;
 // pub mod camera;
 // pub mod ui;
 pub mod asset_library;
+pub mod render_pipeline;
 
+pub use self::render_pipeline::*;
 pub use self::platform::*;
 pub use self::renderer::*;
 pub use self::modeling::*;

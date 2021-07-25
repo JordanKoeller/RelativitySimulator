@@ -123,7 +123,7 @@ impl DataBuffer {
 
   pub fn splice_inplace<F: FnOnce(&mut [f32]) -> ()>(&mut self, start: usize, end: usize, f: F)
   {
-    f(unsafe {self.data.get_mut(start..end).expect("Tried to splice DataBuffer out of bounds")});
+    f(self.data.get_mut(start..end).expect("Tried to splice DataBuffer out of bounds"));
     self.set_sub_buffer(start, end);
   }
 
@@ -180,12 +180,10 @@ impl DataBuffer {
         self.config.storage_type,
       );
     }
-    println!("REFRESHING DATA BUFFER");
     let stride = self.layout.stride();
     for &(i, offset, attrib) in self.layout.ind_offset_attrib().iter() {
       let attrib_length = attrib.width() / attrib.num_calls();
       let attrib_index = i as u32 + attrib_start;
-      println!("Setting Attribute {} {} {} {} {}", attrib_index, attrib_length, stride, offset, self.config.attrib_divisor);
       // for iteration in 0..attrib.num_calls() {
         unsafe {
           gl::EnableVertexAttribArray(attrib_index);

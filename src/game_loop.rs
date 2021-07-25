@@ -1,4 +1,4 @@
-use debug::DiagnosticsPanel;
+use debug::*;
 use ecs::systems::*;
 use events::ReceiverID;
 use gui::GuiRenderer;
@@ -32,14 +32,17 @@ impl<'a, 'b> GameLoop<'a, 'b> {
   // pub fn with_resources(&mut self, )
 
   pub fn run(&mut self) {
-    // let mut last_time = window.glfw_token.get_time() as f32;
     let mut running = true;
     let mut dispatcher = self.initialize();
     let mut stepper = self.init_frame_stepper();
     dispatcher.setup(&mut self.world);
+    {
+      let window = self.window.borrow();
+      let mut time = self.world.write_resource::<Timestep>();
+      time.click_frame(window.glfw_token.get_time() as f32);
+      time.click_frame(window.glfw_token.get_time() as f32 + 0.00001);
+    }
     while running {
-      // dispatcher.dispatch_seq(&self.world);
-      // dispatcher.dispatch_thread_local(&self.world);
       running = self.step_frame(&mut dispatcher, &mut stepper);
     }
   }
@@ -50,6 +53,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     };
     let window_open = self.window.borrow().is_open().clone();
     self.world.maintain();
+    sync_running_state(&running_state);
+    gl_check_error!("FRAME MESSAGE");
     match running_state {
       RunningEnum::Running => {
         dispatcher.dispatch(&self.world);
@@ -70,7 +75,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       }
       // _ => {window_open}
     }
-    // self.world.maintain();
+  // self.world.maintain();
     // let window_ref = self.window.borrow();
     // self.world.read_resource::<Running>().0 && window_ref.is_open()
   }
@@ -93,7 +98,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
           window: window_handle1,
           receiver_id: self.r_id,
         })
-        .with_thread_local(RenderSystem::new(window_handle))
+        .with_thread_local(RenderPipelineSystem::new(window_handle, self.r_id))
         .with_thread_local(GuiRenderer { window: window_handle2 })
         .with_thread_local(EndFrameSystem { window: window_handle3 })
         .build()
@@ -113,7 +118,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         window: window_handle,
         receiver_id: self.r_id
       })
-      .with_thread_local(RenderSystem::new(window_handle1))
+      .with_thread_local(RenderPipelineSystem::new(window_handle1, self.r_id))
       .with_thread_local(GuiRenderer { window: window_handle2 })
       .with_thread_local(EndFrameSystem { window: window_handle3 })
       .build()

@@ -8,7 +8,7 @@ trait Debuggable {
 
   fn emit_events(&self) -> Vec<ImguiUiEvent>;
 
-  fn write_events(&mut self, Vec<ImguiUiEvent>);
+  fn write_events(&mut self, evts: Vec<ImguiUiEvent>);
 
   // fn get_debug_panel(&self) -> ImguiPanel;
 }

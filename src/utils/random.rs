@@ -11,3 +11,7 @@ pub fn rand_float(start: f32, end: f32) -> f32 {
 pub fn rand_choice(probability: f32) -> bool {
   thread_rng().gen_range(0f32, 1f32) < probability
 } 
+
+pub fn rand_ind(start: usize, end: usize) -> usize {
+  thread_rng().gen_range(start, end)
+}

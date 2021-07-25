@@ -1,3 +1,4 @@
+use either::Either;
 use std::clone::Clone;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
@@ -6,12 +7,14 @@ use utils::*;
 use specs::prelude::*;
 
 use renderer::platform::VertexArray;
+use renderer::render_pipeline::*;
 use renderer::*;
+use debug::*;
 
-use ecs::{Camera, DrawableId, MeshComponent, Material};
+use ecs::{Camera, DrawableId, Material, MeshComponent};
 
-use physics::TransformComponent;
 use events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
+use physics::TransformComponent;
 
 type TransformStack = Vec<Mat4F>;
 
@@ -29,7 +32,7 @@ pub struct Renderer {
   common_uniforms: HashMap<CString, Uniform>, // common uniforms, change every frame
 
   // Asset management
-  assets: AssetLibrary,
+  pub assets: AssetLibrary,
 
   // Config
   config: RendererConfig,
@@ -97,7 +100,6 @@ impl Renderer {
     self.assets.get_asset_mut(&id.0)
   }
 
-
   pub fn submit_config(&mut self, config: RendererConfig) {
     self.submit_common_uniform(
       CString::from(c_str!("lorentzFlag")),
@@ -107,11 +109,9 @@ impl Renderer {
     self.config = config;
   }
 
-
-
   // Methods that do something instead of just get/set things
 
-  pub fn start_scene<'a>(&mut self, camera: &Camera, timestep: &Timestep) {
+  pub fn start_scene<'a>(&mut self, camera: &Camera, _timestep: &Timestep) {
     // self.process_all_events();
     self.extract_camera_uniforms(&camera);
 
@@ -147,52 +147,30 @@ impl Renderer {
     window.swap_buffers();
   }
 
-  pub fn draw_drawable(&self, mesh: &Mesh, transform: &Mat4F, material: &Material, shader: &Shader, texture_binder: &mut TextureBinder) {
-    for (unif_name, unif) in material.uniforms() {
-      match unif {
-        Uniform::Texture(tex) => {
-          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
+  pub fn render_scene<'a>(
+    &mut self,
+    mut queue: RenderQueueConsumer<'a>,
+    materials: &ReadStorage<'a, Material>,
+    transforms: &ReadStorage<'a, TransformComponent>,
+  ) {
+    let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, &mut self.assets);
+    if let Some(pipeline) = pipeline_opt {
+      let mut active_pipeline = pipeline.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]);
+      loop {
+        let saturated = active_pipeline.intake_queue(&mut queue, materials, transforms);
+        let flushed = saturated.flush();
+        if queue.consumed() {
+          self.common_uniforms.clear();
+          break;
+        } else {
+          let proceeded = flushed.proceed(&mut queue);
+          active_pipeline = match proceeded {
+            Either::Left(ready_q) => ready_q.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]),
+            Either::Right(next_q) => next_q,
+          };
         }
-        Uniform::CubeMap(tex) => {
-          shader.set_texture(texture_binder.get_slot(tex.id()), unif_name, tex);
-        }
-        _ => shader.set_uniform(&unif_name, &unif),
       }
     }
-    shader.set_uniform(c_str!("model"), &Uniform::Mat4(transform.clone()));
-    mesh.draw(&shader.element_type);
-  }
-
-  pub fn draw_scene<'a>(&mut self,
-    queue: RenderQueueConsumer<'a>,
-    materials: &ReadStorage<'a, Material>,
-    transforms: &ReadStorage<'a, TransformComponent>
-  ) {
-    // println!("Drawing a scene!");
-    let mut binder = TextureBinder::new(1);
-    let default_transform = TransformComponent::identity();
-    let default_material = Material::new();
-    queue.for_each(|draw_call| {
-      let default_uniforms = &[&self.config_uniforms, &self.common_uniforms];
-      let transform_ref = transforms.get(draw_call.entity).unwrap_or(&default_transform);
-      let mtl_ref = materials.get(draw_call.entity).unwrap_or(&default_material);
-      self.assets.flush_and_activate_drawable(&draw_call.drawable, default_uniforms);
-      if self.assets.active_is_instanced() {
-        match draw_call.cmd {
-          RenderCommand::Draw => {
-            self.assets.upsert_instance_data(&draw_call.entity, &transform_ref.matrix(), mtl_ref, &mut binder);
-          },
-          RenderCommand::Free => {
-            self.assets.free_instance(&draw_call.entity);
-          }
-        }
-      } else {
-        self.assets.draw_active_mesh(transform_ref.matrix(), mtl_ref, &mut binder);
-      }
-    });
-    self.assets.flush_instances();
-    self.assets.deactivate_all();
-    self.common_uniforms.clear();
   }
 
   // Private helper functions
@@ -227,7 +205,6 @@ impl Renderer {
       CString::new("changeOfBasisInverse").unwrap(),
       Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
     );
-
   }
 
   pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {

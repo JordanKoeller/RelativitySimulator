@@ -59,7 +59,6 @@ impl WindowEventDispatcher {
         glfw::WindowEvent::FramebufferSize(width, height) => {
           // make sure the viewport matches the new window dimensions; note that width and
           // height will be significantly larger than specified on retina displays.
-          println!("Setting frame buffer {} {}", width, height);
           unsafe { gl::Viewport(0, 0, width, height) }
         }
         glfw::WindowEvent::CursorPos(xpos, ypos) => {

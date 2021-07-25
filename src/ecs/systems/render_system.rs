@@ -2,22 +2,26 @@ use std::time::{Instant, Duration};
 
 use cgmath::prelude::*;
 use specs::prelude::*;
+use specs::prelude::SystemData;
 
 use ecs::components::{Player, Camera, DrawableId, MeshComponent, Material};
 use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, WindowEvent, WindowEventDispatcher};
-use renderer::{RenderCommand, Renderer, Window, Mesh, RenderQueue, DrawCall};
+use renderer::{RenderCommand, Renderer, Window, Mesh, RenderQueue, DrawCall, AssetLibrary};
+use renderer::render_pipeline::*;
 use utils::{Mat4F, MutRef, RunningState, RunningEnum, Timestep};
 
 use physics::{TransformComponent};
 
 pub struct RenderSystem {
   pub window: MutRef<Window>,
+  event_receiver_id: ReceiverID,
 }
 
 impl RenderSystem {
-  pub fn new(window: MutRef<Window>) -> Self {
+  pub fn new(window: MutRef<Window>, id: ReceiverID) -> Self {
     Self {
       window,
+      event_receiver_id: id,
     }
   }
 }
@@ -46,7 +50,7 @@ impl<'a> System<'a> for RenderSystem {
     // let mut window = self.window.borrow_mut();
     renderer.init_frame(&mut window);
     let start = window.glfw_token.get_time() as f32;
-    renderer.draw_scene(render_queue.consume(), &materials, &transforms);
+    // renderer.draw_scene(render_queue.consume(), &materials, &transforms);
     timestep.set_render_time(window.glfw_token.get_time() as f32 - start);
   }
 
@@ -170,5 +174,74 @@ impl<'a> System<'a> for RegisterDrawableSystem {
 
   fn setup(&mut self, world: &mut World) {
     world.register::<MeshComponent>();
+  }
+}
+
+#[derive(SystemData)]
+pub struct RenderSystemData<'a> {
+  entities: Entities<'a>,
+  drawable_s: ReadStorage<'a, DrawableId>,
+  transform_s: ReadStorage<'a, TransformComponent>,
+  material_s: ReadStorage<'a, Material>,
+  renderer: Write<'a, Renderer>, 
+  timestep: Write<'a, Timestep>,
+  render_queue: Write<'a, RenderQueue>,
+}
+
+pub struct RenderPipelineSystem {
+  window: MutRef<Window>,
+  event_receiver_id: ReceiverID,
+}
+
+impl RenderPipelineSystem {
+  pub fn new(window: MutRef<Window>, id: ReceiverID) -> Self {
+    Self {
+      window,
+      event_receiver_id: id,
+    }
+  }
+}
+
+impl<'a> System<'a> for RenderPipelineSystem {
+
+  type SystemData = RenderSystemData<'a>;
+
+  fn run(&mut self, mut system_data: Self::SystemData) {
+    self.prepare_queue(&mut system_data.render_queue, &system_data.entities, &system_data.drawable_s);
+    self.init_frame(&mut system_data.renderer);
+    let start_time = self.window.borrow().glfw_token.get_time() as f32;
+    self.render(&mut system_data);
+    // self.end_frame(&mut system_data);
+    let end_time = self.window.borrow().glfw_token.get_time() as f32;
+    system_data.timestep.set_render_time(end_time - start_time);
+  }
+}
+
+impl RenderPipelineSystem {
+  fn prepare_queue<'a>(
+    &self,
+    render_queue: &mut RenderQueue,
+    entities: &Entities<'a>,
+    drawables: &ReadStorage<'a, DrawableId>) {
+      for (entity, drawable) in (entities, drawables).join() {
+        let cmd = DrawCall {
+          drawable: drawable.clone(),
+          entity,
+          cmd: RenderCommand::Draw,
+        };
+        render_queue.push(cmd);
+      }
+  }
+
+  fn init_frame(&self, renderer: &mut Renderer) {
+    renderer.init_frame(&mut self.window.borrow_mut());
+  }
+
+  fn render<'a, 'b>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
+    system_data.renderer.render_scene(system_data.render_queue.consume(), &system_data.material_s, &system_data.transform_s);
+  }
+
+  fn end_frame<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
+    system_data.renderer.end_frame(&mut self.window.borrow_mut());
   }
 }

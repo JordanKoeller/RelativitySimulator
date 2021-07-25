@@ -57,14 +57,12 @@ impl<'a> System<'a> for PlayerSystem {
       channel.for_each(&events.0, |evt| {
         match evt.code {
           Event::KeyDown(KeyCode::Space) => {
-            // transform.translation += Vec3F::unit_y() * 0.1;
             rigid_body.velocity = Vec3F::unit_y() * 7f32;
-            for _ in 0..4 {
-              self.spawn_tail_particle(transform.translation, 0.5f32, &mut spawner);
+            for _ in 0..10 {
+              self.spawn_tail_particle(transform.translation, 2f32, &mut spawner);
             }
           },
           Event::KeyDown(KeyCode::LeftShift) => {
-            // transform.translation -= Vec3F::unit_y() * 0.1;
           }
           _ => panic!("Received a subbed event {:?} with no handler!", evt.code)
         };

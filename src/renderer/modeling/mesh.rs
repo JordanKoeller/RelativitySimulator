@@ -1,8 +1,11 @@
+use std::ffi::c_void;
 use specs::Entity;
-use renderer::platform::{VertexArray, ShaderId, InstancingTable, AttributeType, DataBuffer, BufferLayout, TextureBinder};
+use renderer::platform::{VertexArray, ShaderId, InstancingTable, AttributeType, DataBuffer, BufferLayout, TextureBinder, Shader};
 use ecs::{DrawableId, Material};
 use utils::Mat4F;
 use cgmath::Matrix;
+
+use debug::*;
 
 
 #[derive(Debug, Clone)]
@@ -44,13 +47,13 @@ impl Mesh {
 
 
   pub fn refresh(&mut self) {
-    println!("Drawing with shader {}", self.shader_name);
     self.vao.refresh();
   }
 
-  pub fn upsert_instance(&mut self, entity: &Entity, transform: &Mat4F, material: &Material, texture_binder: &mut TextureBinder) {
+  pub fn upsert_instance(&mut self, entity: &Entity, transform: &Mat4F, material: &Material, texture_binder: &mut TextureBinder, shader: &Shader) {
     if let Some(table) = &mut self.instance_table {
       let mut collector: Vec<f32> = (0..table.stride()).into_iter().map(|_| 0f32).collect();
+      let len = collector.len();
       let transform_sz = AttributeType::Mat4.width() as usize;
       let transform_ptr = unsafe {
         let ptr = transform.as_ptr();
@@ -60,7 +63,7 @@ impl Mesh {
           collector[i] = transform_ptr[i];
       }
       let offset = table.upsert_instance(entity);
-      // material.serialize_into(&mut collector, &table.attribute_offsets, texture_binder);
+      material.serialize_into(&mut collector[transform_sz..len], &table.attribute_offsets, texture_binder, shader);
       self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, offset + collector.len(), move |slc| {
         for i in 0..collector.len() {
           slc[i] = collector[i];
@@ -75,10 +78,14 @@ impl Mesh {
       let stride = table.stride();
       self.vao.instancing_buffer.as_mut().unwrap().splice_inplace(offset, offset + stride, move |s| {
         for i in 0..s.len() {
-          s[i] = 0f32;
+          s[i] = 1f32;
         }
       });
     }
+  }
+
+  pub fn unbind(&self) {
+    self.vao.unbind();
   }
 
 }

@@ -6,7 +6,7 @@ use imgui_glfw_rs::glfw;
 use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
 
-use debug::gl_debug_output;
+use debug::{gl_debug_output, print_limits};
 
 pub type InputEvent = std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>;
 pub type GLFW = glfw::Glfw;
@@ -71,10 +71,10 @@ impl Window {
       gl::DepthFunc(gl::LESS);
       gl::ClearColor(0.2, 0.1, 0.0, 1.0);
       // glfw.set_swap_interval(glfw::SwapInterval::None);
-
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-
     }
+
+    print_limits();
 
     let mut im_ctx = ImContext::create();
 

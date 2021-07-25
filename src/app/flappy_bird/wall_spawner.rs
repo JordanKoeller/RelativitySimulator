@@ -49,7 +49,7 @@ impl <'a> System<'a> for WallSpawner {
 
   fn setup(&mut self, world: &mut World) {
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/pipe.png", false);
+    let state = Sprite::new("resources/flappy_bird/pipe.png", true);
     let d_id = renderer.submit_model(state.mesh());
     self.id = Some(d_id);
     self.material = Some(state.material())
