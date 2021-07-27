@@ -1,3 +1,4 @@
+use std::time::Duration;
 use cgmath::prelude::*;
 use specs::prelude::*;
 use rand::{thread_rng, Rng};
@@ -10,26 +11,26 @@ use renderer::{Drawable, Mesh};
 use shapes::Sprite;
 use gui::{GuiInputPanel, LabeledText, LineBreak};
 
-use utils::{Vec2F, Vec3F, Timestep, Mat4F, random, QuatF};
+use utils::{Vec2F, Vec3F, Timestep, Mat4F, random, QuatF, Timer, TimerLike};
 
 use app::flappy_bird::PlayerTailParticleState;
 
 use physics::{TransformComponent, RigidBody, Gravity};
 
 pub struct PlayerSystem {
-  time_since_spawn: f32,
+  tail_spawn_timer: Timer,
 }
 
 impl Default for PlayerSystem {
   fn default() -> Self {
     Self {
-      time_since_spawn: 1e6
+      tail_spawn_timer: Timer::new(Duration::from_millis(100))
     }
   }
 }
 
 impl PlayerSystem {
-  fn spawn_tail_particle(&self, position: Vec3F, lifetime: f32, spawner: &mut StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>) {
+  fn spawn_tail_particle(&self, position: Vec3F, lifetime: Duration, spawner: &mut StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>) {
     let pi = 3.14159265;
     let theta = random::rand_float( 3f32 * pi / 2f32, 2f32 * pi);
     let theta = Vec2F::new(theta.cos(), theta.sin());
@@ -58,11 +59,12 @@ impl<'a> System<'a> for PlayerSystem {
         match evt.code {
           Event::KeyDown(KeyCode::Space) => {
             rigid_body.velocity = Vec3F::unit_y() * 7f32;
-            for _ in 0..10 {
-              self.spawn_tail_particle(transform.translation, 2f32, &mut spawner);
-            }
+            self.tail_spawn_timer.reset_interval(Duration::from_millis(3));
           },
           Event::KeyDown(KeyCode::LeftShift) => {
+          }
+          Event::KeyReleased(KeyCode::Space) => {
+            self.tail_spawn_timer.reset_interval(Duration::from_millis(100));
           }
           _ => panic!("Received a subbed event {:?} with no handler!", evt.code)
         };
@@ -73,13 +75,11 @@ impl<'a> System<'a> for PlayerSystem {
       if transform.translation.y > 16f32 {
         transform.translation.y = 16f32;
       }
-      // let front_vec = rigid_body.velocity.normalize();
-      let new_time = self.time_since_spawn + dt.click;
-      if new_time > 0.1f32 {
-        self.spawn_tail_particle(transform.translation, 2f32, &mut spawner);
-        self.time_since_spawn = 0f32;
-      } else {
-        self.time_since_spawn = new_time;
+      if self.tail_spawn_timer.start_poll(dt.curr_time()) {
+        self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
+      }
+      for _ in 0..self.tail_spawn_timer.poll_all(dt.curr_time()) {
+        self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
       }
       if ui.empty() {
         ui.push(Box::from(LineBreak));
@@ -95,6 +95,7 @@ impl<'a> System<'a> for PlayerSystem {
       let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
       EventReceiver(listener.register_with_subs(&[
         WindowEvent::new(Event::KeyDown(KeyCode::Space)),
+        WindowEvent::new(Event::KeyReleased(KeyCode::Space)),
         WindowEvent::new(Event::KeyDown(KeyCode::LeftShift))
         ]))
     };

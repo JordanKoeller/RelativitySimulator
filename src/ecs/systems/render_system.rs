@@ -9,6 +9,7 @@ use events::{Event, EventChannel, StatelessEventChannel, KeyCode, ReceiverID, Wi
 use renderer::{RenderCommand, Renderer, Window, Mesh, RenderQueue, DrawCall, AssetLibrary};
 use renderer::render_pipeline::*;
 use utils::{Mat4F, MutRef, RunningState, RunningEnum, Timestep};
+use gui::*;
 
 use physics::{TransformComponent};
 
@@ -49,9 +50,9 @@ impl<'a> System<'a> for RenderSystem {
     }
     // let mut window = self.window.borrow_mut();
     renderer.init_frame(&mut window);
-    let start = window.glfw_token.get_time() as f32;
+    let start = window.glfw_token.get_time();
     // renderer.draw_scene(render_queue.consume(), &materials, &transforms);
-    timestep.set_render_time(window.glfw_token.get_time() as f32 - start);
+    timestep.set_render_time(Duration::from_secs_f64(window.glfw_token.get_time() - start));
   }
 
   fn setup(&mut self, world: &mut World) {
@@ -86,7 +87,7 @@ impl<'a> System<'a> for StartFrameSystem {
     ): Self::SystemData,
   ) {
     let mut window = self.window.borrow_mut();
-    timestep.click_frame(window.glfw_token.get_time() as f32);
+    timestep.click_frame(Duration::from_secs_f64(window.glfw_token.get_time()));
     // let delta = window.glfw_token.get_time() as f32 - self.last_time;
     // self.last_time = self.last_time + delta;
     // timestep.set_click(delta);
@@ -186,11 +187,13 @@ pub struct RenderSystemData<'a> {
   renderer: Write<'a, Renderer>, 
   timestep: Write<'a, Timestep>,
   render_queue: Write<'a, RenderQueue>,
+  gui: WriteStorage<'a, GuiInputPanel>,
 }
 
 pub struct RenderPipelineSystem {
   window: MutRef<Window>,
   event_receiver_id: ReceiverID,
+  entity_handle: Option<Entity>,
 }
 
 impl RenderPipelineSystem {
@@ -198,6 +201,7 @@ impl RenderPipelineSystem {
     Self {
       window,
       event_receiver_id: id,
+      entity_handle: None,
     }
   }
 }
@@ -209,12 +213,23 @@ impl<'a> System<'a> for RenderPipelineSystem {
   fn run(&mut self, mut system_data: Self::SystemData) {
     self.prepare_queue(&mut system_data.render_queue, &system_data.entities, &system_data.drawable_s);
     self.init_frame(&mut system_data.renderer);
-    let start_time = self.window.borrow().glfw_token.get_time() as f32;
-    self.render(&mut system_data);
-    // self.end_frame(&mut system_data);
-    let end_time = self.window.borrow().glfw_token.get_time() as f32;
-    system_data.timestep.set_render_time(end_time - start_time);
+    let start_time = self.window.borrow().glfw_token.get_time();
+    let draw_call_count = self.render(&mut system_data);
+    let end_time = self.window.borrow().glfw_token.get_time();
+    if let Some(e_id) = self.entity_handle {
+      let mut panel = system_data.gui.get_mut(e_id).expect("Could not get UI Panel for RenderPipelineSystem");
+      self.draw_diagnostics(&mut panel, draw_call_count, Duration::from_secs_f64(end_time - start_time));
+    }
+    // system_data.timestep.set_render_time(Duration::from_secs_f64(end_time - start_time));
   }
+
+  fn setup(&mut self, world: &mut World) {
+    self.entity_handle = Some(world
+      .create_entity()
+      .with(GuiInputPanel::new("Renderer Diagnostics"))
+      .build());
+  }
+
 }
 
 impl RenderPipelineSystem {
@@ -237,11 +252,22 @@ impl RenderPipelineSystem {
     renderer.init_frame(&mut self.window.borrow_mut());
   }
 
-  fn render<'a, 'b>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
-    system_data.renderer.render_scene(system_data.render_queue.consume(), &system_data.material_s, &system_data.transform_s);
+  fn render<'a, 'b>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) -> u32 {
+    system_data.renderer.render_scene(system_data.render_queue.consume(), &system_data.material_s, &system_data.transform_s)
   }
 
   fn end_frame<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
     system_data.renderer.end_frame(&mut self.window.borrow_mut());
+  }
+
+  fn draw_diagnostics(&self, panel: &mut GuiInputPanel, draw_calls: u32, render_time: Duration) {
+    if panel.empty() {
+      panel.push(Box::from(LineBreak));
+      panel.push(Box::from(LabeledText::new("Draw Calls", &draw_calls.to_string())));
+      panel.push(Box::from(LabeledText::new("GPU Render Time", &format!("{0:.3}", render_time.as_secs_f32() * 1000f32))));
+    } else {
+      panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &draw_calls.to_string()));
+      panel.lines[2] = Box::from(LabeledText::new("GPU Render Time", &format!("{0:.3}", render_time.as_secs_f32() * 1000f32)));
+    }
   }
 }

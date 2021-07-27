@@ -56,18 +56,18 @@ impl<'a> System<'a> for CameraDebugger {
         panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
         panel.push(Box::from(LabeledText::new(&to_string!(transform.front()), "Forward")));
         panel.push(Box::from(LabeledText::new(
-          &format!("{0:.3}", dt.click * 1000f32),
+          &format!("{0:.3}", dt.dt().as_millis()),
           "Frame Time",
         )));
         panel.push(Box::from(LabeledText::new(
-          &format!("{0:.3}", dt.render_time * 1000f32),
+          &format!("{0:.3}", dt.render_dt().as_millis()),
           "Render Time",
         )));
       } else {
         panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
         panel.lines[2] = Box::from(LabeledText::new(&to_string!(transform.front()), "Forward"));
-        panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.click * 1000f32), "Frame Time"));
-        panel.lines[4] = Box::from(LabeledText::new(&format!("{0:.3}", dt.render_time * 1000f32), "Render Time"));
+        panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.dt().as_millis()), "Frame Time"));
+        panel.lines[4] = Box::from(LabeledText::new(&format!("{0:.3}", dt.render_dt().as_millis()), "Render Time"));
       }
     }
   }

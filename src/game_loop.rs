@@ -1,3 +1,4 @@
+use std::time::Duration;
 use debug::*;
 use ecs::systems::*;
 use events::ReceiverID;
@@ -39,8 +40,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     {
       let window = self.window.borrow();
       let mut time = self.world.write_resource::<Timestep>();
-      time.click_frame(window.glfw_token.get_time() as f32);
-      time.click_frame(window.glfw_token.get_time() as f32 + 0.00001);
+      time.click_frame(Duration::from_secs_f64(window.glfw_token.get_time()));
+      time.click_frame(Duration::from_secs_f64(window.glfw_token.get_time() + 1e-8f64));
     }
     while running {
       running = self.step_frame(&mut dispatcher, &mut stepper);

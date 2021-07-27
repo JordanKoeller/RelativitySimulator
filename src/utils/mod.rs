@@ -4,9 +4,10 @@ pub mod math;
 pub mod transform_stack;
 pub mod random;
 pub mod running_state;
+mod timer;
 
 pub use self::running_state::*;
-
+pub use self::timer::*;
 pub use self::transform_stack::*;
 pub use self::math::*;
 pub use self::multi_map::*;

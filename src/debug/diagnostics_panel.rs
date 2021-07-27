@@ -23,20 +23,14 @@ impl<'a> System<'a> for DiagnosticsPanel {
       if panel.empty() {
         panel.push(Box::from(LineBreak));
         panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
-        // panel.push(Box::from(LabeledText::new(&format!("{0:.3}", rigid_body.beta()), "Beta")));
         panel.push(Box::from(LabeledText::new(
-          &format!("{0:.3}", timestep.click * 1000f32),
+          &format!("{0:.3}", timestep.dt().as_millis()),
           "Frame Time",
-        )));
-        panel.push(Box::from(LabeledText::new(
-          &format!("{0:.3}", timestep.render_time * 1000f32),
-          "Render Time",
         )));
       } else {
         panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
         // panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", rigid_body.beta()), "Beta"));
-        panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.click * 1000f32), "Frame Time"));
-        panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.render_time * 1000f32), "Render Time"));
+        panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.dt().as_millis()), "Frame Time"));
       }
     }
   }

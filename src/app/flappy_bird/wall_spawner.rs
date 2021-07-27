@@ -1,3 +1,4 @@
+use std::time::Duration;
 use specs::prelude::*;
 use cgmath::prelude::*;
 
@@ -20,9 +21,7 @@ struct WallSpec {
 
 
 pub struct WallSpawner {
-  time_since_spawn: f32,
-  min_spawn_gap: f32,
-  spawn_window_length: f32,
+  spawn_timer: WindowedTimer,
   gap_length: f32,
   id: Option<DrawableId>,
   material: Option<Material>,
@@ -36,14 +35,12 @@ impl <'a> System<'a> for WallSpawner {
   );
 
   fn run(&mut self, (entities, lazy_update, dt): Self::SystemData) {
-    self.time_since_spawn += dt.click;
-    if self.spawn_ready() {
+    if self.spawn_timer.start_poll(dt.curr_time()) {
       let wall_data = self.generate_wall();
       let ent1 = lazy_update.create_entity(&entities);
       let ent2 = lazy_update.create_entity(&entities);
       self.spawn_pipe(0f32, wall_data.gap_start, wall_data.speed, 1f32, ent1);
       self.spawn_pipe(wall_data.gap_end,  1f32, wall_data.speed, -1f32, ent2);
-      self.time_since_spawn = 0f32;
     }
   }
 
@@ -57,14 +54,14 @@ impl <'a> System<'a> for WallSpawner {
 }
 
 impl WallSpawner {
-  fn spawn_ready(&self) -> bool {
-    if self.time_since_spawn > self.min_spawn_gap {
-      let probability = (self.time_since_spawn - self.min_spawn_gap) / self.spawn_window_length;
-      random::rand_choice(probability)
-    } else {
-      false
-    }
-  }
+  // fn spawn_ready(&self) -> bool {
+  //   if self.time_since_spawn > self.min_spawn_gap {
+  //     let probability = (self.time_since_spawn - self.min_spawn_gap) / self.spawn_window_length;
+  //     random::rand_choice(probability)
+  //   } else {
+  //     false
+  //   }
+  // }
 
   fn generate_wall(&self) -> WallSpec {
     let top_wall_length = random::rand_float(0.05f32, 0.95f32 - self.gap_length);
@@ -86,7 +83,7 @@ impl WallSpawner {
     if let Some(d_id) = &self.id {
       ent.with(
         Particle {
-          lifetime: 10f32
+          lifetime: Duration::from_secs(10)
         }
       )
       .with(RigidBody::new(Vec3F::unit_x() * speed, Vec3F::zero()))
@@ -102,9 +99,9 @@ impl WallSpawner {
 impl Default for WallSpawner {
   fn default() -> Self {
     Self {
-      time_since_spawn: 1e6f32,
-      min_spawn_gap: 1.8f32,
-      spawn_window_length: 1f32,
+      spawn_timer: WindowedTimer::new(
+        Duration::from_millis(1600),
+        Duration::from_millis(4200)),
       gap_length: 0.15f32,
       id: None,
       material: None,

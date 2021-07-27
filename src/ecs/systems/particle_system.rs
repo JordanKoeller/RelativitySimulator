@@ -12,7 +12,7 @@ use utils::Timestep;
 #[derive(Component, Debug, Default, Clone)]
 #[storage(VecStorage)]
 pub struct Particle {
-  pub lifetime: f32,
+  pub lifetime: std::time::Duration,
   // pub decay: f32, // TODO: Add some shader support for a global alpha parameter.
 }
 
@@ -29,16 +29,15 @@ impl<'a> System<'a> for ParticleUpdater {
 
   fn run(&mut self, (entities, drawable_id, mut particle_storage, dt, render_queue): Self::SystemData) {
     for (entity, drawable_id, particle) in (&entities, &drawable_id, &mut particle_storage).join() {
-      let remaining_time = particle.lifetime - dt.click;
-      if remaining_time <= 0f32 {
+      if let Some(remaining_time) = particle.lifetime.checked_sub(dt.dt()) {
+        particle.lifetime = remaining_time;
+      } else {
         render_queue.push(DrawCall {
           drawable: drawable_id.clone(),
           entity: entity,
           cmd: RenderCommand::Free,
         });
         entities.delete(entity).expect("Could not delete entity");
-      } else {
-        particle.lifetime = remaining_time;
       }
     }
   }

@@ -96,9 +96,6 @@ impl Renderer {
     self.assets.register_asset(model)
   }
 
-  pub fn get_asset_mut(&mut self, id: &DrawableId) -> &mut Mesh {
-    self.assets.get_asset_mut(&id.0)
-  }
 
   pub fn submit_config(&mut self, config: RendererConfig) {
     self.submit_common_uniform(
@@ -152,13 +149,15 @@ impl Renderer {
     mut queue: RenderQueueConsumer<'a>,
     materials: &ReadStorage<'a, Material>,
     transforms: &ReadStorage<'a, TransformComponent>,
-  ) {
+  ) -> u32 {
+    let mut draw_call_count = 0u32;
     let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, &mut self.assets);
     if let Some(pipeline) = pipeline_opt {
       let mut active_pipeline = pipeline.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]);
       loop {
         let saturated = active_pipeline.intake_queue(&mut queue, materials, transforms);
         let flushed = saturated.flush();
+        draw_call_count += 1;
         if queue.consumed() {
           self.common_uniforms.clear();
           break;
@@ -171,6 +170,7 @@ impl Renderer {
         }
       }
     }
+    draw_call_count
   }
 
   // Private helper functions

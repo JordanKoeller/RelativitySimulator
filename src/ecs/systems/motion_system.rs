@@ -40,8 +40,8 @@ impl<'a> System<'a> for MotionSystem {
     )
       .join()
     {
-      self.compute_kinematics(rigid_body, gravity, drag, dt.click);
-      transform.push_translation(rigid_body.velocity * dt.click);
+      self.compute_kinematics(rigid_body, gravity, drag, dt.dt().as_secs_f32() as f32);
+      transform.push_translation(rigid_body.velocity * dt.dt().as_secs_f32() as f32);
     }
   }
 }

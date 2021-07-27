@@ -1,3 +1,4 @@
+use std::time::Duration;
 use cgmath::prelude::*;
 use rand::{thread_rng, Rng};
 use specs::prelude::*;
@@ -13,7 +14,7 @@ use physics::{TransformComponent, Gravity, RigidBody};
 #[derive(Clone, Debug)]
 pub struct PlayerTailParticleState {
   position: Vec3F,
-  lifetime: f32,
+  lifetime: Duration,
   impulse: Vec3F,
 }
 
@@ -21,14 +22,14 @@ impl Default for PlayerTailParticleState {
   fn default() -> Self {
     Self {
       position: Vec3F::unit_x(),
-      lifetime: 1500f32,
+      lifetime: Duration::from_millis(1500),
       impulse: -Vec3F::unit_x(),
     }
   }
 }
 
 impl PlayerTailParticleState {
-  pub fn new(position: Vec3F, lifetime: f32, impulse: Vec3F) -> Self {
+  pub fn new(position: Vec3F, lifetime: Duration, impulse: Vec3F) -> Self {
     Self {
       position,
       lifetime,

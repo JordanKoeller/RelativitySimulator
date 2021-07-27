@@ -4,6 +4,7 @@ use cgmath::One;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 
 pub type Vec2F = cgmath::Vector2<f32>;
@@ -25,19 +26,31 @@ pub type SyncMutRef<T> = Arc<Mutex<T>>;
 
 #[derive(Debug, Default)]
 pub struct Timestep {
-  pub last_time: f32,
-  pub click: f32,
-  pub render_time: f32,
+  pub last_time: Duration,
+  pub click: Duration,
+  pub render_time: Duration,
 }
 
 impl Timestep {
-  pub fn click_frame(&mut self, timestamp: f32) {
+  pub fn click_frame(&mut self, timestamp: Duration) {
     self.click = timestamp - self.last_time;
     self.last_time = timestamp;
   }
 
-  pub fn set_render_time(&mut self, value: f32) {
+  pub fn set_render_time(&mut self, value: Duration) {
     self.render_time = value;
+  }
+
+  pub fn dt(&self) -> Duration {
+    self.click
+  }
+
+  pub fn render_dt(&self) -> Duration {
+    self.render_time
+  }
+
+  pub fn curr_time(&self) -> Duration {
+    self.last_time
   }
 }
 // pub struct Timestep(pub f32, pub f32);
