@@ -75,10 +75,7 @@ impl<'a> System<'a> for PlayerSystem {
       if transform.translation.y > 16f32 {
         transform.translation.y = 16f32;
       }
-      if self.tail_spawn_timer.start_poll(dt.curr_time()) {
-        self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
-      }
-      for _ in 0..self.tail_spawn_timer.poll_all(dt.curr_time()) {
+      for _ in 0..self.tail_spawn_timer.start_poll_all(dt.curr_time()) {
         self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
       }
       if ui.empty() {

@@ -9,7 +9,7 @@ pub struct GuiInputPanel {
 }
 
 impl Component for GuiInputPanel {
-  type Storage = VecStorage<Self>;
+  type Storage = HashMapStorage<Self>;
 }
 
 

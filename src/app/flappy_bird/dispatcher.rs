@@ -5,7 +5,7 @@ use specs::prelude::*;
 use physics::TransformComponent;
 use renderer::{Drawable, Mesh};
 
-use app::flappy_bird::{CameraDebugger, GameState, PlayerSystem, PlayerTailDelegate, WallSpawner};
+use app::flappy_bird::{CameraDebugger, GameStateSystem, PlayerSystem, PlayerTailDelegate, WallSpawner};
 use app::Skybox;
 use utils::*;
 
@@ -23,7 +23,7 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
       .with(CameraDebugger, "camera_debugger", &[])
       .with(WallSpawner::default(), "wall_spawner", &[])
       .with(
-        GameState::default(),
+        GameStateSystem::default(),
         "game_state",
         &["player_controller", "wall_spawner"],
       )

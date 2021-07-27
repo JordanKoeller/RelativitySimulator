@@ -54,14 +54,6 @@ impl <'a> System<'a> for WallSpawner {
 }
 
 impl WallSpawner {
-  // fn spawn_ready(&self) -> bool {
-  //   if self.time_since_spawn > self.min_spawn_gap {
-  //     let probability = (self.time_since_spawn - self.min_spawn_gap) / self.spawn_window_length;
-  //     random::rand_choice(probability)
-  //   } else {
-  //     false
-  //   }
-  // }
 
   fn generate_wall(&self) -> WallSpec {
     let top_wall_length = random::rand_float(0.05f32, 0.95f32 - self.gap_length);

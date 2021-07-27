@@ -19,6 +19,14 @@ pub trait TimerLike {
     }
   }
 
+  fn start_poll_all(&mut self, time: Duration) -> u32 {
+    if self.started() {
+      self.poll_all(time)
+    } else {
+      self.start(time);
+      0
+    }
+  }
   fn poll_all(&mut self, time: Duration) -> u32 {
     let mut c = 0;
     while self.poll(time) {
