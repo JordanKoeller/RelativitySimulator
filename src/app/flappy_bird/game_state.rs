@@ -2,6 +2,8 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 use std::time::Duration;
 
+use app::flappy_bird::WallComponent;
+
 use app::AxisAlignedCubeCollision;
 use ecs::components::{DrawableId, EventReceiver, Material, Player};
 use gui::{GuiInputPanel, LabeledText, LineBreak};
@@ -25,6 +27,16 @@ impl Default for GameState {
   }
 }
 
+#[derive(SystemData)]
+pub struct GameStateSystemData<'a> {
+  player_storage: ReadStorage<'a, Player>,
+  transform_storage: ReadStorage<'a, TransformComponent>,
+  collide_storage: ReadStorage<'a, CanCollide>,
+  wall_storage: ReadStorage<'a, WallComponent>,
+  gui_storage: WriteStorage<'a, GuiInputPanel>,
+  timestep: Read<'a, Timestep>
+}
+
 pub struct GameStateSystem {
   debugger: Option<Entity>,
   state: GameState,
@@ -32,40 +44,18 @@ pub struct GameStateSystem {
 }
 
 impl<'a> System<'a> for GameStateSystem {
-  type SystemData = (
-    ReadStorage<'a, Player>,
-    ReadStorage<'a, RigidBody>,
-    ReadStorage<'a, CanCollide>,
-    ReadStorage<'a, DrawableId>,
-    ReadStorage<'a, TransformComponent>,
-    WriteStorage<'a, GuiInputPanel>,
-    ReadStorage<'a, AxisAlignedCubeCollision>,
-    WriteStorage<'a, Material>,
-    Read<'a, Timestep>,
-  );
+  type SystemData = GameStateSystemData<'a>;
 
   fn run(
     &mut self,
-    (
-      player_storage,
-      rigid_storage,
-      collide_storage,
-      drawable_storage,
-      transform_storage,
-      mut gui_storage,
-      aacc_storage,
-      mut material_storage,
-      timestep,
-    ): Self::SystemData,
+    mut data: Self::SystemData,
   ) {
-    for (_player, _rigid_body, transform, collider) in
-      (&player_storage, &rigid_storage, &transform_storage, &collide_storage).join()
+    for (_player, transform, collider) in
+      (&data.player_storage, &data.transform_storage, &data.collide_storage).join()
     {
-      for (_wall_collision, wall_transform, _d_id, material) in (
-        &aacc_storage,
-        &transform_storage,
-        &drawable_storage,
-        &mut material_storage,
+      for (wall_transform, _wall) in (
+        &data.transform_storage,
+        &data.wall_storage,
       )
         .join()
       {
@@ -79,7 +69,6 @@ impl<'a> System<'a> for GameStateSystem {
         if let Some(collision) = colliding {
           if collision.time < 160f32 {
             self.state.game_over = true;
-            material.ambient(Vec3F::new(0.5f32, 0.5f32, 0.5f32));
           }
         }
       }
@@ -88,10 +77,10 @@ impl<'a> System<'a> for GameStateSystem {
       }
     }
     if !self.state.game_over {
-      self.state.score += self.score_timer.start_poll_all(timestep.curr_time());
+      self.state.score += self.score_timer.start_poll_all(data.timestep.curr_time());
     }
     // self.score_timer.poll(time: Duration)
-    self.draw_ui(&mut gui_storage);
+    self.draw_ui(&mut data.gui_storage);
   }
 
   fn setup(&mut self, world: &mut World) {
