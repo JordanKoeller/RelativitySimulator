@@ -38,7 +38,7 @@ impl<'a> System<'a> for RenderSystem {
     Write<'a, RenderQueue>,
   );
 
-  fn run(&mut self, (entities, drawables, transforms, materials, mut timestep, mut renderer, mut render_queue): Self::SystemData) {
+  fn run(&mut self, (entities, drawables, _transforms, _materials, mut timestep, mut renderer, render_queue): Self::SystemData) {
     let mut window = self.window.borrow_mut();
     for (entity, drawable) in (&entities, &drawables).join() {
       let cmd = DrawCall {

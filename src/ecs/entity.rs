@@ -110,11 +110,11 @@ pub trait EntityDelegate<'a> {
     constructor: F,
   ) -> Vec<Entity>;
 
-  fn update(&self, state: &Self::State, resources: &mut Self::EntityResources, entity_id: &Entity) {
+  fn update(&self, _state: &Self::State, _resources: &mut Self::EntityResources, _entity_id: &Entity) {
     panic!("EntityDelegate::create not implemented for {}", std::any::type_name::<Self>());
   }
 
-  fn setup_delegate(&mut self, world: &mut World) {}
+  fn setup_delegate(&mut self, _world: &mut World) {}
 
 }
 

@@ -29,9 +29,9 @@ impl<'a> System<'a> for MotionSystem {
 
   fn run(
     &mut self,
-    (mut transform_s, mut rigid_storage, collidable_storage, gravity_storage, drag_storage, colliders_storage, dt): Self::SystemData,
+    (mut transform_s, mut rigid_storage, collidable_storage, gravity_storage, drag_storage, _colliders_storage, dt): Self::SystemData,
   ) {
-    for (transform, collidable, rigid_body, gravity, drag) in (
+    for (transform, _collidable, rigid_body, gravity, drag) in (
       &mut transform_s,
       (&collidable_storage).maybe(),
       &mut rigid_storage,

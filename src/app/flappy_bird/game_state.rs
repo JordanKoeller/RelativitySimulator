@@ -40,10 +40,10 @@ impl<'a> System<'a> for GameState {
     ): Self::SystemData,
   ) {
     let mut is_colliding = false;
-    for (_player, rigid_body, transform, collider) in
+    for (_player, _rigid_body, transform, collider) in
       (&player_storage, &rigid_storage, &transform_storage, &collide_storage).join()
     {
-      for (_wall_collision, wall_transform, d_id, material) in (&aacc_storage, &transform_storage, &drawable_storage, &mut material_storage).join() {
+      for (_wall_collision, wall_transform, _d_id, material) in (&aacc_storage, &transform_storage, &drawable_storage, &mut material_storage).join() {
         let mut collision_transform = wall_transform.clone();
         collision_transform.scale.y = collision_transform.scale.y.abs();
         let wall_collidable = AxisAlignedCubeCollision::from_transform(&collision_transform);

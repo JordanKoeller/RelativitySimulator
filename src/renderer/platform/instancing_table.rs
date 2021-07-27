@@ -123,7 +123,7 @@ mod tests {
       .map(|e| table.upsert_instance(e))
       .zip(entities)
       .enumerate()
-      .for_each(|(ind, (pos, e))| {
+      .for_each(|(ind, (pos, _e))| {
         assert_eq!(ind * std, pos);
       });
   }
@@ -136,14 +136,14 @@ mod tests {
       .map(|e| table.upsert_instance(e))
       .zip(entities)
       .enumerate()
-      .for_each(|(ind, (pos, e))| {
+      .for_each(|(ind, (pos, _e))| {
         assert_eq!(ind * std, pos);
       });
     entities.iter()
     .map(|e| table.upsert_instance(e))
     .zip(entities)
     .enumerate()
-    .for_each(|(ind, (pos, e))| {
+    .for_each(|(ind, (pos, _e))| {
       assert_eq!(ind * std, pos);
     });
   }

@@ -17,7 +17,7 @@ impl<'a> System<'a> for DiagnosticsPanel {
   );
 
   fn run(&mut self, (mut s_player, s_transform, s_rigid, mut s_panel, timestep): Self::SystemData) {
-    for (player, transform, rigid_body, panel) in
+    for (_player, transform, _rigid_body, panel) in
       (&mut s_player, &s_transform, &s_rigid, &mut s_panel).join()
     {
       if panel.empty() {

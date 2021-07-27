@@ -113,7 +113,7 @@ impl AxisAlignedCubeCollision {
 
 impl Collision for AxisAlignedCubeCollision {
 
-  fn distance_to(&self, pt: &Vec3F) -> f32 {
+  fn distance_to(&self, _pt: &Vec3F) -> f32 {
     0f32
   }
 

@@ -14,7 +14,7 @@ pub struct TransformComponent {
 }
 
 impl TransformComponent {
-  pub fn new(translation: Vec3F, scale: Vec3F, rotation: QuatF) -> Self {
+  pub fn new(translation: Vec3F, scale: Vec3F, _rotation: QuatF) -> Self {
     Self {
       translation,
       scale,

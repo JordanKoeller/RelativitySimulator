@@ -108,7 +108,6 @@ impl Window {
     }
   }
 
-
   #[allow(dead_code)]
   pub fn set_closed(&mut self) {
     self.window.set_should_close(true);
@@ -140,16 +139,11 @@ impl Window {
     }
   }
 
-
-
   pub fn draw_ui<'ui>(&mut self, ui: imgui::Ui<'ui>) {
     self.imgui_glfw.draw(ui, &mut self.window);
-
   }
 
   pub fn close(&mut self) {
-    unsafe {
-      glfw::terminate();
-    }
+    glfw::terminate();
   }
 }
