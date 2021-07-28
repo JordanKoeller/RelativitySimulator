@@ -13,56 +13,6 @@ use utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
 
 use physics::TransformComponent;
 
-pub struct RenderSystem {
-  pub window: MutRef<Window>,
-  event_receiver_id: ReceiverID,
-}
-
-impl RenderSystem {
-  pub fn new(window: MutRef<Window>, id: ReceiverID) -> Self {
-    Self {
-      window,
-      event_receiver_id: id,
-    }
-  }
-}
-
-impl<'a> System<'a> for RenderSystem {
-  type SystemData = (
-    Entities<'a>,
-    ReadStorage<'a, DrawableId>,
-    ReadStorage<'a, TransformComponent>,
-    ReadStorage<'a, Material>,
-    Write<'a, Timestep>,
-    Write<'a, Renderer>,
-    Write<'a, RenderQueue>,
-  );
-
-  fn run(
-    &mut self,
-    (entities, drawables, _transforms, _materials, mut timestep, mut renderer, render_queue): Self::SystemData,
-  ) {
-    let mut window = self.window.borrow_mut();
-    for (entity, drawable) in (&entities, &drawables).join() {
-      let cmd = DrawCall {
-        drawable: drawable.clone(),
-        entity,
-        cmd: RenderCommand::Draw,
-      };
-      render_queue.push(cmd);
-    }
-    // let mut window = self.window.borrow_mut();
-    renderer.init_frame(&mut window);
-    let start = window.glfw_token.get_time();
-    // renderer.draw_scene(render_queue.consume(), &materials, &transforms);
-    timestep.set_render_time(Duration::from_secs_f64(window.glfw_token.get_time() - start));
-  }
-
-  fn setup(&mut self, world: &mut World) {
-    world.insert(RenderQueue::default());
-  }
-}
-
 pub struct StartFrameSystem {
   pub window: MutRef<Window>,
   pub receiver_id: ReceiverID,
@@ -113,15 +63,10 @@ impl<'a> System<'a> for StartFrameSystem {
       },
       _ => {}
     });
+    renderer.init_frame(&mut window);
     for camera in (&camera_storage).join() {
       renderer.start_scene(&camera, &timestep);
     }
-    // events.process_events(&mut )
-    // window.clear_framebuffer();
-    // for (_player, pos, kinetics, rotation) in (&s_player, &s_pos, &s_kinetics, &s_rotation).join() {
-    //   let cam = Camera::new(&pos.0, &kinetics.velocity, &rotation);
-    //   renderer.start_scene(cam, &timestep);
-    // }
   }
 }
 
@@ -198,7 +143,7 @@ impl<'a> System<'a> for RenderPipelineSystem {
       &system_data.entities,
       &system_data.drawable_s,
     );
-    self.init_frame(&mut system_data.renderer);
+    // self.init_frame(&mut system_data.renderer);
     let start_time = self.window.borrow().glfw_token.get_time();
     let draw_call_count = self.render(&mut system_data);
     let end_time = self.window.borrow().glfw_token.get_time();
@@ -255,9 +200,6 @@ impl RenderPipelineSystem {
     )
   }
 
-  // fn end_frame<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
-  //   system_data.renderer.end_frame(&mut self.window.borrow_mut());
-  // }
 
   fn draw_diagnostics(&self, panel: &mut GuiInputPanel, draw_calls: u32, render_time: Duration) {
     if panel.empty() {

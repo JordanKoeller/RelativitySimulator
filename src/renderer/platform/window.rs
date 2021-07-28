@@ -29,7 +29,7 @@ impl Default for Window {
 impl Window {
   pub fn new(width: u32, height: u32, title: &str) -> Window {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
-    glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
+    glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
     glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
     #[cfg(feature = "debug")]
     glfw.window_hint(glfw::WindowHint::OpenGlDebugContext(true)); // comment this line in a release build!
@@ -74,7 +74,7 @@ impl Window {
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }
 
-    print_limits();
+    // print_limits();
 
     let mut im_ctx = ImContext::create();
 

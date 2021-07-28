@@ -49,7 +49,6 @@ pub struct WindowEventDispatcher {
   last_mouse_pos: Option<Vec2F>,
   down_keys: Vec<bool>,
   down_mouse: Vec<bool>,
-  count: u32,
 }
 
 impl WindowEventDispatcher {
@@ -57,8 +56,6 @@ impl WindowEventDispatcher {
     channel.clear_events();
     for (_, event) in glfw::flush_messages(&window.events) {
       // Process Application Events
-      self.count += 1;
-      window.imgui_glfw.handle_event(&mut window.im_context, &event);
       match event {
         glfw::WindowEvent::FramebufferSize(width, height) => {
           // make sure the viewport matches the new window dimensions; note that width and
@@ -92,7 +89,7 @@ impl WindowEventDispatcher {
                 self.down_keys[my_key.clone() as usize] = false;
                 channel.publish(WindowEvent::new(Event::KeyReleased(my_key)));
               }
-  
+              
               _ => {} // glfw::Action::Repeat => self.receive_event(Event::KeyDown(my_key), None),
             }
           }
@@ -114,6 +111,7 @@ impl WindowEventDispatcher {
         _ => {}
       }
       // Process IMGUI
+      window.imgui_glfw.handle_event(&mut window.im_context, &event);
     }
     for ind in 0..KeyCode::KeyCodeLength as usize {
       if self.down_keys[ind] {
@@ -131,7 +129,6 @@ impl WindowEventDispatcher {
 impl Default for WindowEventDispatcher {
   fn default() -> Self {
     WindowEventDispatcher {
-      count: 0,
       last_mouse_pos: None,
       down_keys: (0..KeyCode::KeyCodeLength as usize).map(|_| false).collect(),
       down_mouse: (0..MouseButton::MouseButtonLength as usize).map(|_| false).collect(),

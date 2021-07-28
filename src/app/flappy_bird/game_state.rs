@@ -6,7 +6,7 @@ use app::flappy_bird::WallComponent;
 
 use app::AxisAlignedCubeCollision;
 use ecs::components::{DrawableId, EventReceiver, Material, Player};
-use gui::{Button, GuiInputPanel, LabeledText, LineBreak, InputColor};
+use gui::{Button, GuiInputPanel, LabeledText, LineBreak, InputColor, InputFloat};
 use physics::{CanCollide, Collision};
 use renderer::{Renderer, Uniform};
 use utils::{random, Mat4F, Timer, TimerLike, Timestep, Vec2F, Vec3F};
@@ -81,6 +81,7 @@ impl GameStateSystem {
           if self.state.game_over { "GAME OVER" } else { "RUNNING" },
         )));
         gui.push(Box::from(LabeledText::new("Score", &self.state.score.to_string())));
+        gui.push(Box::from(InputFloat::new("Test Float", 3f32)));
       } else {
         gui.lines[1] = Box::from(LabeledText::new(
           "Game Status",
@@ -123,16 +124,15 @@ impl GameStateSystem {
     for (ent, _wall) in (&data.entities, &data.wall_storage).join() {
       data.updater.insert(ent, Gravity);
     }
-    let mut panel = GuiInputPanel::new("GAME OVER");
-    panel.push(Box::from(LabeledText::new("Max Score:", &self.state.score.to_string())));
-    panel.push(Box::from(InputColor::new("Color Picker")));
-    // panel.push(Box::from(Button::new("Try Again?")));
-    data.updater.insert(self.debugger.expect("No debugger? WAAAT"), panel);
-    let mut transform = TransformComponent::default();
-    transform.push_translation(Vec3F::new(0f32, 0f32, 0f32));
-    data
-      .updater
-      .insert(self.debugger.expect("No debugger? WAAAT"), transform);
+    // let mut panel = GuiInputPanel::new("GAME OVER");
+    // panel.push(Box::from(LabeledText::new("Max Score:", &self.state.score.to_string())));
+    // // panel.push(Box::from(Button::new("Try Again?")));
+    // data.updater.insert(self.debugger.expect("No debugger? WAAAT"), panel);
+    // let mut transform = TransformComponent::default();
+    // transform.push_translation(Vec3F::new(0f32, 0f32, 0f32));
+    // data
+    //   .updater
+    //   .insert(self.debugger.expect("No debugger? WAAAT"), transform);
     self.state.game_over = true;
   }
 }

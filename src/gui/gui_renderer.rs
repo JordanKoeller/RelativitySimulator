@@ -61,7 +61,6 @@ impl GuiRenderer {
     .resizable(true)
     .always_auto_resize(true)
     .movable(true)
-    .inputs(true)
     .save_settings(false)
     .build(|| {
       for line in lines.iter_mut() {

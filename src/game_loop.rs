@@ -1,11 +1,11 @@
-use std::time::Duration;
 use debug::*;
 use ecs::systems::*;
 use events::ReceiverID;
 use gui::GuiRenderer;
 use renderer::Window;
 use specs::prelude::*;
-use utils::{GetMutRef, MutRef, RunningState, RunningEnum, Timestep};
+use std::time::Duration;
+use utils::{GetMutRef, MutRef, RunningEnum, RunningState, Timestep};
 
 pub type SystemsRegistration<'a, 'b> = dyn Fn(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>;
 
@@ -49,21 +49,16 @@ impl<'a, 'b> GameLoop<'a, 'b> {
   }
 
   fn step_frame(&mut self, dispatcher: &mut Dispatcher, step_frame_dispatcher: &mut Dispatcher) -> bool {
-    let running_state = {
-      self.world.read_resource::<RunningState>().state.clone()
-    };
+    let running_state = { self.world.read_resource::<RunningState>().state.clone() };
     let window_open = self.window.borrow().is_open().clone();
-    self.world.maintain();
     sync_running_state(&running_state);
     gl_check_error!("FRAME MESSAGE");
-    match running_state {
+    let ret = match running_state {
       RunningEnum::Running => {
         dispatcher.dispatch(&self.world);
         window_open
       }
-      RunningEnum::Stopped => {
-        false
-      }
+      RunningEnum::Stopped => false,
       RunningEnum::StepFrame => {
         dispatcher.dispatch(&self.world);
         let mut running = self.world.write_resource::<RunningState>();
@@ -73,10 +68,11 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       RunningEnum::StepFrameWait => {
         step_frame_dispatcher.dispatch(&self.world);
         window_open
-      }
-      // _ => {window_open}
-    }
-  // self.world.maintain();
+      } // _ => {window_open}
+    };
+    self.world.maintain();
+    ret
+    // self.world.maintain();
     // let window_ref = self.window.borrow();
     // self.world.read_resource::<Running>().0 && window_ref.is_open()
   }
@@ -89,7 +85,6 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       let window_handle3 = MutRef::clone(&self.window);
       let dispatcher = DispatcherBuilder::new()
         .with_thread_local(RegisterDrawableSystem)
-        .with(EventProcessingSystem::default(), "event processing", &[])
         .with(ParticleUpdater, "particle_updater", &[])
         .with_barrier();
       let dispatcher = func(dispatcher);
@@ -99,6 +94,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
           window: window_handle1,
           receiver_id: self.r_id,
         })
+        .with_thread_local(EventProcessingSystem::default())
         .with_thread_local(RenderPipelineSystem::new(window_handle, self.r_id))
         .with_thread_local(GuiRenderer { window: window_handle2 })
         .with_thread_local(EndFrameSystem { window: window_handle3 })
@@ -114,11 +110,11 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     let window_handle2 = MutRef::clone(&self.window);
     let window_handle3 = MutRef::clone(&self.window);
     DispatcherBuilder::new()
-      .with_thread_local(EventProcessingSystem::default())
       .with_thread_local(StartFrameSystem {
         window: window_handle,
-        receiver_id: self.r_id
+        receiver_id: self.r_id,
       })
+      .with_thread_local(EventProcessingSystem::default())
       .with_thread_local(RenderPipelineSystem::new(window_handle1, self.r_id))
       .with_thread_local(GuiRenderer { window: window_handle2 })
       .with_thread_local(EndFrameSystem { window: window_handle3 })
