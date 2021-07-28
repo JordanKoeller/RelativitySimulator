@@ -58,7 +58,6 @@ impl Timer {
 impl TimerLike for Timer {
   fn poll(&mut self, time: Duration) -> bool {
     if let Some(next_time) = self.next_timestamp {
-      step_debug!(format!("Comparing {:?} to {:?}", next_time, time));
       if time >= next_time {
         self.next_timestamp = self.next_timestamp.map(|nt| nt + self.interval);
         true

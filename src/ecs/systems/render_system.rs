@@ -202,25 +202,25 @@ impl<'a> System<'a> for RenderPipelineSystem {
     let start_time = self.window.borrow().glfw_token.get_time();
     let draw_call_count = self.render(&mut system_data);
     let end_time = self.window.borrow().glfw_token.get_time();
-    #[cfg(feature = "debug")]
-    if let Some(e_id) = self.entity_handle {
-      let mut panel = system_data
-        .gui
-        .get_mut(e_id)
-        .expect("Could not get UI Panel for RenderPipelineSystem");
-      self.draw_diagnostics(
-        &mut panel,
-        draw_call_count,
-        Duration::from_secs_f64(end_time - start_time),
-      );
-    }
+    // #[cfg(feature = "debug")]
+    // if let Some(e_id) = self.entity_handle {
+    //   let mut panel = system_data
+    //     .gui
+    //     .get_mut(e_id)
+    //     .expect("Could not get UI Panel for RenderPipelineSystem");
+    //   self.draw_diagnostics(
+    //     &mut panel,
+    //     draw_call_count,
+    //     Duration::from_secs_f64(end_time - start_time),
+    //   );
+    // }
   }
 
   fn setup(&mut self, world: &mut World) {
     self.entity_handle = Some(
       world
         .create_entity()
-        .with(GuiInputPanel::new("Renderer Diagnostics"))
+        // .with(GuiInputPanel::new("Renderer Diagnostics"))
         .build(),
     );
   }
@@ -255,9 +255,9 @@ impl RenderPipelineSystem {
     )
   }
 
-  fn end_frame<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
-    system_data.renderer.end_frame(&mut self.window.borrow_mut());
-  }
+  // fn end_frame<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
+  //   system_data.renderer.end_frame(&mut self.window.borrow_mut());
+  // }
 
   fn draw_diagnostics(&self, panel: &mut GuiInputPanel, draw_calls: u32, render_time: Duration) {
     if panel.empty() {

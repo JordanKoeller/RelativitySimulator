@@ -130,11 +130,20 @@ impl Widget for InputColor {
 pub struct Button {label: ImString, clicked: bool}
 impl Widget for Button {
   fn render<'ui> (&mut self, ui: &Ui<'ui>) {
-    let clicked = ui.button(&self.label, [30f32, 40f32]);
+    let clicked = ui.button(&self.label, [80f32, 30f32]);
     self.clicked = clicked;
   }
 
   fn get_bool(&self) -> bool {
     self.clicked
+  }
+}
+
+impl Button {
+  pub fn new(label: &str) -> Self {
+    Self {
+      label: ImString::from(label.to_string()),
+      clicked: false,
+    }
   }
 }

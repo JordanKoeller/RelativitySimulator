@@ -7,6 +7,7 @@ use utils::Vec2F;
 use super::{Event, StatelessEventChannel, EventChannel, EventPayload, KeyCode, MouseButton};
 
 use renderer::Window;
+use debug::*;
 
 #[derive(Clone, Debug)]
 pub struct WindowEvent {
@@ -48,6 +49,7 @@ pub struct WindowEventDispatcher {
   last_mouse_pos: Option<Vec2F>,
   down_keys: Vec<bool>,
   down_mouse: Vec<bool>,
+  count: u32,
 }
 
 impl WindowEventDispatcher {
@@ -55,6 +57,8 @@ impl WindowEventDispatcher {
     channel.clear_events();
     for (_, event) in glfw::flush_messages(&window.events) {
       // Process Application Events
+      self.count += 1;
+      window.imgui_glfw.handle_event(&mut window.im_context, &event);
       match event {
         glfw::WindowEvent::FramebufferSize(width, height) => {
           // make sure the viewport matches the new window dimensions; note that width and
@@ -110,7 +114,6 @@ impl WindowEventDispatcher {
         _ => {}
       }
       // Process IMGUI
-      window.imgui_glfw.handle_event(&mut window.im_context, &event);
     }
     for ind in 0..KeyCode::KeyCodeLength as usize {
       if self.down_keys[ind] {
@@ -128,6 +131,7 @@ impl WindowEventDispatcher {
 impl Default for WindowEventDispatcher {
   fn default() -> Self {
     WindowEventDispatcher {
+      count: 0,
       last_mouse_pos: None,
       down_keys: (0..KeyCode::KeyCodeLength as usize).map(|_| false).collect(),
       down_mouse: (0..MouseButton::MouseButtonLength as usize).map(|_| false).collect(),
@@ -135,49 +139,3 @@ impl Default for WindowEventDispatcher {
   }
 }
 
-// use events::*;
-// use renderer::Window;
-// use utils::*;
-
-// pub struct WindowEventManager {
-//   event_inbox: HashMap<Event, Option<EventPayload>>,
-//   subscribed_events: HashMap<Event, u32>,
-//   inboxes: HashMap<ReceiverID, HashSet<Event>>,
-//   last_mouse_pos: Option<Vec2F>,
-// }
-
-// impl EventDispatcher for WindowEventManager {
-//   fn global_event_inbox_mut(&mut self) -> &mut HashMap<Event, Option<EventPayload>> {
-//     &mut self.event_inbox
-//   }
-//   fn global_subscribed_events_mut(&mut self) -> &mut HashMap<Event, u32> {
-//     &mut self.subscribed_events
-//   }
-//   fn receiver_inboxes_mut(&mut self) -> &mut HashMap<ReceiverID, HashSet<Event>> {
-//     &mut self.inboxes
-//   }
-
-//   fn global_event_inbox(&self) -> &HashMap<Event, Option<EventPayload>> {
-//     &self.event_inbox
-//   }
-//   fn global_subscribed_events(&self) -> &HashMap<Event, u32> {
-//     &self.subscribed_events
-//   }
-//   fn receiver_inboxes(&self) -> &HashMap<ReceiverID, HashSet<Event>> {
-//     &self.inboxes
-//   }
-// }
-
-// impl WindowEventManager {
-// }
-
-// impl Default for WindowEventManager {
-//   fn default() -> WindowEventManager {
-//     WindowEventManager {
-//       event_inbox: HashMap::new(),
-//       subscribed_events: HashMap::new(),
-//       inboxes: HashMap::new(),
-//       last_mouse_pos: None,
-//     }
-//   }
-// }

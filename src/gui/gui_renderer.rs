@@ -1,6 +1,8 @@
 use imgui::*;
 use specs::prelude::*;
 
+use physics::TransformComponent;
+
 use renderer::Window;
 use utils::MutRef;
 
@@ -13,29 +15,41 @@ pub struct GuiRenderer {
 }
 
 impl<'a> System<'a> for GuiRenderer {
-  type SystemData = (WriteStorage<'a, GuiInputPanel>,);
+  type SystemData = (
+    WriteStorage<'a, GuiInputPanel>,
+    ReadStorage<'a, TransformComponent>,
+  );
 
-  fn run(&mut self, (mut overlay_store,): Self::SystemData) {
-    let mut y = 0f32;
-    for (overlay,) in (&mut overlay_store,).join() {
-      // let pid = self.get_registered_panel(overlay);
-      let mut window = self.window.borrow_mut();
-      self.render_panel(&mut window, y, overlay);
-      y += overlay.height() * 2f32 + 10f32;
+  fn run(&mut self, (mut overlay_store, transform_storage): Self::SystemData) {
+    let mut window = self.window.borrow_mut();
+    let mut auto_pos = [10f32, 0f32];
+    for (overlay, transform_opt) in (&mut overlay_store, transform_storage.maybe()).join() {
+      if !overlay.empty() {
+        // if let Some(transform) = transform_opt {
+        //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
+        //   self.render_panel(&mut window, &xy, overlay)
+        // } else {
+          self.render_panel(&mut window, &auto_pos, overlay);
+          auto_pos[1] += overlay.height() * 2f32 + 10f32;
+        // }
+      }
     }
+  }
+
+  fn setup(&mut self, _world: &mut World) {
+
   }
 }
 
 impl GuiRenderer {
-  fn render_panel(&self, window: &mut Window, height: f32, panel: &mut GuiInputPanel) {
+  fn render_panel(&self, window: &mut Window, window_pos: &[f32; 2], panel: &mut GuiInputPanel) {
     let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
-    let window_pos = [10f32, height];
     // let ui = window.get_ui();
     {
       let _token = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
     }
     let title = panel.title.clone();
-    GuiRenderer::render_panel_helper(&ui, title, window_pos, &mut panel.lines, &mut panel.active);
+    GuiRenderer::render_panel_helper(&ui, title, window_pos.clone(), &mut panel.lines, &mut panel.active);
     window.imgui_glfw.draw(ui, &mut window.window);
   }
 
@@ -46,7 +60,8 @@ impl GuiRenderer {
     .title_bar(true)
     .resizable(true)
     .always_auto_resize(true)
-    .movable(false)
+    .movable(true)
+    .inputs(true)
     .save_settings(false)
     .build(|| {
       for line in lines.iter_mut() {
