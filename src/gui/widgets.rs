@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use specs::{Component, VecStorage};
-use imgui::{ImString, Ui};
+use imgui::{ImString, Ui, SliderFloat};
 use utils::{SyncMutRef, getSyncMutRef, Color};
 
 /******************************
@@ -101,12 +101,19 @@ impl InputFloat {
 }
 impl Widget for InputFloat {
   fn render<'ui> (&mut self, ui: &Ui<'ui>) {
-      ui.input_float(&self.label, &mut self.value).build();
+    let slider = SliderFloat::new(ui, &self.label, &mut self.value, 0f32, 10f32);
+    slider.build();
+      // ui.input_float(&self.label, &mut self.value).build();
   }
   fn get_float(&self) -> f32 {
     self.value
   }
 }
+// OverlayLine::IntInput(label, value) => {
+//   let v = ImString::from(label.clone());
+//   let slider = SliderInt::new(ui, &v, value, 0, 100);
+//   slider.build();
+// }
 
 pub struct InputColor {label: ImString, value: [f32; 3]}
 impl InputColor {
