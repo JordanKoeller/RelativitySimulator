@@ -9,7 +9,7 @@ use physics::CanCollide;
 use events::{Event, EventChannel, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
 use renderer::{Drawable, Mesh};
 use shapes::Sprite;
-use gui::{GuiInputPanel, LabeledText, LineBreak};
+use gui::{GuiInputPanel, LabeledText, LineBreak, UiComponent, DebugPanel};
 
 use utils::{Vec2F, Vec3F, Timestep, Mat4F, random, QuatF, Timer, TimerLike};
 
@@ -50,11 +50,10 @@ impl<'a> System<'a> for PlayerSystem {
     Write<'a, StatelessEventChannel<WindowEvent>>,
     Write<'a, StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>>,
     Read<'a, Timestep>,
-    WriteStorage<'a, GuiInputPanel>,
   );
 
-  fn run(&mut self, (p_storage, mut transform_storage, mut rigid_storage, e_storage, channel, mut spawner, dt, mut debugger): Self::SystemData) {
-    for (_p, transform, rigid_body, events, ui) in (&p_storage, &mut transform_storage, &mut rigid_storage, &e_storage, &mut debugger).join() {
+  fn run(&mut self, (p_storage, mut transform_storage, mut rigid_storage, e_storage, channel, mut spawner, dt,): Self::SystemData) {
+    for (_p, transform, rigid_body, events,) in (&p_storage, &mut transform_storage, &mut rigid_storage, &e_storage,).join() {
       channel.for_each(&events.0, |evt| {
         match evt.code {
           Event::KeyDown(KeyCode::Space) => {
@@ -78,12 +77,6 @@ impl<'a> System<'a> for PlayerSystem {
       for _ in 0..self.tail_spawn_timer.start_poll_all(dt.curr_time()) {
         self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
       }
-      if ui.empty() {
-        ui.push(Box::from(LineBreak));
-        ui.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Player Pos")));
-      } else {
-        ui.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Player Pos"));
-      }
     }
   }
 
@@ -98,6 +91,8 @@ impl<'a> System<'a> for PlayerSystem {
     };
     let sprite = Sprite::new("resources/flappy_bird/ship.png", false);
     let pos = Vec3F::unit_x() * 4f32;
+    let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
+    tc.rotation = Vec3F::unit_y() * 90f32;
     // world.setup::<Self::SystemData>();
     world.register::<Player>();
     world.register::<RigidBody>();
@@ -105,10 +100,8 @@ impl<'a> System<'a> for PlayerSystem {
     world.register::<EventReceiver>();
     world.register::<Gravity>();
     world.register::<MeshComponent>();
-    world.register::<GuiInputPanel>();
+    world.register::<UiComponent>();
     world.register::<CanCollide>();
-    let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
-    tc.rotation = Vec3F::unit_y() * 90f32;
     world
       .create_entity()
       .with(Player)
@@ -119,7 +112,7 @@ impl<'a> System<'a> for PlayerSystem {
       .with(sprite.mesh_component())
       .with(sprite.material())
       .with(CanCollide {radius: 0.5f32})
-      .with(GuiInputPanel::new("Player"))
+      .with(UiComponent::new("Player"))
       .build();
   }
 }

@@ -11,6 +11,7 @@ use debug::{gl_debug_output, print_limits};
 pub type InputEvent = std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>;
 pub type GLFW = glfw::Glfw;
 
+
 pub struct Window {
   pub events: InputEvent,
   pub glfw_token: GLFW,

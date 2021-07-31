@@ -1,4 +1,5 @@
 use specs::prelude::*;
+use specs::{Component, VecStorage, NullStorage, HashMapStorage};
 use super::Widget;
 
 pub struct GuiInputPanel {
@@ -6,10 +7,6 @@ pub struct GuiInputPanel {
   pub lines: Vec<Box<dyn Widget + Sync + Send>>,
   pub active: bool,
   pub renderer_id: Option<usize>,
-}
-
-impl Component for GuiInputPanel {
-  type Storage = HashMapStorage<Self>;
 }
 
 
@@ -35,3 +32,33 @@ impl GuiInputPanel {
     }
   }
 }
+
+#[derive(Component)]
+#[storage(HashMapStorage)]
+pub struct UiComponent {
+  pub panel: GuiInputPanel,
+}
+
+impl UiComponent {
+  pub fn new(title: &str) -> Self {
+    Self {
+      panel: GuiInputPanel::new(title)
+    }
+  }
+}
+
+
+#[derive(Component)]
+#[storage(HashMapStorage)]
+pub struct DebugPanel {
+  pub panel: GuiInputPanel,
+}
+
+impl DebugPanel {
+  pub fn new(title: &str) -> Self {
+    Self {
+      panel: GuiInputPanel::new(title)
+    }
+  }
+}
+

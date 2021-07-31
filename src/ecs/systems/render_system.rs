@@ -115,7 +115,6 @@ pub struct RenderSystemData<'a> {
   renderer: Write<'a, Renderer>,
   timestep: Write<'a, Timestep>,
   render_queue: Write<'a, RenderQueue>,
-  gui: WriteStorage<'a, GuiInputPanel>,
 }
 
 pub struct RenderPipelineSystem {

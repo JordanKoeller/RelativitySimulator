@@ -4,7 +4,7 @@ use cgmath::{Deg, Rad};
 
 use utils::*;
 use ecs::components::*;
-use gui::{GuiInputPanel, LabeledText, LineBreak};
+use gui::{GuiInputPanel, LabeledText, LineBreak, DebugPanel};
 use events::*;
 
 use physics::{TransformComponent, RigidBody};
@@ -14,7 +14,7 @@ pub struct CameraDebugger;
 impl<'a> System<'a> for CameraDebugger {
   type SystemData = (
     WriteStorage<'a, TransformComponent>,
-    WriteStorage<'a, GuiInputPanel>,
+    WriteStorage<'a, DebugPanel>,
     WriteStorage<'a, Camera>,
     ReadStorage<'a, EventReceiver>,
     Write<'a, StatelessEventChannel<WindowEvent>>,
@@ -51,23 +51,23 @@ impl<'a> System<'a> for CameraDebugger {
       self.refresh_camera(&transform, &mut camera);
 
       // Then I work on updating the panel
-      if panel.empty() {
-        panel.push(Box::from(LineBreak));
-        panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
-        panel.push(Box::from(LabeledText::new(&to_string!(transform.front()), "Forward")));
-        panel.push(Box::from(LabeledText::new(
+      if panel.panel.empty() {
+        panel.panel.push(Box::from(LineBreak));
+        panel.panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
+        panel.panel.push(Box::from(LabeledText::new(&to_string!(transform.front()), "Forward")));
+        panel.panel.push(Box::from(LabeledText::new(
           &format!("{0:.3}", dt.dt().as_millis()),
           "Frame Time",
         )));
-        panel.push(Box::from(LabeledText::new(
+        panel.panel.push(Box::from(LabeledText::new(
           &format!("{0:.3}", dt.render_dt().as_millis()),
           "Render Time",
         )));
       } else {
-        panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
-        panel.lines[2] = Box::from(LabeledText::new(&to_string!(transform.front()), "Forward"));
-        panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.dt().as_millis()), "Frame Time"));
-        panel.lines[4] = Box::from(LabeledText::new(&format!("{0:.3}", dt.render_dt().as_millis()), "Render Time"));
+        panel.panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
+        panel.panel.lines[2] = Box::from(LabeledText::new(&to_string!(transform.front()), "Forward"));
+        panel.panel.lines[3] = Box::from(LabeledText::new(&format!("{0:.3}", dt.dt().as_millis()), "Frame Time"));
+        panel.panel.lines[4] = Box::from(LabeledText::new(&format!("{0:.3}", dt.render_dt().as_millis()), "Render Time"));
       }
     }
   }
@@ -85,14 +85,14 @@ impl<'a> System<'a> for CameraDebugger {
         // WindowEvent::new(Event::MouseMoved),
         ]))
     };
-    world.register::<GuiInputPanel>();
+    world.register::<DebugPanel>();
     world.register::<Camera>();
     let mut tc = TransformComponent::new(Vec3F::unit_z() * -20f32, Vec3F::new(1f32, 1f32, 1f32), QuatF::from_angle_x(Rad::from(Deg(90f32))));
     tc.rotation = Vec3F::unit_y() * 90f32;
     world.create_entity()
       .with(Camera::default())
       .with(tc)
-      .with(GuiInputPanel::new("Camera Info"))
+      .with(DebugPanel::new("Camera Info"))
       .with(receiver)
       .build();
   }

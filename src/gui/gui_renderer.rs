@@ -6,43 +6,58 @@ use physics::TransformComponent;
 use renderer::Window;
 use utils::MutRef;
 
-use super::{GuiInputPanel, Widget};
+use super::{GuiInputPanel, Widget, UiComponent, DebugPanel};
 
 pub struct GuiRenderer {
   pub window: MutRef<Window>,
 }
 
 impl<'a> System<'a> for GuiRenderer {
-  type SystemData = (WriteStorage<'a, GuiInputPanel>, ReadStorage<'a, TransformComponent>);
+  type SystemData = (
+    WriteStorage<'a, DebugPanel>, 
+    WriteStorage<'a, UiComponent>, 
+    ReadStorage<'a, TransformComponent>);
 
-  fn run(&mut self, (mut overlay_store, transform_storage): Self::SystemData) {
+  fn run(&mut self, data: Self::SystemData) {
     let mut window = self.window.borrow_mut();
-    let mut auto_pos = [10f32, 0f32];
-    for (overlay, transform_opt) in (&mut overlay_store, transform_storage.maybe()).join() {
-      if !overlay.empty() {
-        // if let Some(transform) = transform_opt {
-        //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
-        //   self.render_panel(&mut window, &xy, overlay)
-        // } else {
-        self.render_panel(&mut window, &auto_pos, overlay);
-        auto_pos[1] += overlay.height() * 2f32 + 10f32;
-        // }
-      }
-    }
+    self.run_helper(&mut window, data)
   }
-
   fn setup(&mut self, _world: &mut World) {}
 }
 
 impl GuiRenderer {
-  fn render_panel(&self, window: &mut Window, window_pos: &[f32; 2], panel: &mut GuiInputPanel) {
-    let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
-    // let ui = window.get_ui();
-    // {
-    ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
-    // }
+  fn render_panel<'ui>(&self, window_pos: &[f32; 2], panel: &mut GuiInputPanel, ui: &imgui::Ui<'ui>) {
     let title = panel.title.clone();
     GuiRenderer::render_panel_helper(&ui, title, window_pos.clone(), &mut panel.lines, &mut panel.active);
+  }
+  fn run_helper(&self, window: &mut Window, (mut debugger_storage, mut overlay_store, transform_storage): <Self as System>::SystemData) {
+    let mut auto_pos = [10f32, 0f32];
+    let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
+    {
+      let _ = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
+    }
+    for (overlay, transform_opt) in (&mut overlay_store, transform_storage.maybe()).join() {
+      if !overlay.panel.empty() {
+        // if let Some(transform) = transform_opt {
+        //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
+        //   self.render_panel(&xy, &mut overlay.panel, &ui);
+        // } else {
+          self.render_panel(&auto_pos, &mut overlay.panel, &ui);
+          auto_pos[1] += overlay.panel.height() * 2f32 + 10f32;
+        // }
+      }
+    }
+    for (overlay, transform_opt) in (&mut debugger_storage, transform_storage.maybe()).join() {
+      if !overlay.panel.empty() {
+        // if let Some(transform) = transform_opt {
+        //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
+        //   self.render_panel(&xy, &mut overlay.panel, &ui);
+        // } else {
+          self.render_panel(&auto_pos, &mut overlay.panel, &ui);
+          auto_pos[1] += overlay.panel.height() * 2f32 + 10f32;
+        // }
+      }
+    }
     window.imgui_glfw.draw(ui, &mut window.window);
   }
 

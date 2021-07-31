@@ -23,7 +23,7 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
       .with(CameraDebugger, "camera_debugger", &[])
       .with(WallSpawner::default(), "wall_spawner", &[])
       .with(
-        GameStateSystem::default(),
+        SystemManager::<GameStateSystem>::default(),
         "game_state",
         &["player_controller", "wall_spawner"],
       )

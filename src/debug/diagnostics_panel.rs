@@ -12,7 +12,7 @@ impl<'a> System<'a> for DiagnosticsPanel {
     WriteStorage<'a, Player>,
     ReadStorage<'a, TransformComponent>,
     ReadStorage<'a, RigidBody>,
-    WriteStorage<'a, GuiInputPanel>,
+    WriteStorage<'a, DebugPanel>,
     Read<'a, Timestep>,
   );
 
@@ -20,17 +20,17 @@ impl<'a> System<'a> for DiagnosticsPanel {
     for (_player, transform, _rigid_body, panel) in
       (&mut s_player, &s_transform, &s_rigid, &mut s_panel).join()
     {
-      if panel.empty() {
-        panel.push(Box::from(LineBreak));
-        panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
-        panel.push(Box::from(LabeledText::new(
+      if panel.panel.empty() {
+        panel.panel.push(Box::from(LineBreak));
+        panel.panel.push(Box::from(LabeledText::new(&to_string!(transform.translation), "Position")));
+        panel.panel.push(Box::from(LabeledText::new(
           &format!("{0:.3}", timestep.dt().as_millis()),
           "Frame Time",
         )));
       } else {
-        panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
+        panel.panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
         // panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", rigid_body.beta()), "Beta"));
-        panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.dt().as_millis()), "Frame Time"));
+        panel.panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.dt().as_millis()), "Frame Time"));
       }
     }
   }

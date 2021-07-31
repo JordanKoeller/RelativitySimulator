@@ -10,9 +10,10 @@ use shapes::Sprite;
 use utils::random;
 use utils::*;
 
-use physics::{RigidBody, TransformComponent};
+use physics::{RigidBody, TransformComponent, Gravity};
 
 use app::AxisAlignedCubeCollision;
+use app::flappy_bird::{GameState, GameStateEnum};
 
 #[derive(Component, Default, Debug)]
 #[storage(NullStorage)]
@@ -32,15 +33,25 @@ pub struct WallSpawner {
 }
 
 impl<'a> System<'a> for WallSpawner {
-  type SystemData = (Entities<'a>, Read<'a, LazyUpdate>, Read<'a, Timestep>);
+  type SystemData = (
+    Entities<'a>,
+    Read<'a, LazyUpdate>,
+    Read<'a, Timestep>,
+    Read<'a, GameState>
+  );
 
-  fn run(&mut self, (entities, lazy_update, dt): Self::SystemData) {
+  fn run(&mut self, (entities, lazy_update, dt, game_state): Self::SystemData) {
     if self.spawn_timer.start_poll(dt.curr_time()) {
       let wall_data = self.generate_wall();
       let ent1 = lazy_update.create_entity(&entities);
       let ent2 = lazy_update.create_entity(&entities);
-      self.spawn_pipe(0f32, wall_data.gap_start, wall_data.speed, 1f32, ent1);
-      self.spawn_pipe(wall_data.gap_end, 1f32, wall_data.speed, -1f32, ent2);
+      match game_state.state {
+        GameStateEnum::Playing => {
+          self.spawn_pipe(0f32, wall_data.gap_start, wall_data.speed, 1f32, ent1, &game_state.state);
+          self.spawn_pipe(wall_data.gap_end, 1f32, wall_data.speed, -1f32, ent2, &game_state.state);
+        },
+        _ => {}
+      }
     }
   }
 
@@ -64,7 +75,7 @@ impl WallSpawner {
     }
   }
 
-  fn spawn_pipe<'a>(&self, start: f32, end: f32, speed: f32, invert: f32, ent: specs::world::LazyBuilder<'a>) {
+  fn spawn_pipe<'a>(&self, start: f32, end: f32, speed: f32, invert: f32, ent: specs::world::LazyBuilder<'a>, running_state: &GameStateEnum) {
     let half_height = 8.25f32;
     let scaled_start = lerp(0f32, 1f32, -half_height, half_height, start);
     let scaled_end = lerp(0f32, 1f32, -half_height, half_height, end);
@@ -73,7 +84,7 @@ impl WallSpawner {
     let transform = TransformComponent::new(position, scaled, QuatF::zero());
     // let position = Vec3F::unit_x();
     if let Some(d_id) = &self.id {
-      ent
+      let b = ent
         .with(Particle {
           lifetime: Duration::from_secs(10),
         })
@@ -82,8 +93,12 @@ impl WallSpawner {
         .with(self.material.clone().expect("Material was NONE on the wall spawner"))
         .with(AxisAlignedCubeCollision::from_transform(&transform))
         .with(transform)
-        .with(WallComponent)
-        .build();
+        .with(WallComponent);
+      let b = match running_state {
+        GameStateEnum::GameOver => {b.with(Gravity)},
+        GameStateEnum::Playing => {b}
+      };
+      b.build();
     }
   }
 }
