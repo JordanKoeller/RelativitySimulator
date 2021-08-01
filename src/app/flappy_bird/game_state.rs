@@ -28,12 +28,14 @@ impl Default for GameStateEnum {
 pub struct GameState {
   pub score: u32,
   pub state: GameStateEnum,
+  pub best_score: u32,
 }
 
 impl Default for GameState {
   fn default() -> Self {
     Self {
       score: 0,
+      best_score: 0,
       state: GameStateEnum::default(),
     }
   }
@@ -71,16 +73,20 @@ impl<'a> SystemDelegate<'a> for GameStateSystem {
       }
       _ => {}
     }
+    if data.game_state.score > data.game_state.best_score {
+      data.game_state.best_score = data.game_state.score;
+    }
   }
 
   fn setup_debug_panel(&mut self, _world: &mut World) -> Option<DebugPanel> {
     let mut gui = DebugPanel::new("Game State");
+    gui.panel.push(Box::from(LabeledText::new("Best Score", "")));
     gui.panel.push(Box::from(LabeledText::new("Score", "")));
     Some(gui)
   }
 
   fn update_debugger(&mut self, data: &mut Self::SystemData, debugger: &mut DebugPanel) {
-    if let Some(button) = debugger.panel.lines.get(1) {
+    if let Some(button) = debugger.panel.lines.get(2) {
       if button.get_bool() {
         data.game_state.score = 0;
         data.game_state.state = GameStateEnum::Playing;
@@ -96,14 +102,15 @@ impl<'a> SystemDelegate<'a> for GameStateSystem {
     }
     match (*data.game_state).state {
       GameStateEnum::Playing => {
-        debugger.panel.lines[0] = Box::from(LabeledText::new("Score", &data.game_state.score.to_string()));
+        debugger.panel.lines[0] = Box::from(LabeledText::new("Best Score", &data.game_state.best_score.to_string()));
+        debugger.panel.lines[1] = Box::from(LabeledText::new("Score", &data.game_state.score.to_string()));
       }
       GameStateEnum::GameOver => {
-        debugger.panel.lines[0] = Box::from(LabeledText::new("Max Score:", &data.game_state.score.to_string()));
-        if debugger.panel.lines.len() == 1 {
+        debugger.panel.lines[0] = Box::from(LabeledText::new("Best Score:", &data.game_state.best_score.to_string()));
+        if debugger.panel.lines.len() == 2 {
           debugger.panel.push(Box::from(Button::new("Try Again?")));
         }
-        debugger.panel.lines[1] = Box::from(Button::new("Try Again?"));
+        debugger.panel.lines[2] = Box::from(Button::new("Try Again?"));
       }
     }
   }
