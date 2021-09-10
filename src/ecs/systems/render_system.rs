@@ -4,6 +4,8 @@ use cgmath::prelude::*;
 use specs::prelude::SystemData;
 use specs::prelude::*;
 
+use ecs::SystemDelegate;
+
 use ecs::components::{Camera, DrawableId, Material, MeshComponent, Player};
 use events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher};
 use gui::*;
@@ -34,9 +36,6 @@ impl<'a> System<'a> for StartFrameSystem {
   ) {
     let mut window = self.window.borrow_mut();
     timestep.click_frame(Duration::from_secs_f64(window.glfw_token.get_time()));
-    // let delta = window.glfw_token.get_time() as f32 - self.last_time;
-    // self.last_time = self.last_time + delta;
-    // timestep.set_click(delta);
     window.poll_events();
     window_events.process_events(&mut events, &mut window);
     events.for_each(&self.receiver_id, |window_evt| match window_evt.code {
@@ -120,7 +119,8 @@ pub struct RenderSystemData<'a> {
 pub struct RenderPipelineSystem {
   window: MutRef<Window>,
   event_receiver_id: ReceiverID,
-  entity_handle: Option<Entity>,
+  draw_call_count: u32,
+  render_time: Duration,
 }
 
 impl RenderPipelineSystem {
@@ -128,12 +128,13 @@ impl RenderPipelineSystem {
     Self {
       window,
       event_receiver_id: id,
-      entity_handle: None,
+      draw_call_count: 0u32,
+      render_time: Duration::new(0u64, 0u32),
     }
   }
 }
 
-impl<'a> System<'a> for RenderPipelineSystem {
+impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
   type SystemData = RenderSystemData<'a>;
 
   fn run(&mut self, mut system_data: Self::SystemData) {
@@ -146,27 +147,27 @@ impl<'a> System<'a> for RenderPipelineSystem {
     let start_time = self.window.borrow().glfw_token.get_time();
     let draw_call_count = self.render(&mut system_data);
     let end_time = self.window.borrow().glfw_token.get_time();
-    // #[cfg(feature = "debug")]
-    // if let Some(e_id) = self.entity_handle {
-    //   let mut panel = system_data
-    //     .gui
-    //     .get_mut(e_id)
-    //     .expect("Could not get UI Panel for RenderPipelineSystem");
-    //   self.draw_diagnostics(
-    //     &mut panel,
-    //     draw_call_count,
-    //     Duration::from_secs_f64(end_time - start_time),
-    //   );
-    // }
+    self.render_time = Duration::from_secs_f64(end_time - start_time);
+    self.draw_call_count = draw_call_count;
+  }
+
+  fn update_debugger(&mut self, data: &mut Self::SystemData, gui: &mut DebugPanel) {
+    gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
+    gui.panel.lines[2] = Box::from(LabeledText::new(
+      "GPU Render Time",
+      &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
+    ));
   }
 
   fn setup(&mut self, world: &mut World) {
-    self.entity_handle = Some(
-      world
-        .create_entity()
-        // .with(GuiInputPanel::new("Renderer Diagnostics"))
-        .build(),
-    );
+  }
+
+  fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
+    let mut ui = DebugPanel::new("Renderer Debugger");
+    ui.panel.push(Box::from(LineBreak));
+    ui.panel.push(Box::from(LabeledText::new("Draw Calls", "")));
+    ui.panel.push(Box::from(LabeledText::new("GPU Render Time", "")));
+    Some(ui)
   }
 }
 
@@ -191,7 +192,7 @@ impl RenderPipelineSystem {
     renderer.init_frame(&mut self.window.borrow_mut());
   }
 
-  fn render<'a, 'b>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) -> u32 {
+  fn render<'a, 'b>(&mut self, system_data: &mut <Self as SystemDelegate<'a>>::SystemData) -> u32 {
     system_data.renderer.render_scene(
       system_data.render_queue.consume(),
       &system_data.material_s,
@@ -200,20 +201,5 @@ impl RenderPipelineSystem {
   }
 
 
-  fn draw_diagnostics(&self, panel: &mut GuiInputPanel, draw_calls: u32, render_time: Duration) {
-    if panel.empty() {
-      panel.push(Box::from(LineBreak));
-      panel.push(Box::from(LabeledText::new("Draw Calls", &draw_calls.to_string())));
-      panel.push(Box::from(LabeledText::new(
-        "GPU Render Time",
-        &format!("{0:.3}", render_time.as_secs_f32() * 1000f32),
-      )));
-    } else {
-      panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &draw_calls.to_string()));
-      panel.lines[2] = Box::from(LabeledText::new(
-        "GPU Render Time",
-        &format!("{0:.3}", render_time.as_secs_f32() * 1000f32),
-      ));
-    }
-  }
+
 }

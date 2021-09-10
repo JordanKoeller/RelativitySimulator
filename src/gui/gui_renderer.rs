@@ -22,7 +22,10 @@ impl<'a> System<'a> for GuiRenderer {
     let mut window = self.window.borrow_mut();
     self.run_helper(&mut window, data)
   }
-  fn setup(&mut self, _world: &mut World) {}
+  fn setup(&mut self, world: &mut World) {
+    world.register::<DebugPanel>();
+    world.register::<UiComponent>();
+  }
 }
 
 impl GuiRenderer {

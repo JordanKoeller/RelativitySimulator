@@ -100,7 +100,9 @@ pub fn main() {
   // app::build_city(&mut world);
   
   app::flappy_bird::setup_world(&mut world);
+  app::minecraft::setup_world(&mut world);
   let mut runtime = GameLoop::new(window, world, world_id);
-  runtime.with_systems(app::flappy_bird::get_system_registration());
+  runtime.with_systems(app::minecraft::get_system_registration());
+  // runtime.with_systems(app::flappy_bird::get_system_registration());
   runtime.run();
 }

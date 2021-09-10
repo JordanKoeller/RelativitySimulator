@@ -38,6 +38,7 @@ where for <'b> Delegate: SystemDelegate<'b> {
   }
 
   fn setup(&mut self, world: &mut World) {
+    world.register::<DebugPanel>();
     self.delegate.setup(world);
     if let Some(ui_panel) = self.delegate.setup_debug_panel(world) {
       let ett = world.create_entity().with(ui_panel).build();

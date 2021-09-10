@@ -1,5 +1,6 @@
 use debug::*;
 use ecs::systems::*;
+use ecs::{SystemDelegate, SystemManager};
 use events::ReceiverID;
 use gui::GuiRenderer;
 use renderer::Window;
@@ -52,7 +53,6 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     let running_state = { self.world.read_resource::<RunningState>().state.clone() };
     let window_open = self.window.borrow().is_open().clone();
     sync_running_state(&running_state);
-    gl_check_error!("FRAME MESSAGE");
     let ret = match running_state {
       RunningEnum::Running => {
         dispatcher.dispatch(&self.world);
@@ -63,6 +63,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         dispatcher.dispatch(&self.world);
         let mut running = self.world.write_resource::<RunningState>();
         running.state = RunningEnum::StepFrameWait;
+        gl_check_error!("FRAME MESSAGE");
         window_open
       }
       RunningEnum::StepFrameWait => {
@@ -95,7 +96,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
           receiver_id: self.r_id,
         })
         .with_thread_local(EventProcessingSystem::default())
-        .with_thread_local(RenderPipelineSystem::new(window_handle, self.r_id))
+        .with_thread_local(SystemManager::new(RenderPipelineSystem::new(window_handle, self.r_id)))
         .with_thread_local(GuiRenderer { window: window_handle2 })
         .with_thread_local(EndFrameSystem { window: window_handle3 })
         .build()
@@ -115,7 +116,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         receiver_id: self.r_id,
       })
       .with_thread_local(EventProcessingSystem::default())
-      .with_thread_local(RenderPipelineSystem::new(window_handle1, self.r_id))
+      .with_thread_local(SystemManager::new(RenderPipelineSystem::new(window_handle1, self.r_id)))
       .with_thread_local(GuiRenderer { window: window_handle2 })
       .with_thread_local(EndFrameSystem { window: window_handle3 })
       .build()

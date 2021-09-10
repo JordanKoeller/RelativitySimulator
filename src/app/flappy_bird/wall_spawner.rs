@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use ecs::*;
 use renderer::{Drawable, Renderer, Texture};
-use shapes::Sprite;
+use shapes::{Sprite, Block};
 
 use utils::random;
 use utils::*;
@@ -58,7 +58,7 @@ impl<'a> System<'a> for WallSpawner {
   fn setup(&mut self, world: &mut World) {
     world.register::<WallComponent>();
     let mut renderer = world.write_resource::<Renderer>();
-    let state = Sprite::new("resources/flappy_bird/pipe.png", true);
+    let state = Block::new("resources/flappy_bird/pipe.png");
     let d_id = renderer.submit_model(state.mesh());
     self.id = Some(d_id);
     self.material = Some(state.material());

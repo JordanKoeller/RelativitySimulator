@@ -20,11 +20,11 @@ impl SpriteVertex {
   }
 }
 
-static QUAD_VERTICES: [f32; 20] = [
-   0.5f32,  0.5f32, 0.0f32,    1.0f32, 1.0f32, // top right
-   0.5f32, -0.5f32, 0.0f32,    1.0f32, 0.0f32, // bottom right
-  -0.5f32, -0.5f32, 0.0f32,    0.0f32, 0.0f32, // bottom left
-  -0.5f32,  0.5f32, 0.0f32,    0.0f32, 1.0f32  // top left 
+static QUAD_VERTICES: [f32; 32] = [
+   0.5f32,  0.5f32, 0.0f32, 0f32, 0f32, -1f32,   1.0f32, 1.0f32, // top right
+   0.5f32, -0.5f32, 0.0f32, 0f32, 0f32, -1f32,   1.0f32, 0.0f32, // bottom right
+  -0.5f32, -0.5f32, 0.0f32, 0f32, 0f32, -1f32,   0.0f32, 0.0f32, // bottom left
+  -0.5f32,  0.5f32, 0.0f32, 0f32, 0f32, -1f32,   0.0f32, 1.0f32  // top left 
 ];
 
 static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
@@ -41,7 +41,7 @@ impl Sprite {
     let mut mat = Material::new();
     let tex = Texture::from_file(texture);
     // tex.refresh();
-    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]);
+    let layout = BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float3, AttributeType::Float2]);
     let vertex_buff = DataBuffer::static_buffer(&QUAD_VERTICES, layout);
 
     let ind_buff = IndexBuffer::create(QUAD_INDICES.to_vec());

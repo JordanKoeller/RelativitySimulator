@@ -29,7 +29,6 @@ impl<'a> System<'a> for DiagnosticsPanel {
         )));
       } else {
         panel.panel.lines[1] = Box::from(LabeledText::new(&to_string!(transform.translation), "Position"));
-        // panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", rigid_body.beta()), "Beta"));
         panel.panel.lines[2] = Box::from(LabeledText::new(&format!("{0:.3}", timestep.dt().as_millis()), "Frame Time"));
       }
     }
