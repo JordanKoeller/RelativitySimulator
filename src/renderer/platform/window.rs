@@ -71,6 +71,7 @@ impl Window {
       gl::Enable(gl::DEPTH_TEST);
       gl::DepthFunc(gl::LESS);
       gl::ClearColor(0.2, 0.1, 0.0, 1.0);
+      gl::Enable(gl::CULL_FACE);
       // glfw.set_swap_interval(glfw::SwapInterval::None);
       // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
     }

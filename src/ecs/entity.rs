@@ -99,7 +99,7 @@ impl<'a, 'b> MyBuilder<'a, 'b> {
 // // Entity Delegate for doing crud things on entities
 // /////////////////////////////////////////////
 
-pub trait EntityDelegate<'a> {
+pub trait PrefabBuilder<'a> {
   type State: Sync + Send + Clone + std::fmt::Debug + Default + 'static;
   type EntityResources: SystemData<'a>;
 
@@ -111,7 +111,7 @@ pub trait EntityDelegate<'a> {
   ) -> Vec<Entity>;
 
   fn update(&self, _state: &Self::State, _resources: &mut Self::EntityResources, _entity_id: &Entity) {
-    panic!("EntityDelegate::create not implemented for {}", std::any::type_name::<Self>());
+    panic!("PrefabBuilder::create not implemented for {}", std::any::type_name::<Self>());
   }
 
   fn setup_delegate(&mut self, _world: &mut World) {}
@@ -124,7 +124,7 @@ pub trait EntityDelegate<'a> {
 
 pub struct EntityManager<Delegate>
 where
-  for<'a> Delegate: EntityDelegate<'a> + Default,
+  for<'a> Delegate: PrefabBuilder<'a> + Default,
 {
   delegate: Delegate,
   event_receiver_id: ReceiverID,
@@ -132,7 +132,7 @@ where
 
 impl<Delegate> EntityManager<Delegate>
 where
-  for<'a> Delegate: EntityDelegate<'a> + Default,
+  for<'a> Delegate: PrefabBuilder<'a> + Default,
 {
   fn new(delegate: Delegate) -> Self {
     Self {
@@ -144,7 +144,7 @@ where
 
 impl<Delegate> Default for EntityManager<Delegate>
 where
-  for<'a> Delegate: EntityDelegate<'a> + Default,
+  for<'a> Delegate: PrefabBuilder<'a> + Default,
 {
   fn default() -> Self {
     Self {
@@ -156,13 +156,13 @@ where
 
 impl<'a, Delegate> System<'a> for EntityManager<Delegate>
 where
-  for<'b> Delegate: EntityDelegate<'b> + Default,
+  for<'b> Delegate: PrefabBuilder<'b> + Default,
 {
   type SystemData = (
-    <Delegate as EntityDelegate<'a>>::EntityResources,
+    <Delegate as PrefabBuilder<'a>>::EntityResources,
     Entities<'a>,
     Read<'a, LazyUpdate>,
-    Write<'a, StatefulEventChannel<EntityCrudEvent, <Delegate as EntityDelegate<'a>>::State>>,
+    Write<'a, StatefulEventChannel<EntityCrudEvent, <Delegate as PrefabBuilder<'a>>::State>>,
   );
 
   fn run(&mut self, (mut resource_storage, entities, updater, mut crud_events): Self::SystemData) {

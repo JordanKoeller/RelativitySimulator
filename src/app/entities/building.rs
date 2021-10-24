@@ -41,7 +41,7 @@ type BuildingStateData<'a> = ();
 
 #[derive(Default, Debug)]
 pub struct BuildingDelegate;
-impl<'a> EntityDelegate<'a> for BuildingDelegate {
+impl<'a> PrefabBuilder<'a> for BuildingDelegate {
   type State = BuildingState;
   type EntityResources = BuildingStateData<'a>;
 

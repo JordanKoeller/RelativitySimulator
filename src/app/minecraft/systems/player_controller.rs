@@ -1,11 +1,11 @@
-use specs::prelude::*;
 use cgmath::prelude::*;
-use physics::{TransformComponent, RigidBody, Gravity};
-use ecs::components::{EventReceiver,Player, MeshComponent, Camera};
+use ecs::components::{Camera, EventReceiver, MeshComponent, Player};
 use ecs::SystemDelegate;
+use events::{Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
 use gui::*;
-use events::{Event, EventChannel, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent, EventPayload};
-use utils::{Vec2F, Vec3F, Timestep, Mat4F, random, QuatF, Timer, TimerLike};
+use physics::{Gravity, RigidBody, TransformComponent};
+use specs::prelude::*;
+use utils::{random, Mat4F, QuatF, Timer, TimerLike, Timestep, Vec2F, Vec3F};
 
 const IMPULSE: f32 = 0.2f32;
 
@@ -17,45 +17,44 @@ pub struct PlayerControllerSystemData<'a> {
   transform: WriteStorage<'a, TransformComponent>,
   event_receiver: ReadStorage<'a, EventReceiver>,
   event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
-  timestep: Read<'a, Timestep>
+  timestep: Read<'a, Timestep>,
 }
 
 #[derive(Default)]
 pub struct PlayerController;
 
-impl <'a> SystemDelegate<'a> for PlayerController {
+impl<'a> SystemDelegate<'a> for PlayerController {
   type SystemData = PlayerControllerSystemData<'a>;
 
   fn run(&mut self, mut s: Self::SystemData) {
-    for (_p, mut camera, transform, events,) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
+    for (_p, mut camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
       let init_rotation = transform.clone();
-      s.event_channel.for_each(&events.0, |evt| {
-        match evt.code {
-          Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f32),
-          Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to   (0.04f32),
-          Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to   (0.04f32),
-          Event::MouseMoved => {
-            if let Some(payload) = &evt.payload {
-              match payload {
-                EventPayload::MouseMove(vec) => {
-                  transform.rotate(vec.x * 0.05, vec.y * 0.05)
-                },
-                _ => panic!("Received a payload of {:?} on MouseMoved event!", payload)
-              }
+      s.event_channel.for_each(&events.0, |evt| match evt.code {
+        Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(1f32),
+        Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(1f32),
+        Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(1f32),
+        Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(1f32),
+        Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(1f32),
+        Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(1f32),
+        Event::MouseMoved => {
+          if let Some(payload) = &evt.payload {
+            match payload {
+              EventPayload::MouseMove(vec) => transform.rotate(vec.x * 0.05, vec.y * 0.05),
+              _ => panic!("Received a payload of {:?} on MouseMoved event!", payload),
             }
-          },
-          _ => panic!("Received an event that the player controller does not listen for! {:?}", evt)
+          }
         }
+        _ => panic!(
+          "Received an event that the player controller does not listen for! {:?}",
+          evt
+        ),
       });
       self.refresh_camera(&transform, &mut camera)
+    }
   }
-}
 
   fn update_debugger(&mut self, s: &mut Self::SystemData, debugger: &mut DebugPanel) {
-    for (_p, rigid_body, transform, ) in (&s.player, &mut s.rigid_body, &s.transform,).join() {
+    for (_p, rigid_body, transform) in (&s.player, &mut s.rigid_body, &s.transform).join() {
       debugger.panel.lines[1] = Box::from(LabeledText::new("Position", &to_string!(transform.translation)));
       debugger.panel.lines[2] = Box::from(LabeledText::new("Velocity", &to_string!(rigid_body.velocity)));
       debugger.panel.lines[3] = Box::from(LabeledText::new("Facing", &to_string!(transform.front())));
@@ -73,13 +72,14 @@ impl <'a> SystemDelegate<'a> for PlayerController {
         WindowEvent::new(Event::KeyDown(KeyCode::LeftShift)),
         WindowEvent::new(Event::KeyDown(KeyCode::Space)),
         WindowEvent::new(Event::MouseMoved),
-        ]))
+      ]))
     };
     let pos = Vec3F::new(4f32, 4f32, 2f32);
     let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
     tc.rotation = Vec3F::unit_y() * 90f32;
     world.register::<Player>();
     world.register::<RigidBody>();
+    world.register::<Gravity>();
     world.register::<TransformComponent>();
     world.register::<EventReceiver>();
     world.register::<Camera>();
@@ -87,6 +87,7 @@ impl <'a> SystemDelegate<'a> for PlayerController {
     world
       .create_entity()
       .with(Player)
+      // .with(Gravity)
       .with(tc)
       .with(Camera::default())
       .with(RigidBody::new_stationary())

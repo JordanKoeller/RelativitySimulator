@@ -16,7 +16,7 @@ extern crate specs;
 extern crate tobj;
 extern crate rand;
 extern crate either;
-
+extern crate noise;
 mod macros;
 
 #[macro_use]
@@ -99,7 +99,7 @@ pub fn main() {
   world.insert(world_id);
   // app::build_city(&mut world);
   
-  app::flappy_bird::setup_world(&mut world);
+  // app::flappy_bird::setup_world(&mut world);
   app::minecraft::setup_world(&mut world);
   let mut runtime = GameLoop::new(window, world, world_id);
   runtime.with_systems(app::minecraft::get_system_registration());

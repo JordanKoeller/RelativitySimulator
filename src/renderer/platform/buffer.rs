@@ -117,11 +117,11 @@ impl DataBuffer {
 type Elem = f32;
 impl DataBuffer {
 
-  pub fn read_slice(&self, start: usize, end: usize) -> &[f32] {
+  pub fn read_slice(&self, start: usize, end: usize) -> &[Elem] {
     unsafe {self.data.get_unchecked(start..end)}
   }
 
-  pub fn splice_inplace<F: FnOnce(&mut [f32]) -> ()>(&mut self, start: usize, end: usize, f: F)
+  pub fn splice_inplace<F: FnOnce(&mut [Elem]) -> ()>(&mut self, start: usize, end: usize, f: F)
   {
     f(self.data.get_mut(start..end).expect("Tried to splice DataBuffer out of bounds"));
     self.set_sub_buffer(start, end);
@@ -138,13 +138,13 @@ impl DataBuffer {
       cast_slice_mut::<f32, E>(&mut self.data)
     };
     f(&mut slice[start..end]);
-    let offset = start * size_of::<E>() / size_of::<f32>();
-    let len = (end - start) * size_of::<E>() / size_of::<f32>();
+    let offset = start * size_of::<E>() / size_of::<Elem>();
+    let len = (end - start) * size_of::<E>() / size_of::<Elem>();
     self.set_sub_buffer(offset, len);
   }
 
   pub fn zero_out<E: Sized>(&mut self, start: usize, end: usize) {
-    let elem_sz = size_of::<E>() / size_of::<f32>();
+    let elem_sz = size_of::<E>() / size_of::<Elem>();
     let offset = start * elem_sz;
     let length = (end - start) * elem_sz;
     self.splice_inplace(offset, length, move |slc| {
@@ -303,11 +303,6 @@ impl IndexBuffer {
     }
   }
 
-  // pub fn unbind(&self) {
-  //   unsafe {
-  //     gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-  //   }
-  // }
   pub fn len(&self) -> usize {
     self.data.len()
   }

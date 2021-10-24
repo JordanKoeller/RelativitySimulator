@@ -9,6 +9,7 @@ use std::time::Duration;
 
 pub type Vec2F = cgmath::Vector2<f32>;
 pub type Vec2I = cgmath::Vector2<i32>;
+pub type Vec3I = cgmath::Vector3<usize>;
 pub type Vec3F = cgmath::Vector3<f32>;
 pub type Vec4F = cgmath::Vector4<f32>;
 pub type Mat4F = cgmath::Matrix4<f32>;

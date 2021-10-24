@@ -1,5 +1,5 @@
 use specs::prelude::{ReadStorage, Entity, Write};
-use ecs::{EntityDelegate, MyBuilder, Material};
+use ecs::{PrefabBuilder, MyBuilder, Material};
 use renderer::{DrawableId, Texture, Drawable, Renderer};
 use utils::*;
 use physics::TransformComponent;
@@ -48,7 +48,7 @@ type StreetStateData<'a> = ();
 #[derive(Default)]
 pub struct StreetDelegate;
 
-impl<'a> EntityDelegate<'a> for StreetDelegate {
+impl<'a> PrefabBuilder<'a> for StreetDelegate {
   type State = StreetState;
   type EntityResources = StreetStateData<'a>;
 

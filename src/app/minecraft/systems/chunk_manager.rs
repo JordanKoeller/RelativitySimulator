@@ -2,15 +2,18 @@ use specs::prelude::*;
 use cgmath::prelude::Zero;
 use physics::{TransformComponent};
 use shapes::{Block, Sprite};
-use utils::{Vec3F, QuatF};
-
+use utils::{Vec3F, QuatF, Vec2F, Vec2I};
+use ecs::{EntityManager, EntityCrudEvent};
 use renderer::{Renderer, Drawable, Mesh};
+use events::{StatefulEventChannel, EventChannel};
 
-
-use app::minecraft::components::ChunkComponent;
+use app::minecraft::prefabs::{ChunkComponent, BlockType, ChunkBuilder, ChunkBuilderState};
+use app::minecraft::BlockGenerator;
 
 #[derive(Default)]
-pub struct ChunkManager;
+pub struct ChunkManager {
+  world_generator: BlockGenerator,
+}
 
 impl <'a> System<'a> for ChunkManager {
   type SystemData = (
@@ -22,27 +25,14 @@ impl <'a> System<'a> for ChunkManager {
   }
 
   fn setup(&mut self, world: &mut World) {
-    world.register::<ChunkComponent>();
-    let template_block = Block::new("resources/minecraft/grass_block.png");
-    let template_mtl = template_block.material();
-    let d_id = {
-      let mut renderer = world.write_resource::<Renderer>();
-      renderer.submit_model(template_block.mesh())
-    };
-    for y in 0..1 {
-      for x in 0..32 {
-        for z in 0..32 {
-          let transform = TransformComponent::new(
-            Vec3F::new(x as f32, 1f32 - (y as f32), z as f32),
-            Vec3F::new(1f32, 1f32, 1f32),
-            QuatF::zero()
-          );
-          world.create_entity()
-            .with(template_mtl.clone())
-            .with(d_id.clone())
-            .with(transform)
-            .build();
-        }
+    for x in 0..16 {
+      for z in 0..16 {
+        let seed_vec = Vec2I::new(x, z);
+        let mut event_queue = world.write_resource::<StatefulEventChannel<EntityCrudEvent, ChunkBuilderState>>();
+        event_queue.publish((
+          EntityCrudEvent::Create,
+          ChunkBuilderState::new(seed_vec, self.world_generator.clone())
+        ));
       }
     }
   }

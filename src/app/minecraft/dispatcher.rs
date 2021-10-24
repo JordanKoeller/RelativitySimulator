@@ -10,11 +10,14 @@ use app::Skybox;
 use game_loop::SystemsRegistration;
 
 use super::systems::{PlayerController, ChunkManager};
+use super::prefabs::{ChunkBuilder};
+
 
 pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   Box::new(|builder: DispatcherBuilder<'a, 'b>| {
     builder
       .with(SystemManager::<PlayerController>::default(), "player_controller", &[])
+      .with(EntityManager::<ChunkBuilder>::default(), "Chunk_builder", &[])
       .with(ChunkManager::default(), "chunk_manager", &[])
   })
 }

@@ -45,7 +45,7 @@ pub struct PlayerTailDelegate {
   id: Option<DrawableId>,
   material: Vec<Material>,
 }
-impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
+impl<'a> PrefabBuilder<'a> for PlayerTailDelegate {
   type State = PlayerTailParticleState;
   type EntityResources = PlayerTailStateData<'a>;
 
