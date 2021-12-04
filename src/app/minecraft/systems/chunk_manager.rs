@@ -8,7 +8,7 @@ use renderer::{Renderer, Drawable, Mesh};
 use events::{StatefulEventChannel, EventChannel};
 
 use app::minecraft::prefabs::{ChunkComponent, BlockType, ChunkBuilder, ChunkBuilderState};
-use app::minecraft::BlockGenerator;
+use app::minecraft::{BlockGenerator, ChunkGrid};
 
 #[derive(Default)]
 pub struct ChunkManager {
@@ -35,11 +35,5 @@ impl <'a> System<'a> for ChunkManager {
         ));
       }
     }
-  }
-}
-
-impl ChunkManager {
-  fn minify(chunk: &mut ChunkComponent, ) {
-
   }
 }

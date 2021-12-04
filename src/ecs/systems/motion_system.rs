@@ -9,10 +9,10 @@ use physics::{TransformComponent, RigidBody, Gravity, Drag};
 use app::AxisAlignedCubeCollision;
 
 use renderer::LIGHT_SPEED;
-const MAX_ACCELERATION: f32 = 6f32;
+pub const MAX_ACCELERATION: f32 = 6f32;
 
-const DRAG: f32 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
-const GRAVITY: f32 = 14f32;
+pub const DRAG: f32 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
+pub const GRAVITY: f32 = 14f32;
 
 pub struct MotionSystem;
 

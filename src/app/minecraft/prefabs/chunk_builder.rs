@@ -1,7 +1,7 @@
 use cgmath::prelude::Zero;
 use specs::{Entity, System, SystemData, World, WorldExt, Write};
 
-use app::minecraft::{BlockGenerator, BlockSampler, ChunkComponent};
+use app::minecraft::{BlockGenerator, BlockSampler, ChunkComponent, ChunkGrid};
 use ecs::{DrawableId, Material, MeshComponent, MyBuilder, PrefabBuilder};
 use physics::TransformComponent;
 use renderer::{AttributeType, BufferLayout, DataBuffer, Drawable, IndexBuffer, Renderer, VertexArray};
@@ -40,12 +40,12 @@ pub struct ChunkBuilder {
 
 impl<'a> PrefabBuilder<'a> for ChunkBuilder {
   type State = ChunkBuilderState;
-  type EntityResources = ();
+  type EntityResources = Write<'a, ChunkGrid>;
 
   fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
     &self,
     state: &Self::State,
-    _resources: &mut Self::EntityResources,
+    chunk_grid: &mut Self::EntityResources,
     constructor: F,
   ) -> Vec<Entity> {
     let chunk_component = ChunkComponent::new(state.chunk_index, &state.sampler);
@@ -74,12 +74,14 @@ impl<'a> PrefabBuilder<'a> for ChunkBuilder {
       .with(self.block_material.clone().expect("Could not get material for block"))
       .with(TransformComponent::identity())
       .build();
+    chunk_grid.add_chunk(state.chunk_index, chunk_entity);
     ret_vec.push(chunk_entity);
     ret_vec
   }
 
   fn setup_delegate(&mut self, world: &mut World) {
     world.register::<ChunkComponent>();
+    world.insert::<ChunkGrid>(ChunkGrid::default());
     let template_block = Block::new("resources/minecraft/grass_block.png");
     self.block_material = Some(template_block.material());
     self.block_drawable = Some({

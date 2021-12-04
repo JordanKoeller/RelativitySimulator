@@ -30,6 +30,12 @@ impl TransformComponent {
     }
   }
 
+  pub fn copy_from(&mut self, other: TransformComponent) {
+    self.translation = other.translation;
+    self.scale = other.scale;
+    self.rotation = other.rotation;
+  }
+
   pub fn matrix(&self) -> Mat4F {
     Mat4F::from_translation(self.translation) * nonunif_scale(self.scale)
   }

@@ -1,7 +1,7 @@
 use noise::{NoiseFn, Perlin, Seedable};
 use specs::prelude::*;
 use specs::{Component, HashMapStorage, VecStorage};
-use utils::{Vec2F, Vec2I, Vec3I};
+use utils::{Vec2F, Vec2I, Vec3I, Vec3F};
 
 use super::super::BlockSampler;
 use super::{BlockFace, BlockType, BlockDescriptor};
@@ -84,6 +84,10 @@ impl ChunkComponent {
     &self.blocks[self.flat_index_unwrap(x, y, z)]
   }
 
+  pub fn get_index(&self, index: &Vec3I) -> &BlockType {
+    &self.blocks[self.flat_index(index)]
+  }
+
   pub fn world_coordinate(&self, x: &usize, y: &usize, z: &usize) -> Vec3I {
     Vec3I::new(
       self.world_origin.x + x,
@@ -108,6 +112,22 @@ impl ChunkComponent {
     }
   }
 
+  fn contains(&self, position: &Vec3F) -> bool {
+    let opposite_corner = self.world_origin + CHUNK_DIMENSIONS;
+    (position.x.floor() as usize) >= self.world_origin.x && (position.x.floor() as usize) < opposite_corner.x &&
+    (position.y.floor() as usize) >= self.world_origin.y && (position.y.floor() as usize) < opposite_corner.y &&
+    (position.z.floor() as usize) >= self.world_origin.z && (position.z.floor() as usize) < opposite_corner.z
+  }
 
+  fn is_empty_block(&self, position: &Vec3F) -> bool {
+    let world_index = Vec3I::new(position.x.floor() as usize, position.y.floor() as usize, position.z.floor() as usize);
+    let index = world_index - self.world_origin;
+    self.get_index(&index) == &BlockType::Empty
+  }
+
+  pub fn collides(&self, position: &Vec3F) -> bool {
+    let is_colliding = self.contains(position) && !self.is_empty_block(position);
+    is_colliding
+  }
 }
 
