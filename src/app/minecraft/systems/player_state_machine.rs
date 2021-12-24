@@ -18,13 +18,13 @@ impl PlayerStateMachine for FlyingPlayerState {
     let init_rotation = transform.clone();
     let mut ret = false;
     match evt.code {
-      Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(1f32),
-      Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(1f32),
-      Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(1f32),
-      Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(1f32),
+      Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.1f32),
+      Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.1f32),
+      Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.1f32),
+      Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.1f32),
       Event::KeyDown(KeyCode::E) => ret = true,
-      Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(1f32),
-      Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(1f32),
+      Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(0.1f32),
+      Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(0.1f32),
       Event::MouseMoved => {
         if let Some(payload) = &evt.payload {
           match payload {
@@ -56,7 +56,8 @@ impl PlayerStateMachine for WalkingPlayerState {
       Event::KeyDown(KeyCode::S) => rigid_body.velocity = -transform.front().normalize_to(10f32),
       Event::KeyDown(KeyCode::D) => rigid_body.velocity =  transform.right().normalize_to(10f32),
       Event::KeyDown(KeyCode::E) => needs_transition = true,
-      Event::KeyDown(KeyCode::Space) => rigid_body.acceleration = Vec3F::unit_y().normalize_to(10f32),
+      Event::KeyDown(KeyCode::Space) => rigid_body.velocity = Vec3F::unit_y().normalize_to(10f32),
+      Event::KeyDown(KeyCode::LeftShift) => rigid_body.velocity = - Vec3F::unit_y().normalize_to(10f32),
       Event::MouseMoved => {
         if let Some(payload) = &evt.payload {
           match payload {

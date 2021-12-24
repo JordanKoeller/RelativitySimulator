@@ -6,6 +6,7 @@ use physics::TransformComponent;
 use renderer::{Drawable, Mesh};
 use utils::*;
 use app::Skybox;
+use debug::DiagnosticsPanel;
 
 use game_loop::SystemsRegistration;
 
@@ -19,7 +20,9 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
       .with(SystemManager::<PlayerController>::default(), "player_controller", &[])
       .with(EntityManager::<ChunkBuilder>::default(), "Chunk_builder", &[])
       .with(ChunkManager::default(), "chunk_manager", &[])
-  })
+      .with_barrier()
+      .with(DiagnosticsPanel, "diagnostics", &["player_controller", ])
+    })
 }
 
 pub fn setup_world<'a, 'b>(world: &mut World) {

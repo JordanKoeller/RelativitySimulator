@@ -85,12 +85,12 @@ impl<'a, 'b> GameLoop<'a, 'b> {
       let window_handle2 = MutRef::clone(&self.window);
       let window_handle3 = MutRef::clone(&self.window);
       let dispatcher = DispatcherBuilder::new()
-        .with_thread_local(RegisterDrawableSystem)
         .with(ParticleUpdater, "particle_updater", &[])
         .with_barrier();
       let dispatcher = func(dispatcher);
       dispatcher
-        .with(MotionSystem, "motion", &["player_controller"])
+        .with(Motion, "motion", &["player_controller"])
+        .with_thread_local(RegisterDrawableSystem)
         .with_thread_local(StartFrameSystem {
           window: window_handle1,
           receiver_id: self.r_id,

@@ -1,10 +1,10 @@
-use app::minecraft::{ChunkComponent, ChunkGrid, FlyingPlayerState, PlayerStateMachine};
+use app::minecraft::{ChunkComponent, ChunkGrid, FlyingPlayerState, WalkingPlayerState, PlayerStateMachine};
 use cgmath::prelude::*;
 use ecs::components::{Camera, EntityTargetComponent, EventReceiver, MeshComponent, Player};
 use ecs::SystemDelegate;
 use events::{Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
 use gui::*;
-use physics::{Gravity, RigidBody, TransformComponent};
+use physics::{Gravity, RigidBody, TransformComponent, CanCollide};
 use specs::prelude::*;
 use utils::{random, Mat4F, QuatF, Timer, TimerLike, Timestep, Vec2F, Vec3F};
 
@@ -32,7 +32,7 @@ impl<'a> SystemDelegate<'a> for PlayerController {
 
   fn run(&mut self, mut s: Self::SystemData) {
     let mut needs_transition = false;
-    for (_p, mut camera, transform, rigid_body, events) in (
+    for (_p, mut camera, mut transform, rigid_body, events) in (
       &s.player,
       &mut s.camera,
       &mut s.transform,
@@ -41,11 +41,10 @@ impl<'a> SystemDelegate<'a> for PlayerController {
     )
       .join()
     {
-      let mut next_transform = transform.clone();
       s.event_channel.for_each(&events.0, |evt| {
         if self
           .player_state_machine
-          .handle_event(evt, &mut next_transform, rigid_body)
+          .handle_event(evt, &mut transform, rigid_body)
         {
           needs_transition = true;
         }
@@ -54,17 +53,22 @@ impl<'a> SystemDelegate<'a> for PlayerController {
       if needs_transition {
         self.player_state_machine = self.player_state_machine.transition();
       }
-      let mut colliding = false;
-      if let Some(chunk_id) = s.chunks.get_entity_from_coord(&next_transform.translation) {
-        if let Some(chunk) = s.chunk_storage.get(*chunk_id) {
-          if chunk.collides(&next_transform.translation) {
-            colliding = true;
-          }
-        }
-      }
-      if !colliding {
-        transform.copy_from(next_transform);
-      }
+
+      // next_transform.translation = s.chunks.get_valid_next_position(&transform.translation, &next_transform.translation, &s.chunk_storage);
+      // transform.copy_from(next_transform);
+
+      // let mut colliding = false;
+      // if let Some(chunk_id) = s.chunks.get_entity_from_coord(&next_transform.translation) {
+      //   if let Some(chunk) = s.chunk_storage.get(*chunk_id) {
+      //     if chunk.collides(&next_transform.translation) {
+      //       colliding = true;
+      //     }
+      //   }
+      // }
+      // if !colliding {
+      // } else {
+
+      // }
     }
   }
 
@@ -90,7 +94,7 @@ impl<'a> SystemDelegate<'a> for PlayerController {
         WindowEvent::new(Event::MouseMoved),
       ]))
     };
-    let pos = Vec3F::new(4f32, 20f32, 2f32);
+    let pos = Vec3F::new(30f32, 20f32, 30f32);
     let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
     tc.rotation = Vec3F::unit_y() * 90f32;
     world.register::<Player>();
@@ -101,10 +105,12 @@ impl<'a> SystemDelegate<'a> for PlayerController {
     world.register::<Camera>();
     world.register::<MeshComponent>();
     world.register::<EntityTargetComponent>();
+    world.register::<CanCollide>();
     world
       .create_entity()
       .with(Player)
       .with(EntityTargetComponent::default())
+      .with(CanCollide::new(1f32))
       // .with(Gravity)
       .with(tc)
       .with(Camera::default())
@@ -137,7 +143,7 @@ impl PlayerController {
 impl Default for PlayerController {
   fn default() -> Self {
     Self {
-      player_state_machine: Box::new(FlyingPlayerState),
+      player_state_machine: Box::new(WalkingPlayerState),
     }
   }
 }

@@ -11,7 +11,7 @@ use events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, Wi
 use gui::*;
 use renderer::render_pipeline::*;
 use renderer::{AssetLibrary, DrawCall, Mesh, RenderCommand, RenderQueue, Renderer, Window};
-use utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
+use utils::{AggregatingStopwatch, Mat4F, MutRef, RunningEnum, RunningState, Timestep};
 
 use physics::TransformComponent;
 
@@ -120,7 +120,8 @@ pub struct RenderPipelineSystem {
   window: MutRef<Window>,
   event_receiver_id: ReceiverID,
   draw_call_count: u32,
-  render_time: Duration,
+  gpu_timer: AggregatingStopwatch,
+  render_system_timer: AggregatingStopwatch,
 }
 
 impl RenderPipelineSystem {
@@ -129,7 +130,8 @@ impl RenderPipelineSystem {
       window,
       event_receiver_id: id,
       draw_call_count: 0u32,
-      render_time: Duration::new(0u64, 0u32),
+      gpu_timer: AggregatingStopwatch::new(50),
+      render_system_timer: AggregatingStopwatch::new(50),
     }
   }
 }
@@ -138,34 +140,33 @@ impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
   type SystemData = RenderSystemData<'a>;
 
   fn run(&mut self, mut system_data: Self::SystemData) {
+    self.render_system_timer.start();
     self.prepare_queue(
       &mut system_data.render_queue,
       &system_data.entities,
       &system_data.drawable_s,
     );
     // self.init_frame(&mut system_data.renderer);
-    let start_time = self.window.borrow().glfw_token.get_time();
+    self.gpu_timer.start();
     let draw_call_count = self.render(&mut system_data);
-    let end_time = self.window.borrow().glfw_token.get_time();
-    self.render_time = Duration::from_secs_f64(end_time - start_time);
+    self.gpu_timer.stop();
+    self.render_system_timer.stop();
     self.draw_call_count = draw_call_count;
   }
 
   fn update_debugger(&mut self, _data: &mut Self::SystemData, gui: &mut DebugPanel) {
     gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
-    gui.panel.lines[2] = Box::from(LabeledText::new(
-      "GPU Render Time",
-      &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
-    ));
+    gui.panel.lines[2] = Box::from(LabeledText::new("Render System Time", &format!("{}", self.render_system_timer),));
+    gui.panel.lines[3] = Box::from(LabeledText::new("GPU Render Time", &format!("{}", self.gpu_timer),));
   }
 
-  fn setup(&mut self, _world: &mut World) {
-  }
+  fn setup(&mut self, _world: &mut World) {}
 
   fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
     let mut ui = DebugPanel::new("Renderer Debugger");
     ui.panel.push(Box::from(LineBreak));
     ui.panel.push(Box::from(LabeledText::new("Draw Calls", "")));
+    ui.panel.push(Box::from(LabeledText::new("Render System Time", "")));
     ui.panel.push(Box::from(LabeledText::new("GPU Render Time", "")));
     Some(ui)
   }
@@ -199,7 +200,4 @@ impl RenderPipelineSystem {
       &system_data.transform_s,
     )
   }
-
-
-
 }

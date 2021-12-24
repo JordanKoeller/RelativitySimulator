@@ -130,4 +130,3 @@ impl ChunkComponent {
     is_colliding
   }
 }
-

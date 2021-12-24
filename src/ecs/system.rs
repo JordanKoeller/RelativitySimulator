@@ -7,11 +7,11 @@ pub trait SystemDelegate<'a> {
 
   fn run(&mut self, resources: Self::SystemData);
   
-  fn setup(&mut self, world: &mut World) {}
+  fn setup(&mut self, _world: &mut World) {}
 
-  fn update_debugger(&mut self, resources: &mut Self::SystemData, debugger: &mut DebugPanel) {}
+  fn update_debugger(&mut self, _resources: &mut Self::SystemData, _debugger: &mut DebugPanel) {}
 
-  fn setup_debug_panel(&mut self, world: &mut World) -> Option<DebugPanel> {None}
+  fn setup_debug_panel(&mut self, _world: &mut World) -> Option<DebugPanel> {None}
 }
 
 pub struct SystemManager<Delegate>
@@ -28,7 +28,7 @@ where for <'b> Delegate: SystemDelegate<'b> {
     Entities<'a>
   );
 
-  fn run(&mut self, (mut delegate_data, mut gui, entities): Self::SystemData) {
+  fn run(&mut self, (mut delegate_data, mut gui, _entities): Self::SystemData) {
     if let Some(entity) = self.entity {
       if let Some(mut ui_panel) = gui.get_mut(entity) {
         self.delegate.update_debugger(&mut delegate_data, &mut ui_panel);

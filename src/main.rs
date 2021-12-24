@@ -17,6 +17,7 @@ extern crate tobj;
 extern crate rand;
 extern crate either;
 extern crate noise;
+extern crate stopwatch;
 mod macros;
 
 #[macro_use]

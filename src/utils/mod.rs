@@ -5,7 +5,9 @@ pub mod transform_stack;
 pub mod random;
 pub mod running_state;
 mod timer;
+mod stopwatch;
 
+pub use self::stopwatch::*;
 pub use self::running_state::*;
 pub use self::timer::*;
 pub use self::transform_stack::*;

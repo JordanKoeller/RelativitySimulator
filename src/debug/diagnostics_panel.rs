@@ -11,14 +11,13 @@ impl<'a> System<'a> for DiagnosticsPanel {
   type SystemData = (
     WriteStorage<'a, Player>,
     ReadStorage<'a, TransformComponent>,
-    ReadStorage<'a, RigidBody>,
     WriteStorage<'a, DebugPanel>,
     Read<'a, Timestep>,
   );
 
-  fn run(&mut self, (mut s_player, s_transform, s_rigid, mut s_panel, timestep): Self::SystemData) {
-    for (_player, transform, _rigid_body, panel) in
-      (&mut s_player, &s_transform, &s_rigid, &mut s_panel).join()
+  fn run(&mut self, (mut s_player, s_transform, mut s_panel, timestep): Self::SystemData) {
+    for (_player, transform, panel) in
+      (&mut s_player, &s_transform, &mut s_panel).join()
     {
       if panel.panel.empty() {
         panel.panel.push(Box::from(LineBreak));

@@ -84,3 +84,11 @@ impl PartialOrd for CollisionSummary {
 pub struct CanCollide {
   pub radius: f32,
 }
+
+impl CanCollide {
+  pub fn new(radius: f32) -> Self {
+    Self {
+      radius
+    }
+  }
+}

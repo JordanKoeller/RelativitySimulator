@@ -104,6 +104,13 @@ impl AxisAlignedCubeCollision {
     }
   }
 
+  pub fn from_vecs(center: Vec3F, dims: Vec3F) -> Self {
+    Self {
+      center,
+      dims
+    }
+  }
+
   fn within_box(&self, pt: &Vec3F, bl: &Vec3F, tr: &Vec3F) -> bool {
     self.approx_between(&bl.x, &tr.x, &pt.x) &&
     self.approx_between(&bl.y, &tr.y, &pt.y) &&
