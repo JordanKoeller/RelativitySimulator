@@ -70,4 +70,9 @@ impl Camera {
   pub fn set_matrix(&mut self, mat: Mat4F) {
     self.perspective = mat;
   }
+
+  pub fn looking_vector(&self) -> Vec3F {
+      
+  }
+
 }

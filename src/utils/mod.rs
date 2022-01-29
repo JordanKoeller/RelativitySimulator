@@ -6,7 +6,9 @@ pub mod random;
 pub mod running_state;
 mod timer;
 mod stopwatch;
+mod geometry;
 
+pub use self::geometry::*;
 pub use self::stopwatch::*;
 pub use self::running_state::*;
 pub use self::timer::*;

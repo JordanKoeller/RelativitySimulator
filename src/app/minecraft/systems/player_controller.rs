@@ -13,7 +13,6 @@ const IMPULSE: f32 = 0.2f32;
 #[derive(SystemData)]
 pub struct PlayerControllerSystemData<'a> {
   player: ReadStorage<'a, Player>,
-  chunks: Read<'a, ChunkGrid>,
   chunk_storage: ReadStorage<'a, ChunkComponent>,
   camera: WriteStorage<'a, Camera>,
   rigid_body: WriteStorage<'a, RigidBody>,
@@ -53,22 +52,6 @@ impl<'a> SystemDelegate<'a> for PlayerController {
       if needs_transition {
         self.player_state_machine = self.player_state_machine.transition();
       }
-
-      // next_transform.translation = s.chunks.get_valid_next_position(&transform.translation, &next_transform.translation, &s.chunk_storage);
-      // transform.copy_from(next_transform);
-
-      // let mut colliding = false;
-      // if let Some(chunk_id) = s.chunks.get_entity_from_coord(&next_transform.translation) {
-      //   if let Some(chunk) = s.chunk_storage.get(*chunk_id) {
-      //     if chunk.collides(&next_transform.translation) {
-      //       colliding = true;
-      //     }
-      //   }
-      // }
-      // if !colliding {
-      // } else {
-
-      // }
     }
   }
 
@@ -110,7 +93,7 @@ impl<'a> SystemDelegate<'a> for PlayerController {
       .create_entity()
       .with(Player)
       .with(EntityTargetComponent::default())
-      .with(CanCollide::new(1f32))
+    //   .with(CanCollide::new(1f32))
       // .with(Gravity)
       .with(tc)
       .with(Camera::default())
@@ -143,7 +126,7 @@ impl PlayerController {
 impl Default for PlayerController {
   fn default() -> Self {
     Self {
-      player_state_machine: Box::new(WalkingPlayerState),
+      player_state_machine: Box::new(FlyingPlayerState),
     }
   }
 }

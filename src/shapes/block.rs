@@ -7,11 +7,76 @@ use renderer::{AttributeType, BufferLayout, IndexBuffer, VertexArray, DataBuffer
 
 use physics::{Collision, CollisionSummary};
 
-use utils::{Vec3F, Vec4F, swizzle_down, swizzle_up, Mat3F};
+use utils::{Vec3F, Vec4F, swizzle_down, swizzle_up, Mat3F, Vec3I};
 use physics::TransformComponent;
 
 use ecs::Material;
 
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum BlockFace {
+  Left,
+  Right,
+  Top,
+  Bottom,
+  Front,
+  Back,
+}
+
+impl BlockFace {
+    pub fn buffer_info(self, translation: Vec3F, starting_index: u32) -> ([f32; 48], [u32; 6]) {
+      let mut output_coords = [0f32; 48];
+      let mut output_inds = [0u32; 6];
+      match self {
+        BlockFace::Right => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[144..192]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+        BlockFace::Left => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[96..144]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+        BlockFace::Front => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[0..48]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+        BlockFace::Back => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[48..96]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+        BlockFace::Bottom => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[192..240]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+        BlockFace::Top => {
+          output_coords.clone_from_slice(&TEXTURE_CUBE_VERTICES[240..288]);
+          output_inds.clone_from_slice(&TEXTURE_CUBE_INDICES[0..6]);
+        },
+      };
+      for i in 0..6 {
+        output_inds[i] += starting_index;
+      }
+      for i in 0..6 {
+        let t_x = i * 8;
+        output_coords[t_x] += translation.x;
+        output_coords[t_x+1] += translation.y;
+        output_coords[t_x+2] += translation.z;
+      }
+      (output_coords, output_inds)
+    }
+  
+    pub fn faces_array() -> [BlockFace; 6] {
+      [
+        BlockFace::Left,
+        BlockFace::Right,
+        BlockFace::Front,
+        BlockFace::Back,
+        BlockFace::Top,
+        BlockFace::Bottom,
+      ]
+    }
+  
+  }
 
 pub struct Block {
   filename: String
@@ -50,6 +115,19 @@ impl Block {
     }
   }
 }
+
+pub fn get_index_shift(side: &BlockFace) -> Vec3I {
+    let mut ret = Vec3I::new(0,0,0);
+    match side {
+        BlockFace::Left => {ret.x = -1},
+        BlockFace::Right => {ret.x = 1},
+        BlockFace::Top => {ret.y = 1},
+        BlockFace::Bottom => {ret.y = -1},
+        BlockFace::Front => {ret.z = -1},
+        BlockFace::Back => {ret.z = 1},
+    }
+    ret
+  }
 
 // Counter-clockwise is front-facing
 
