@@ -2,7 +2,7 @@ use app::minecraft::{ChunkComponent, ChunkGrid, FlyingPlayerState, WalkingPlayer
 use cgmath::prelude::*;
 use ecs::components::{Camera, EntityTargetComponent, EventReceiver, MeshComponent, Player};
 use ecs::SystemDelegate;
-use events::{Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
+use events::{Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent, MouseButton};
 use gui::*;
 use physics::{Gravity, RigidBody, TransformComponent, CanCollide};
 use specs::prelude::*;
@@ -72,9 +72,11 @@ impl<'a> SystemDelegate<'a> for PlayerController {
         WindowEvent::new(Event::KeyDown(KeyCode::S)),
         WindowEvent::new(Event::KeyDown(KeyCode::D)),
         WindowEvent::new(Event::KeyDown(KeyCode::E)),
+        WindowEvent::new(Event::KeyPressed(KeyCode::T)),
         WindowEvent::new(Event::KeyDown(KeyCode::LeftShift)),
         WindowEvent::new(Event::KeyDown(KeyCode::Space)),
         WindowEvent::new(Event::MouseMoved),
+        // WindowEvent::new(Event::MouseDown(MouseButton::LeftButton)),
       ]))
     };
     let pos = Vec3F::new(30f32, 20f32, 30f32);

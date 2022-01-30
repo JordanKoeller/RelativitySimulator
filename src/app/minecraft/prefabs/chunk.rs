@@ -70,7 +70,7 @@ impl ChunkComponent {
   }
 
   pub fn valid_index(&self, x: &i32, y: &i32, z: &i32) -> bool {
-    x < &CHUNK_DIMENSIONS.x && y < &CHUNK_DIMENSIONS.y && z < &CHUNK_DIMENSIONS.z
+    x < &CHUNK_DIMENSIONS.x && y < &CHUNK_DIMENSIONS.y && z < &CHUNK_DIMENSIONS.z && x >= &0 && y >= &0 && z >= &0
   }
 
   fn flat_index(&self, index: &Vec3I) -> usize {
@@ -140,8 +140,11 @@ impl ChunkComponent {
   pub fn get_first_on_line(&self, start: &Vec3F, end: &Vec3F) -> Option<(Vec3I, BlockFace)> {
       let mut query_pt = start.clone();
       let mut block_index = self.get_index_from_floats(&query_pt);
-      let mut flag = true;
-      while flag {
+      let mut flag = self.valid_index(&block_index.x, &block_index.y, &block_index.z);
+      let mut c = 0i32;
+      while flag && c < 5 {
+          c += 1;
+          println!("INNER LOOP {:?} {:?}", query_pt, block_index);
           let (low, high) = self.block_dimensions(&block_index);
           if let Some((intersection, face)) = line_intersects_block(&query_pt, end, &low, &high) {
             if self.get_index(&block_index) == &BlockType::Empty {

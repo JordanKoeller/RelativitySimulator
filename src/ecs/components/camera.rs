@@ -72,7 +72,7 @@ impl Camera {
   }
 
   pub fn looking_vector(&self) -> Vec3F {
-      
+      swizzle_down(&self.perspective[2]).normalize()
   }
 
 }

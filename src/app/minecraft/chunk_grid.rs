@@ -32,6 +32,15 @@ impl ChunkGrid {
         self.data.remove(&self.get_index_pair(coord));
     }
 
+    pub fn get_position(&self, chunk_index: &Vec2I, block_index: &Vec3I) -> Vec3F {
+        let voxel_coord = Vec3I::new(chunk_index.x, 0, chunk_index.y).mul_element_wise(CHUNK_DIMENSIONS) + block_index;
+        Vec3F::new(
+            voxel_coord.x as f32 + 0.5f32,
+            voxel_coord.y as f32 + 0.5f32,
+            voxel_coord.z as f32 + 0.5f32,
+        )
+    }
+
     pub fn get_nearby_collidables<'a>(
         &self,
         pos: &Vec3F,
@@ -67,7 +76,10 @@ impl ChunkGrid {
         let mut query_pt = start.clone();
         let mut chunk_index = self.get_index_from_position(&query_pt);
         let mut flag = true;
-        while flag {
+        let mut c = 0i32;
+        while flag && c < 5 {
+            c += 1;
+            println!("OUTER LOOP");
             let chunk = chunk_storage.get(*self.data.get(&chunk_index).unwrap()).unwrap();
             let (low, high) = chunk.chunk_dimensions();
             if let Some((intersection, face)) = line_intersects_block(&query_pt, end, &low, &high) {
@@ -80,8 +92,8 @@ impl ChunkGrid {
                     } else {
                         chunk_index = chunk_index + Vec2I::new(chunk_shift.x, chunk_shift.z);
                         query_pt = intersection;
+                        flag = self.data.contains_key(&chunk_index);
                     }
-                    flag = self.data.contains_key(&chunk_index);
                 }
             } else {
                 flag = false;

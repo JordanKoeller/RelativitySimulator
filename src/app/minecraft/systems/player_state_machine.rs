@@ -33,10 +33,7 @@ impl PlayerStateMachine for FlyingPlayerState {
           }
         }
       }
-      _ => panic!(
-        "Received an event that the player controller does not listen for! {:?}",
-        evt
-      ),
+      _ => {}
     };
     ret
   }
@@ -66,10 +63,7 @@ impl PlayerStateMachine for WalkingPlayerState {
           }
         }
       }
-      _ => panic!(
-        "Received an event that the player controller does not listen for! {:?}",
-        evt
-      ),
+      _ => {}
     };
     needs_transition
   }

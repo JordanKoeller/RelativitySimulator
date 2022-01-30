@@ -10,15 +10,17 @@ use debug::DiagnosticsPanel;
 
 use game_loop::SystemsRegistration;
 
-use super::systems::{PlayerController, ChunkManager};
-use super::prefabs::{ChunkBuilder};
+use super::systems::{PlayerController, ChunkManager, BlockInterractionSystem};
+use super::prefabs::{ChunkBuilder, BlockHighlightBuilder};
 
 
 pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   Box::new(|builder: DispatcherBuilder<'a, 'b>| {
     builder
       .with(SystemManager::<PlayerController>::default(), "player_controller", &[])
+      .with(SystemManager::<BlockInterractionSystem>::default(), "block_interraction", &["player_controller"])
       .with(EntityManager::<ChunkBuilder>::default(), "Chunk_builder", &[])
+      .with(EntityManager::<BlockHighlightBuilder>::default(), "block_highlight_builder", &[])
       .with(ChunkManager::default(), "chunk_manager", &[])
       .with_barrier()
       .with(DiagnosticsPanel, "diagnostics", &["player_controller", ])
