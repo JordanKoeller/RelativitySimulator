@@ -1,5 +1,3 @@
-
-
 // pub trait GLBus {
 //   fn bound(&self) -> bool;
 //   fn bind(&mut self);

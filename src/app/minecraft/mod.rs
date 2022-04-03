@@ -1,10 +1,9 @@
-mod prefabs;
-mod dispatcher;
 mod components;
+mod dispatcher;
+mod prefabs;
 mod systems;
 
-
-pub use self::systems::*;
 pub use self::components::*;
-pub use self::prefabs::*;
 pub use self::dispatcher::*;
+pub use self::prefabs::*;
+pub use self::systems::*;
