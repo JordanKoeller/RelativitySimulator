@@ -2,7 +2,7 @@ use specs::prelude::*;
 use specs::world::LazyBuilder;
 use specs::{Component, VecStorage};
 
-use ecs::entity::MyBuilder;
+use ecs::prefab::EntitySpawner;
 use ecs::DrawableId;
 
 use debug::*;

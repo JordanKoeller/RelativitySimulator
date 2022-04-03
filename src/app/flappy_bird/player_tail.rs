@@ -49,7 +49,7 @@ impl<'a> PrefabBuilder<'a> for PlayerTailDelegate {
   type State = PlayerTailParticleState;
   type EntityResources = PlayerTailStateData<'a>;
 
-  fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+  fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
     &self,
     state: &Self::State,
     _resources: &mut Self::EntityResources,

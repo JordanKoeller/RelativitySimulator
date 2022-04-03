@@ -18,9 +18,7 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   Box::new(|builder: DispatcherBuilder<'a, 'b>| {
     builder
       .with(SystemManager::<PlayerController>::default(), "player_controller", &[])
-      .with(SystemManager::<BlockInterractionSystem>::default(), "block_interraction", &["player_controller"])
-      .with(EntityManager::<ChunkBuilder>::default(), "Chunk_builder", &[])
-      .with(EntityManager::<BlockHighlightBuilder>::default(), "block_highlight_builder", &[])
+      .with(BlockInterractionSystem::default(), "block_interraction", &["player_controller"])
       .with(ChunkManager::default(), "chunk_manager", &[])
       .with_barrier()
       .with(DiagnosticsPanel, "diagnostics", &["player_controller", ])

@@ -15,11 +15,6 @@ pub fn get_system_registration<'a, 'b>() -> Box<SystemsRegistration<'a, 'b>> {
   Box::new(|builder: DispatcherBuilder<'a, 'b>| {
     builder
       .with(PlayerSystem::default(), "player_controller", &[])
-      .with(
-        EntityManager::<PlayerTailDelegate>::default(),
-        "tail_spawner",
-        &["player_controller"],
-      )
       .with(CameraDebugger, "camera_debugger", &[])
       .with(WallSpawner::default(), "wall_spawner", &[])
       .with(

@@ -45,7 +45,7 @@ impl<'a> PrefabBuilder<'a> for BuildingDelegate {
   type State = BuildingState;
   type EntityResources = BuildingStateData<'a>;
 
-  fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+  fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
     &self,
     state: &Self::State,
     _resources: &mut Self::EntityResources,

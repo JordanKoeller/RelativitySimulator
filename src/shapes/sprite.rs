@@ -2,7 +2,7 @@ use specs::prelude::*;
 use cgmath::prelude::*;
 use utils::{Vec3F, Vec2F};
 use renderer::{Drawable, Texture, TextureLike, AttributeType, BufferLayout, IndexBuffer, VertexArray, DataBuffer};
-use ecs::{MyBuilder, components::Material};
+use ecs::{EntitySpawner, components::Material};
 
 #[repr(C)]
 #[derive(Clone)]

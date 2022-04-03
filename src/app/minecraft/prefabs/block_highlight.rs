@@ -2,7 +2,7 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 
 use app::minecraft::ChunkGrid;
-use ecs::{DrawableId, Material, MeshComponent, MyBuilder, PrefabBuilder};
+use ecs::{DrawableId, EntitySpawner, Material, MeshComponent, PrefabBuilder};
 use physics::TransformComponent;
 use renderer::{AttributeType, BufferLayout, DataBuffer, Drawable, IndexBuffer, Renderer, VertexArray};
 use shapes::Block;
@@ -42,13 +42,12 @@ impl<'a> PrefabBuilder<'a> for BlockHighlightBuilder {
     type State = BlockHighlightState;
     type EntityResources = Read<'a, ChunkGrid>;
 
-    fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+    fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
         &self,
         state: &Self::State,
         chunk_grid: &mut Self::EntityResources,
         constructor: F,
     ) -> Vec<Entity> {
-        // let block = Block::new("resources/minecraft/white.jpg");
         let mut transform = TransformComponent::identity();
         transform.push_scale(Vec3F::new(1.01f32, 1.01f32, 1.01f32));
         let position = chunk_grid.get_position(&state.chunk_index, &state.block_index);

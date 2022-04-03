@@ -2,7 +2,7 @@ use specs::{Component, VecStorage};
 
 use renderer::{VertexArray, Mesh, AttributeType};
 use ecs::{Material, MeshComponent};
-use ecs::MyBuilder;
+use ecs::EntitySpawner;
 
 pub trait Drawable {
   fn shader_name(&self) -> String {

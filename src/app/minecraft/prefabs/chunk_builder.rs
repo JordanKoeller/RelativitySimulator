@@ -2,7 +2,7 @@ use cgmath::prelude::Zero;
 use specs::{Entity, System, SystemData, World, WorldExt, Write};
 
 use app::minecraft::{BlockGenerator, BlockSampler, ChunkComponent, ChunkGrid};
-use ecs::{DrawableId, Material, MeshComponent, MyBuilder, PrefabBuilder};
+use ecs::{DrawableId, Material, MeshComponent, EntitySpawner, PrefabBuilder};
 use physics::TransformComponent;
 use renderer::{AttributeType, BufferLayout, DataBuffer, Drawable, IndexBuffer, Renderer, VertexArray};
 use shapes::Block;
@@ -42,7 +42,7 @@ impl<'a> PrefabBuilder<'a> for ChunkBuilder {
   type State = ChunkBuilderState;
   type EntityResources = Write<'a, ChunkGrid>;
 
-  fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+  fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
     &self,
     state: &Self::State,
     chunk_grid: &mut Self::EntityResources,

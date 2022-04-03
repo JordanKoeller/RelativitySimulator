@@ -4,7 +4,7 @@ use specs::prelude::*;
 use rand::{thread_rng, Rng};
 
 use ecs::components::{EventReceiver,Player, MeshComponent};
-use ecs::entity::EntityCrudEvent;
+use ecs::PrefabManager;
 use physics::CanCollide;
 use events::{Event, EventChannel, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
 use renderer::{Drawable, Mesh};
@@ -13,7 +13,7 @@ use gui::{GuiInputPanel, LabeledText, LineBreak, UiComponent, DebugPanel};
 
 use utils::{Vec2F, Vec3F, Timestep, Mat4F, random, QuatF, Timer, TimerLike};
 
-use app::flappy_bird::PlayerTailParticleState;
+use app::flappy_bird::{PlayerTailParticleState, PlayerTailDelegate};
 
 use physics::{TransformComponent, RigidBody, Gravity};
 
@@ -30,14 +30,12 @@ impl Default for PlayerSystem {
 }
 
 impl PlayerSystem {
-  fn spawn_tail_particle(&self, position: Vec3F, lifetime: Duration, spawner: &mut StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>) {
+  fn spawn_tail_particle<'a>(&self, position: Vec3F, lifetime: Duration, spawner: &mut PrefabManager<'a, PlayerTailDelegate>) {
     let pi = 3.14159265;
     let theta = random::rand_float( 3f32 * pi / 2f32, 2f32 * pi);
     let theta = Vec2F::new(theta.cos(), theta.sin());
     let init_direction = Vec3F::new(theta.x, theta.y, 0f32).normalize_to(5f32);
-    spawner.publish((
-      EntityCrudEvent::Create,
-      PlayerTailParticleState::new(position + Vec3F::unit_z(), lifetime, init_direction)));
+    spawner.create(PlayerTailParticleState::new(position + Vec3F::unit_z(), lifetime, init_direction));
   }
 }
 
@@ -48,11 +46,12 @@ impl<'a> System<'a> for PlayerSystem {
     WriteStorage<'a, RigidBody>,
     ReadStorage<'a, EventReceiver>,
     Write<'a, StatelessEventChannel<WindowEvent>>,
-    Write<'a, StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>>,
     Read<'a, Timestep>,
+    PrefabManager<'a, PlayerTailDelegate>
+
   );
 
-  fn run(&mut self, (p_storage, mut transform_storage, mut rigid_storage, e_storage, channel, mut spawner, dt,): Self::SystemData) {
+  fn run(&mut self, (p_storage, mut transform_storage, mut rigid_storage, e_storage, channel, dt, mut prefabs): Self::SystemData) {
     for (_p, transform, rigid_body, events,) in (&p_storage, &mut transform_storage, &mut rigid_storage, &e_storage,).join() {
       channel.for_each(&events.0, |evt| {
         match evt.code {
@@ -75,7 +74,7 @@ impl<'a> System<'a> for PlayerSystem {
         transform.translation.y = 16f32;
       }
       for _ in 0..self.tail_spawn_timer.start_poll_all(dt.curr_time()) {
-        self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
+        self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut prefabs);
       }
     }
   }

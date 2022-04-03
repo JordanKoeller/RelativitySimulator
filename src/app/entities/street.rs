@@ -1,5 +1,5 @@
 use specs::prelude::{ReadStorage, Entity, Write};
-use ecs::{PrefabBuilder, MyBuilder, Material};
+use ecs::{PrefabBuilder, EntitySpawner, Material};
 use renderer::{DrawableId, Texture, Drawable, Renderer};
 use utils::*;
 use physics::TransformComponent;
@@ -52,7 +52,7 @@ impl<'a> PrefabBuilder<'a> for StreetDelegate {
   type State = StreetState;
   type EntityResources = StreetStateData<'a>;
 
-  fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+  fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
     &self,
     state: &Self::State,
     _resources: &mut Self::EntityResources,

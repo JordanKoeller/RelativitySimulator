@@ -1,39 +1,47 @@
-use specs::prelude::*;
 use cgmath::prelude::Zero;
-use physics::{TransformComponent};
+use ecs::{EntitySpawner, PrefabBuilder, PrefabManager};
+use events::{EventChannel, StatefulEventChannel};
+use physics::TransformComponent;
+use renderer::{Drawable, Mesh, Renderer};
 use shapes::{Block, Sprite};
-use utils::{Vec3F, QuatF, Vec2F, Vec2I};
-use ecs::{EntityManager, EntityCrudEvent};
-use renderer::{Renderer, Drawable, Mesh};
-use events::{StatefulEventChannel, EventChannel};
+use specs::prelude::*;
+use utils::{QuatF, Vec2F, Vec2I, Vec3F};
 
-use app::minecraft::prefabs::{ChunkComponent, BlockType, ChunkBuilder, ChunkBuilderState};
+use app::minecraft::prefabs::{BlockType, ChunkBuilder, ChunkBuilderState, ChunkComponent};
 use app::minecraft::{BlockGenerator, ChunkGrid};
 
 #[derive(Default)]
 pub struct ChunkManager {
-  world_generator: BlockGenerator,
+    world_generator: BlockGenerator,
 }
 
-impl <'a> System<'a> for ChunkManager {
-  type SystemData = (
-    WriteStorage<'a, ChunkComponent>,
-  );
+impl<'a> System<'a> for ChunkManager {
+    type SystemData = (WriteStorage<'a, ChunkComponent>,);
 
-  fn run(&mut self, _data: Self::SystemData) {
+    fn run(&mut self, _data: Self::SystemData) {}
 
-  }
-
-  fn setup(&mut self, world: &mut World) {
-    for x in 0..16 {
-      for z in 0..16 {
-        let seed_vec = Vec2I::new(x, z);
-        let mut event_queue = world.write_resource::<StatefulEventChannel<EntityCrudEvent, ChunkBuilderState>>();
-        event_queue.publish((
-          EntityCrudEvent::Create,
-          ChunkBuilderState::new(seed_vec, self.world_generator.clone())
-        ));
-      }
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+        {
+            let mut builder = ChunkBuilder::default();
+            builder.setup_delegate(world);
+            world.insert(builder);
+        }
+        let mut builder = world.system_data::<PrefabManager<ChunkBuilder>>();
+        // world.insert(builder);
+        //   world.insert::<PrefabManager<ChunkBuilder>>();
+        // world.insert(PrefabManager::<ChunkBuilder>::default());
+        for x in 0..16 {
+            for z in 0..16 {
+                let seed_vec = Vec2I::new(x, z);
+                let state = ChunkBuilderState::new(seed_vec, self.world_generator.clone());
+                builder.create(state);
+                // event_queue.publish((
+                //   EntityCrudEvent::Create,
+                //   ChunkBuilderState::new(seed_vec, self.world_generator.clone())
+                // ));
+            }
+        }
+        println!("Done setting up chunk manager!");
     }
-  }
 }

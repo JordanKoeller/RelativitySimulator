@@ -50,7 +50,7 @@ impl<'a> PrefabBuilder<'a> for DistrictDelegate {
   type State = DistrictState;
   type EntityResources = DistrictStateData<'a>;
 
-  fn create<'b, F: Fn() -> MyBuilder<'a, 'b>>(
+  fn create<'b, F: Fn() -> EntitySpawner<'a, 'b>>(
     &self,
     state: &Self::State,
     resources: &mut Self::EntityResources,
