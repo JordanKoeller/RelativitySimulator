@@ -1,6 +1,6 @@
-use cgmath::prelude::InnerSpace;
 use crate::renderer::{AttributeType, BufferLayout, DataBuffer, IndexBuffer, VertexArray};
 use crate::renderer::{Drawable, Texture};
+use cgmath::prelude::InnerSpace;
 use specs::prelude::*;
 use specs::{Component, VecStorage};
 use std::ops::Deref;

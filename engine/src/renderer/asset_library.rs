@@ -4,8 +4,8 @@ use std::collections::HashMap;
 
 use crate::ecs::{DrawableId, Material};
 use crate::renderer::*;
-use std::ffi::{CStr, CString};
 use crate::utils::Mat4F;
+use std::ffi::{CStr, CString};
 
 #[derive(Default)]
 pub struct AssetLibrary {

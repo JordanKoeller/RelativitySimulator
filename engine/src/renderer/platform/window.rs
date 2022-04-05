@@ -7,6 +7,7 @@ use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
 
 use crate::debug::{gl_debug_output, print_limits};
+use crate::utils::Vec2F;
 
 pub type InputEvent = std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>;
 pub type GLFW = glfw::Glfw;
@@ -115,6 +116,11 @@ impl Window {
 
     pub fn is_open(&self) -> bool {
         !self.native_window().should_close()
+    }
+
+    pub fn get_dims_f32(&self) -> Vec2F {
+        let (x, y) = self.window.get_size();
+        Vec2F::new(x as f32, y as f32)
     }
 
     pub fn poll_events(&mut self) {

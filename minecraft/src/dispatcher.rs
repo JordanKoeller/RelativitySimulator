@@ -2,10 +2,10 @@ use specs::prelude::*;
 
 use engine::ecs::*;
 use engine::events::*;
+use engine::game_loop::SystemsRegistration;
 use engine::physics::TransformComponent;
 use engine::renderer::{Drawable, Mesh};
 use engine::utils::*;
-use engine::game_loop::SystemsRegistration;
 
 use super::systems::{ChunkManager, PlayerController};
 use crate::skybox::Skybox;

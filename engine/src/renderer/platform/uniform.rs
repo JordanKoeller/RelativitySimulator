@@ -1,6 +1,6 @@
+use crate::utils::*;
 use cgmath::Matrix;
 use std::ffi::{c_void, CStr, CString};
-use crate::utils::*;
 
 use crate::debug::*;
 

@@ -1,8 +1,10 @@
-use cgmath::prelude::*;
 use crate::ecs::{components::Material, MyBuilder};
-use crate::renderer::{AttributeType, BufferLayout, DataBuffer, Drawable, IndexBuffer, Texture, TextureLike, VertexArray};
-use specs::prelude::*;
+use crate::renderer::{
+    AttributeType, BufferLayout, DataBuffer, Drawable, IndexBuffer, Texture, TextureLike, VertexArray,
+};
 use crate::utils::{Vec2F, Vec3F};
+use cgmath::prelude::*;
+use specs::prelude::*;
 
 #[repr(C)]
 #[derive(Clone)]

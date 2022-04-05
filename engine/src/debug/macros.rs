@@ -1,7 +1,7 @@
 use crate::debug::gl_debug::*;
+use crate::utils::{RunningEnum, RunningState};
 use lazy_static::lazy_static;
 use std::sync::Mutex;
-use crate::utils::{RunningEnum, RunningState};
 
 lazy_static! {
     static ref RUNNING_STATE: Mutex<RunningState> = Mutex::new(RunningState::default());

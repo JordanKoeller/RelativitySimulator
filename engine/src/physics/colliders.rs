@@ -1,9 +1,7 @@
-use specs::{Join, Read, ReadStorage, System, WriteStorage, Component, VecStorage};
+use specs::{Component, Join, Read, ReadStorage, System, VecStorage, WriteStorage};
 
-
-use crate::physics::{TransformComponent, Collision, CollisionSummary};
+use crate::physics::{Collision, CollisionSummary, TransformComponent};
 use crate::utils::{swizzle_down, swizzle_up, Vec3F};
-
 
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]

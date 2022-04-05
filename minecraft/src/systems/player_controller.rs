@@ -1,11 +1,13 @@
 use cgmath::prelude::*;
-use specs::prelude::*;
 use engine::ecs::components::{Camera, EventReceiver, MeshComponent, Player};
 use engine::ecs::SystemDelegate;
-use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent};
+use engine::events::{
+    Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent,
+};
 use engine::gui::*;
 use engine::physics::{Gravity, RigidBody, TransformComponent};
 use engine::utils::{random, Mat4F, QuatF, Timer, TimerLike, Timestep, Vec2F, Vec3F};
+use specs::prelude::*;
 const IMPULSE: f32 = 0.2f32;
 
 #[derive(SystemData)]

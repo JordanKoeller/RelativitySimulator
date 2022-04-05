@@ -1,8 +1,8 @@
+use crate::utils::*;
 use cgmath::prelude::*;
 use cgmath::{Deg, Rad, Rotation3};
 use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
-use crate::utils::*;
 
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]

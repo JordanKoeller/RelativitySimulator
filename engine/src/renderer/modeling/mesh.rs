@@ -1,11 +1,11 @@
-use cgmath::Matrix;
 use crate::ecs::{DrawableId, Material};
 use crate::renderer::platform::{
     AttributeType, BufferLayout, DataBuffer, InstancingTable, Shader, ShaderId, TextureBinder, VertexArray,
 };
+use crate::utils::Mat4F;
+use cgmath::Matrix;
 use specs::Entity;
 use std::ffi::c_void;
-use crate::utils::Mat4F;
 
 use crate::debug::*;
 

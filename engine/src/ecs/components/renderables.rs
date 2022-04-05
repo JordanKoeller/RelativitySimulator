@@ -1,7 +1,6 @@
 use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
 
-
 use std::ffi::{CStr, CString};
 
 use crate::renderer::{AttributeType, Mesh, Shader, TextureBinder, VertexArray};

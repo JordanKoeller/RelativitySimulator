@@ -24,6 +24,7 @@ extern crate lazy_static;
 
 #[macro_use]
 pub mod debug;
+pub mod builder;
 pub mod common;
 pub mod ecs;
 pub mod events;
@@ -36,28 +37,28 @@ pub mod utils;
 
 // mod app;
 
+use crate::builder::GameBuilder;
 use crate::events::{Event, EventChannel, KeyCode, StatelessEventChannel, WindowEvent};
-use crate::utils::Vec3F;
-
 use crate::game_loop::GameLoop;
+use crate::utils::Vec3F;
 use specs::{World, WorldExt};
 
 // settings
 pub const SCR_WIDTH: u32 = 1600;
 pub const SCR_HEIGHT: u32 = 1200;
 
-pub fn main() {
+pub fn engine_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
+    let window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
+    GameBuilder::new(window)
+}
+
+pub fn main(builder: GameBuilder) {
     // glfw: initialize and configure
     // ------------------------------
 
     // Initialize high-level "singleton" structures
     // --------------------------------------------
-    let mut window_event_channel = StatelessEventChannel::<WindowEvent>::default();
-    let window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
-    let mut render = renderer::Renderer::new(
-        utils::Vec2F::new(SCR_WIDTH as f32, SCR_HEIGHT as f32),
-        &mut window_event_channel,
-    );
+
     // Initialize the player/camera and the respective event handling
     // --------------------------------------------------------------
 
@@ -69,31 +70,12 @@ pub fn main() {
     // render.submit_shader(shader);
     // let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
     // render.submit_shader(shader);
-    let shader = renderer::Shader::from_file("default_texture", "shaders/simple_textured.glsl");
-    render.submit_shader(shader);
-    let shader = renderer::Shader::from_file("instanced", "shaders/simple_instanced.glsl");
-    render.submit_shader(shader);
-    let shader = renderer::Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
-    render.submit_shader(shader);
+
     // let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
     // render.submit_shader(shader);
     // let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
     // render.submit_shader(shader);
 
-    let mut world = World::new();
-
-    let world_id = window_event_channel.register_with_subs(&[
-        WindowEvent::new(Event::KeyPressed(KeyCode::Control)),
-        WindowEvent::new(Event::KeyPressed(KeyCode::Esc)),
-        WindowEvent::new(Event::KeyPressed(KeyCode::Alt)),
-        WindowEvent::new(Event::KeyPressed(KeyCode::F)),
-    ]);
-
-    world.insert(window_event_channel);
-    world.insert(utils::Timestep::default());
-    world.insert(utils::RunningState::default());
-    world.insert(render);
-    world.insert(world_id);
     // app::build_city(&mut world);
 
     // app::flappy_bird::setup_world(&mut world);
@@ -102,4 +84,6 @@ pub fn main() {
     // runtime.with_systems(app::minecraft::get_system_registration());
     // runtime.with_systems(app::flappy_bird::get_system_registration());
     // runtime.run();
+    let mut runtime = builder.build();
+    runtime.run();
 }

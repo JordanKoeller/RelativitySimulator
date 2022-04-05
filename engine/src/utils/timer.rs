@@ -1,5 +1,5 @@
-use std::time::Duration;
 use crate::utils::{rand_choice, Timestep};
+use std::time::Duration;
 
 use crate::debug::*;
 

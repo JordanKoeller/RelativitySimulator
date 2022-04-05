@@ -1,11 +1,10 @@
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
-use cgmath::prelude::*;
 use crate::physics::{CanCollide, Collision, CollisionQueue, CollisionSummary};
 use crate::utils::*;
+use cgmath::prelude::*;
 
-use crate::physics::{Drag, Gravity, RigidBody, TransformComponent, AxisAlignedCubeCollision};
-
+use crate::physics::{AxisAlignedCubeCollision, Drag, Gravity, RigidBody, TransformComponent};
 
 use crate::renderer::LIGHT_SPEED;
 const MAX_ACCELERATION: f32 = 6f32;

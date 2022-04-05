@@ -1,7 +1,7 @@
-use specs::prelude::*;
-use crate::gui::*;
 use crate::ecs::components::Player;
+use crate::gui::*;
 use crate::utils::Timestep;
+use specs::prelude::*;
 
 use crate::physics::{RigidBody, TransformComponent};
 

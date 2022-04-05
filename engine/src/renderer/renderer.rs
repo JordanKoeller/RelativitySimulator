@@ -1,8 +1,8 @@
+use crate::utils::*;
 use either::Either;
 use std::clone::Clone;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use crate::utils::*;
 
 use specs::prelude::*;
 
@@ -55,12 +55,7 @@ impl Default for Renderer {
 
 impl Renderer {
     // Constructor
-    pub fn new(screen_dims: Vec2F, channel: &mut StatelessEventChannel<WindowEvent>) -> Renderer {
-        let receiver_id = channel.register_with_subs(&[
-            WindowEvent::new(Event::WindowResized),
-            WindowEvent::new(Event::KeyPressed(KeyCode::Tab)),
-            WindowEvent::new(Event::KeyPressed(KeyCode::Q)),
-        ]);
+    pub fn new(screen_dims: Vec2F, receiver_id: ReceiverID) -> Renderer {
         Renderer {
             screen: create_screen(screen_dims.x as i32, screen_dims.y as i32),
             config_uniforms: HashMap::new(),

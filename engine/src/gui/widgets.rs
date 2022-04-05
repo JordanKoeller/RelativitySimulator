@@ -1,7 +1,7 @@
+use crate::utils::{getSyncMutRef, Color, SyncMutRef};
 use imgui::{ImString, SliderFloat, Ui};
 use specs::prelude::*;
 use specs::{Component, VecStorage};
-use crate::utils::{getSyncMutRef, Color, SyncMutRef};
 
 /******************************
  * Widget Interface

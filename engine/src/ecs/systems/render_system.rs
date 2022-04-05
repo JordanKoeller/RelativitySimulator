@@ -7,7 +7,9 @@ use specs::prelude::*;
 use crate::ecs::SystemDelegate;
 
 use crate::ecs::components::{Camera, DrawableId, Material, MeshComponent, Player};
-use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher};
+use crate::events::{
+    Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
+};
 use crate::gui::*;
 use crate::renderer::render_pipeline::*;
 use crate::renderer::{AssetLibrary, DrawCall, Mesh, RenderCommand, RenderQueue, Renderer, Window};
@@ -158,8 +160,6 @@ impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
             &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
         ));
     }
-
-    fn setup(&mut self, world: &mut World) {}
 
     fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
         let mut ui = DebugPanel::new("Renderer Debugger");

@@ -2,9 +2,9 @@ use cgmath::prelude::Zero;
 use specs::prelude::*;
 
 use engine::physics::TransformComponent;
+use engine::renderer::{Drawable, Mesh, Renderer};
 use engine::shapes::{Block, Sprite};
 use engine::utils::{QuatF, Vec3F};
-use engine::renderer::{Drawable, Mesh, Renderer};
 
 use crate::components::ChunkComponent;
 
