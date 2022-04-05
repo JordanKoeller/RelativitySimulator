@@ -7,10 +7,13 @@ pub trait SystemDelegate<'a> {
 
     fn run(&mut self, resources: Self::SystemData);
 
+    #[allow(unused_variables)]
     fn setup(&mut self, world: &mut World) {}
 
+    #[allow(unused_variables)]
     fn update_debugger(&mut self, resources: &mut Self::SystemData, debugger: &mut DebugPanel) {}
 
+    #[allow(unused_variables)]
     fn setup_debug_panel(&mut self, world: &mut World) -> Option<DebugPanel> {
         None
     }
@@ -31,10 +34,9 @@ where
     type SystemData = (
         <Delegate as SystemDelegate<'a>>::SystemData,
         WriteStorage<'a, DebugPanel>,
-        Entities<'a>,
     );
 
-    fn run(&mut self, (mut delegate_data, mut gui, entities): Self::SystemData) {
+    fn run(&mut self, (mut delegate_data, mut gui): Self::SystemData) {
         if let Some(entity) = self.entity {
             if let Some(mut ui_panel) = gui.get_mut(entity) {
                 self.delegate.update_debugger(&mut delegate_data, &mut ui_panel);

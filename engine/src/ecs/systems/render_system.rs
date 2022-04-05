@@ -153,7 +153,7 @@ impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
         self.draw_call_count = draw_call_count;
     }
 
-    fn update_debugger(&mut self, data: &mut Self::SystemData, gui: &mut DebugPanel) {
+    fn update_debugger(&mut self, _data: &mut Self::SystemData, gui: &mut DebugPanel) {
         gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
         gui.panel.lines[2] = Box::from(LabeledText::new(
             "GPU Render Time",

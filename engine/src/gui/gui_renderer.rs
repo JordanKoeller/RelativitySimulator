@@ -44,7 +44,7 @@ impl GuiRenderer {
         {
             let _ = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
         }
-        for (overlay, transform_opt) in (&mut overlay_store, transform_storage.maybe()).join() {
+        for (overlay, _transform_opt) in (&mut overlay_store, transform_storage.maybe()).join() {
             if !overlay.panel.empty() {
                 // if let Some(transform) = transform_opt {
                 //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
@@ -55,7 +55,7 @@ impl GuiRenderer {
                 // }
             }
         }
-        for (overlay, transform_opt) in (&mut debugger_storage, transform_storage.maybe()).join() {
+        for (overlay, _transform_opt) in (&mut debugger_storage, transform_storage.maybe()).join() {
             if !overlay.panel.empty() {
                 // if let Some(transform) = transform_opt {
                 //   let xy: [f32; 2] = [transform.translation.x, transform.translation.y];
