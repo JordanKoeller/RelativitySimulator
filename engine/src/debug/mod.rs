@@ -4,8 +4,10 @@ pub mod gl_debug;
 pub mod macros;
 pub mod diagnostics_panel;
 mod drive_info;
+mod logger;
 
 pub use self::diagnostics_panel::*;
 pub use self::drive_info::*;
 pub use self::gl_debug::*;
 pub use self::macros::*;
+pub use self::logger::*;

@@ -4,7 +4,6 @@ extern crate cgmath;
 extern crate specs;
 
 mod components;
-mod dispatcher;
 mod prefabs;
 mod skybox;
 mod systems;
