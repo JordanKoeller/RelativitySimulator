@@ -5,7 +5,9 @@ mod system;
 pub mod systems;
 mod system_utilities;
 mod prefab;
+mod mono_behavior;
 
+pub use self::mono_behavior::*;
 pub use self::components::*;
 pub use self::debug::*;
 pub use self::entity::*;

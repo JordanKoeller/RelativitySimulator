@@ -9,7 +9,7 @@ use crate::ecs::PrefabBuilder;
 // All fields inside this should only be specified as `Read` or `ReadStorage` access.
 // If mutation is used, please use interior mutability unless
 #[derive(SystemData)]
-struct SystemUtilities<'a> {
+pub struct SystemUtilities<'a> {
     logger: Read<'a, Logger>,
     entities: Entities<'a>,
     lazy_update: Read<'a, LazyUpdate>,
