@@ -25,8 +25,8 @@ impl<'a> SystemUtilities<'a> {
         self.lazy_update.create_entity(&self.entities)
     }
 
-    pub fn build_prefab<B: PrefabBuilder>(&self, state: B::PrefabState)  -> Entity {
-        let builder = B::build(self.entity_builder(), state);
+    pub fn build_prefab<B: PrefabBuilder>(&self, builder: B, state: B::PrefabState)  -> Entity {
+        let builder = builder.build(self.entity_builder(), state);
         builder.build()
     }
 
@@ -41,4 +41,41 @@ impl<'a> SystemUtilities<'a> {
 
     // }
     
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::testing::{TestingEcsBuilder, TestingEcs};
+
+    use super::*;
+
+    #[derive(Default)]
+    struct MakePrefabTest {
+        pub ett: Option<Entity>
+    }
+
+    impl <'a> System<'a> for MakePrefabTest {
+        type SystemData = SystemUtilities<'a>;
+
+        fn run(&mut self, data: Self::SystemData) {
+            if let Some(e) = self.ett {
+                data.delete_entity(e);
+            } else {
+                self.ett = Some(data.entity_builder().build());
+            }
+        }
+    }
+
+
+    #[test]
+    fn build_prefab() {
+        let mut test_ecs = TestingEcsBuilder::new()
+            .with_system(MakePrefabTest::default())
+            .build();
+        test_ecs.run();
+        assert_eq!(test_ecs.entities().len(), 1);
+        test_ecs.run();
+        assert_eq!(test_ecs.entities().len(), 0);
+    }
 }

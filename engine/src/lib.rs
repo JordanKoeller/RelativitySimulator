@@ -34,6 +34,7 @@ pub mod physics;
 pub mod renderer;
 pub mod shapes;
 pub mod utils;
+pub mod testing;
 
 // mod app;
 

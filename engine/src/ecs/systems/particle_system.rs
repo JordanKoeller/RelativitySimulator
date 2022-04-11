@@ -16,6 +16,14 @@ pub struct Particle {
     // pub decay: f32, // TODO: Add some shader support for a global alpha parameter.
 }
 
+impl Particle {
+    pub fn new(lifetime: std::time::Duration) -> Self {
+        Self {
+            lifetime,
+        }
+    }
+}
+
 pub struct ParticleUpdater;
 
 impl<'a> System<'a> for ParticleUpdater {

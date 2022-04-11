@@ -5,7 +5,11 @@ pub mod running_state;
 mod timer;
 pub mod transform_stack;
 pub mod types;
+mod stopwatch;
+mod counter;
 
+pub use self::counter::*;
+pub use self::stopwatch::*;
 pub use self::math::*;
 pub use self::multi_map::*;
 pub use self::random::*;

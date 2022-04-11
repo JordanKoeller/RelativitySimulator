@@ -1,6 +1,7 @@
 use specs::prelude::*;
 
 use crate::ecs::SystemUtilities;
+use crate::events::ReceiverID;
 
 pub trait MonoBehavior<'a> {
     type SystemData: specs::SystemData<'a>;
@@ -11,6 +12,7 @@ pub trait MonoBehavior<'a> {
     fn setup(&mut self, world: &mut World) {
 
     }
+
     #[allow(unused_variables)]
     fn destroy(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {
 
@@ -19,7 +21,8 @@ pub trait MonoBehavior<'a> {
 
 struct Sys<M> 
 where for<'a> M: MonoBehavior<'a> {
-    mono_behavior: M
+    mono_behavior: M,
+    receiver_id: Option<ReceiverID>,
 }
 
 impl<'a, M> System<'a> for Sys<M>
@@ -44,7 +47,8 @@ impl<M> Default for Sys<M>
 where for <'a> M: MonoBehavior<'a> + Default {
     fn default() -> Self {
         Self {
-            mono_behavior: M::default()
+            mono_behavior: M::default(),
+            receiver_id: None,
         }
     }
 }

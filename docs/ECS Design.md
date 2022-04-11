@@ -83,3 +83,101 @@ Far down the road I will add the ability to spawn entities, move them around, se
   +  `log(&self, message: &str, log_level: LogLevel)`
   +  `init_panel<S: PanelState>(&self, panel: GuiPanel<S>)`
   +  `refresh_panel(&self) -> Box<dyn S>`
+
+
+# Asset Management
+
+I started working on the code for the system abstractions, but I have an issue. I need a better way to manage assets.
+
+## Asset Types:
++ Assets loaded from file. These files don't necessarily _need_ loaded into the GPU, but loading them from disk is slow and I should avoid doing it more than necessary.
+  + Texture files
+  + 3D files (.obj files)
+  + Media (audio, video) - not supported right now but in the future.
+  + Shaders
++ Assets that need to go to the GPU and be managed by the GPU accordingly.
+  + VBO/VAO (programatically made, or from a model file).
+  + Textures - need loaded into GPU to render
+  + Shaders - extra complexity of pre-compiled versus source code.
+
+For both of these aseet types their management is expensive so I don't want to do it more than necessary. I want to step them through their lifecycle _once_ with no redundancy.
+
+I can accomplish this by handling AssetIDs instead of the assets themselves.
+
+## Asset IDs
+
+A few options:
++ Option 1: Human-readable Asset Ids
+  + Pros:
+    + Makes it easier to debug
+    + Makes it easier to find common assets and prevent duplicate work
+  + Cons:
+    + Requires a hashmap for lookup to actual assets
+    + No guaranteed uniqueness - puts the onus on the developer. That being said, I could easily make helper functions that generates a UUID if uniqueness is mandated.
++ Option 2: UUID
+  + Pros:
+    + Guaranteed unique always
+    + Neatly handles removal of assets from the registry
+  + Cons
+    + Mapping to actual assets involves a HashMap or Binary search
++ Option 2: Ascending Numeric IDs
+  + Pros:
+    + Fast lookups - indices into a Vector.
+  + Cons:
+    + Issue of synchronizing a counter across threads for ID Generation
+    + Monotonically increasing IDs means monotonically expanding vector for lookups.
+    + Ids become inefficient if I need to remove assets from the registry.
++ Option 3: Use std::Arcs
+  + Pros:
+    + Built in to the system
+    + Fastest lookup times without need for mapping
+    + None of the drawbacks of indices either
+  + Cons:
+    + Locking on reference count changes
+    + Underlying data becomes immutable.
++ Option 4: Use std::Arc<std::Mutext>
+  + Pros:
+    + Built in to the system
+    + Fastest lookup times without need for mapping
+    + None of the drawbacks of indices
+  + Cons:
+    + Locking on reference count changes
+    + Locking on data mutation which is superfluous since I plan on mutation being single-threaded
++ Option 5: Write my own specialty reference counter that has the locking semantics I need
+  + Pros:
+    + Best of all worlds
+  + Cons:
+    + Added developer complexity
+    + Will be reliant on unsafe code. But maybe that's OK.
+
+I think Option 1 is favorable. There is a tradeoff in ID lookups. But if needed, I could implement some caching type system for accelerating lookups. DONT PRE OPTIMIZE
+
+## Implementing Asset Management
+
+There is some complexity in how to do this smoothly because:
+
+1. Model assets are compound assets:
+   1. Multiple Meshes/3D objects.
+   2. Multiple textures
+2. Materials are compound assets:
+   1. Ambient/Diffuse textures
+   2. A Uniform Buffer Object
+
+I don't want to grab more than is absolutely necessary. So I should break assets down to their smalest parts when they are compound. While this is good from an efficiency standpoint it sucks from a developer standpoint.
+
+Adding more complexity, the components that I want are the ultimate destination of where all these asset IDs will be handled in the system and they are potentially compound as well!
+
+### Components that handle AssetIDs:
++ `Material` -> has multiple TextureIDs in it.
++ `Mesh` -> has ONE Mesh/3D object.
++ `Shader` -> Refers to ONE shader resource
++ `Buffer` (FUTURE) -> Refers to a GPU-backed array buffer.
++ `CompositeAsset` (FUTURE) -> A general bucket for components with multiple ResourceIDs enclosed.
+
+While it would be tempting to make an API that returns components directly, I don't think that is maybe the wisets implementation for this part of the `SystemUtilities` API.  I definitely see advantages to methods like `load_model`, `load_material`, etc. but those APIs are higher-level and should exist on top of the bare bones AssetManagement interface.
+
+### Interfaces - Base types
+
+```
+pub enum 
+```
