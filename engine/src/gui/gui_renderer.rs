@@ -3,7 +3,7 @@ use specs::prelude::*;
 
 use crate::physics::TransformComponent;
 
-use crate::renderer::Window;
+use crate::platform::Window;
 use crate::utils::MutRef;
 
 use super::{DebugPanel, GuiInputPanel, UiComponent, Widget};

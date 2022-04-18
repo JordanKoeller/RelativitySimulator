@@ -3,7 +3,7 @@ use crate::ecs::systems::*;
 use crate::ecs::{SystemDelegate, SystemManager};
 use crate::events::ReceiverID;
 use crate::gui::GuiRenderer;
-use crate::renderer::Window;
+use crate::platform::Window;
 use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState, Timestep};
 use specs::prelude::*;
 use std::time::Duration;

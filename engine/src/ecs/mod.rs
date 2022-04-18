@@ -4,9 +4,11 @@ pub mod entity;
 mod system;
 pub mod systems;
 mod system_utilities;
-mod prefab;
+pub mod prefab;
 mod mono_behavior;
+mod world_proxy;
 
+pub use self::world_proxy::*;
 pub use self::mono_behavior::*;
 pub use self::components::*;
 pub use self::debug::*;

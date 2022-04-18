@@ -12,7 +12,8 @@ use crate::events::{
 };
 use crate::gui::*;
 use crate::renderer::render_pipeline::*;
-use crate::renderer::{AssetLibrary, DrawCall, Mesh, RenderCommand, RenderQueue, Renderer, Window};
+use crate::renderer::{AssetLibrary, DrawCall, Mesh, RenderCommand, RenderQueue, Renderer,};
+use crate::platform::Window;
 use crate::utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
 
 use crate::physics::TransformComponent;

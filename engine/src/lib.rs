@@ -16,6 +16,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate specs;
 extern crate tobj;
+extern crate crossbeam_queue;
 
 pub mod macros;
 
@@ -24,7 +25,7 @@ extern crate lazy_static;
 
 #[macro_use]
 pub mod debug;
-pub mod builder;
+mod game_builder;
 pub mod common;
 pub mod ecs;
 pub mod events;
@@ -35,21 +36,25 @@ pub mod renderer;
 pub mod shapes;
 pub mod utils;
 pub mod testing;
-
+mod datastructures;
+mod graphics;
+mod platform;
 // mod app;
 
-use crate::builder::GameBuilder;
+use crate::game_builder::GameBuilder;
 use crate::events::{Event, EventChannel, KeyCode, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
 use crate::utils::Vec3F;
 use specs::{World, WorldExt};
 
+pub use crate::ecs::prefab::*;
+
 // settings
 pub const SCR_WIDTH: u32 = 1600;
 pub const SCR_HEIGHT: u32 = 1200;
 
-pub fn engine_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
-    let window = renderer::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
+pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
+    let window = platform::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
     GameBuilder::new(window)
 }
 

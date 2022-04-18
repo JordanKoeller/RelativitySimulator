@@ -10,6 +10,7 @@ use crate::debug::*;
 use crate::renderer::platform::VertexArray;
 use crate::renderer::render_pipeline::*;
 use crate::renderer::*;
+use crate::platform::Window;
 
 use crate::ecs::{Camera, DrawableId, Material, MeshComponent};
 

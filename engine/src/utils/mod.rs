@@ -7,7 +7,9 @@ pub mod transform_stack;
 pub mod types;
 mod stopwatch;
 mod counter;
+mod asset_ref;
 
+pub use self::asset_ref::*;
 pub use self::counter::*;
 pub use self::stopwatch::*;
 pub use self::math::*;

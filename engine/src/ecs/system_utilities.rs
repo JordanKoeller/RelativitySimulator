@@ -4,6 +4,7 @@ use specs::world::LazyBuilder;
 use crate::events::{StatefulEventChannel, EventChannel};
 use crate::debug::{Logger};
 use crate::ecs::PrefabBuilder;
+use crate::graphics::AssetLibrary;
 
 // Provides a common interface for accessing commonly used resources
 // All fields inside this should only be specified as `Read` or `ReadStorage` access.
@@ -13,6 +14,7 @@ pub struct SystemUtilities<'a> {
     logger: Read<'a, Logger>,
     entities: Entities<'a>,
     lazy_update: Read<'a, LazyUpdate>,
+    asset_library: Read<'a, AssetLibrary>,
 }
 
 impl<'a> SystemUtilities<'a> {
@@ -37,9 +39,9 @@ impl<'a> SystemUtilities<'a> {
         }
     }
 
-    // pub fn get_panel_values(&self, system_id: ReceiverID) -> &ImguiPanelValues {
-
-    // }
+    pub fn assets(&self) -> &AssetLibrary {
+        &self.asset_library
+    }
     
 }
 

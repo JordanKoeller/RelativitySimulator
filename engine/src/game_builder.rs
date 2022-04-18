@@ -4,11 +4,13 @@ use std::time::Duration;
 use crate::ecs::components::{DrawableId, Material, MeshComponent};
 use crate::ecs::systems::*;
 use crate::ecs::SystemManager;
+use crate::ecs::PrefabBuilder;
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
 use crate::gui::GuiRenderer;
 use crate::physics::TransformComponent;
-use crate::renderer::{Renderer, Shader, Window};
+use crate::renderer::{Renderer, Shader};
+use crate::platform::Window;
 use crate::utils::{GetMutRef, MutRef, RunningState, Timestep, Vec2F};
 
 struct RendererBuilder {
@@ -122,6 +124,16 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self
     }
 
+    pub fn with_prefab<B>(mut self, builder: B, state: B::PrefabState) -> Self
+    where B: PrefabBuilder {
+
+        let entity_builder = self.world.create_entity();
+        let entity_builder = builder.build(entity_builder, state);
+        entity_builder.build();
+        self
+
+    }
+
     pub fn build(mut self) -> GameLoop<'a, 'b> {
         // Create a WindowEvent channel and set up control events.
         let mut window_channel = StatelessEventChannel::<WindowEvent>::default();
@@ -159,6 +171,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
                 window: MutRef::clone(&window_ref),
                 receiver_id: world_id,
             })
+            .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(EventProcessingSystem::default())
             .with_thread_local(SystemManager::new(RenderPipelineSystem::new(
                 MutRef::clone(&window_ref),

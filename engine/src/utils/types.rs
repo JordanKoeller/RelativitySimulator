@@ -3,7 +3,7 @@ use cgmath::One;
 // use cgmath::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
 pub type Vec2F = cgmath::Vector2<f32>;
@@ -52,16 +52,7 @@ impl Timestep {
         self.last_time
     }
 }
-// pub struct Timestep(pub f32, pub f32);
-// impl Timestep {
-//   pub fn set_click(&mut self, value: f32) {
-//     self.0 = value;
-//   }
 
-//   pub fn set_render_time(&mut self, value: f32) {
-//     self.1 = value;
-//   }
-// }
 
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
@@ -72,3 +63,4 @@ pub fn GetMutRef<T>(v: T) -> MutRef<T> {
 pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
     Arc::new(Mutex::new(v))
 }
+

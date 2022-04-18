@@ -7,7 +7,7 @@ use crate::utils::Vec2F;
 use super::{Event, EventChannel, EventPayload, KeyCode, MouseButton, StatelessEventChannel};
 
 use crate::debug::*;
-use crate::renderer::Window;
+use crate::platform::Window;
 
 #[derive(Clone, Debug)]
 pub struct WindowEvent {

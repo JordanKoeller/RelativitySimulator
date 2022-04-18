@@ -8,7 +8,6 @@ pub mod texture;
 mod texture_binder;
 pub mod uniform;
 pub mod vertex_array;
-pub mod window;
 
 pub use self::buffer::*;
 pub use self::buffer_layout::*;
@@ -20,4 +19,3 @@ pub use self::texture::*;
 pub use self::texture_binder::*;
 pub use self::uniform::*;
 pub use self::vertex_array::VertexArray;
-pub use self::window::Window;

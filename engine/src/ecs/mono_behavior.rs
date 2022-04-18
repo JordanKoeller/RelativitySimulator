@@ -1,6 +1,6 @@
 use specs::prelude::*;
 
-use crate::ecs::SystemUtilities;
+use crate::ecs::{SystemUtilities, WorldProxy};
 use crate::events::ReceiverID;
 
 pub trait MonoBehavior<'a> {
@@ -9,28 +9,25 @@ pub trait MonoBehavior<'a> {
     fn run(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData);
 
     #[allow(unused_variables)]
-    fn setup(&mut self, world: &mut World) {
-
-    }
+    fn setup(&mut self, world: WorldProxy) {}
 
     #[allow(unused_variables)]
-    fn destroy(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {
-
-    }
+    fn destroy(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {}
 }
 
-struct Sys<M> 
-where for<'a> M: MonoBehavior<'a> {
+struct Sys<M>
+where
+    for<'a> M: MonoBehavior<'a>,
+{
     mono_behavior: M,
     receiver_id: Option<ReceiverID>,
 }
 
 impl<'a, M> System<'a> for Sys<M>
-where for<'b> M: MonoBehavior<'b> {
-    type SystemData = (
-        <M as MonoBehavior<'a>>::SystemData,
-        SystemUtilities<'a>,
-    );
+where
+    for<'b> M: MonoBehavior<'b>,
+{
+    type SystemData = (<M as MonoBehavior<'a>>::SystemData, SystemUtilities<'a>);
 
     fn run(&mut self, (delegate_resources, utilities): Self::SystemData) {
         self.mono_behavior.run(utilities, delegate_resources);
@@ -38,13 +35,15 @@ where for<'b> M: MonoBehavior<'b> {
 
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
-        self.mono_behavior.setup(world);
+        let wp = WorldProxy::new(world);
+        self.mono_behavior.setup(wp);
     }
-
 }
 
 impl<M> Default for Sys<M>
-where for <'a> M: MonoBehavior<'a> + Default {
+where
+    for<'a> M: MonoBehavior<'a> + Default,
+{
     fn default() -> Self {
         Self {
             mono_behavior: M::default(),

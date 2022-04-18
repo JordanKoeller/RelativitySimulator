@@ -179,5 +179,30 @@ While it would be tempting to make an API that returns components directly, I do
 ### Interfaces - Base types
 
 ```
-pub enum 
+type K = Eq + PartialEq + Hash + Ord + PartialOrd + Sized; // I include Ord + PartialOrd to support changing to a B-Tree in the future, if needed.
+
+trait Buildable<T> {
+    fn build(self) -> V;
+}
+
+trait V {
+    type Builder: Buildable<V>;
+}
+
+// Registry should have really fast inserts. Fetches may be slower.
+
+// When it comes time to run  through draw calls, I can make it s.t. my K for the VAO registry contains the VAO ID inside of it so no access to the registry is needed.
+
+trait Registry<K, V> {
+    get_registry_id(lookup_name: &str) -> Option<K>; 
+    
+    fetch(registry_id: K) -> &V;
+
+    fetch_mut(registry_id: K) -> &mut V;
+
+    // Schedules for building and insertion later, but gives back an ID now.
+    // If the same lookup_name is enqueued twice before the lazy queue has been drained
+    // This must still give back a key and skip enqueuing twice.
+    enqueue_builder(lookup_name: &str, builder: V::Builder) -> K; 
+}
 ```
