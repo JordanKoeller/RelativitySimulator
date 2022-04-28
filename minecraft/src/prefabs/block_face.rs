@@ -1,5 +1,4 @@
-use engine::shapes::{TEXTURE_CUBE_INDICES, TEXTURE_CUBE_VERTICES};
-
+use engine::prefab::{TEXTURE_CUBE_INDICES, TEXTURE_CUBE_VERTICES};
 pub enum BlockFaceEnum {
     Left,
     Right,

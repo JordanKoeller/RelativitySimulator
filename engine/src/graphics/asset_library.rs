@@ -1,6 +1,9 @@
 use crate::datastructures::Registry;
 
-use super::{ShaderBuilder, ShaderId, ShaderRegistry, TextureBuilder, TextureId, TextureRegistry, VertexArrayRegistry, VertexArrayBuilder, VertexArrayId};
+use super::{
+    ShaderBuilder, ShaderId, ShaderRegistry, TextureBuilder, TextureId, TextureRegistry, VertexArrayBuilder,
+    VertexArrayId, VertexArrayRegistry, Shader, VertexArray
+};
 
 pub struct AssetLibrary {
     shaders: ShaderRegistry,
@@ -19,31 +22,43 @@ impl Default for AssetLibrary {
 }
 
 impl AssetLibrary {
-    fn get_or_create_texture(&self, lookup_name: &str, builder: TextureBuilder) -> TextureId {
+    pub fn get_or_create_texture(&self, lookup_name: &str, builder: TextureBuilder) -> TextureId {
         self.textures.enqueue_builder(lookup_name, builder)
     }
 
-    fn get_or_create_shader(&self, lookup_name: &str, builder: ShaderBuilder) -> ShaderId {
+    pub fn get_or_create_shader(&self, lookup_name: &str, builder: ShaderBuilder) -> ShaderId {
         self.shaders.enqueue_builder(lookup_name, builder)
     }
 
-    fn get_or_create_vertex_array(&self, lookup_name: &str, builder: VertexArrayBuilder) -> VertexArrayId {
+    pub fn get_or_create_vertex_array(&self, lookup_name: &str, builder: VertexArrayBuilder) -> VertexArrayId {
         self.buffers.enqueue_builder(lookup_name, builder)
     }
 
-    fn get_texture(&self, lookup_name: &str) -> Option<TextureId> {
+    pub fn get_texture_id(&self, lookup_name: &str) -> Option<TextureId> {
         self.textures.get_registry_id(lookup_name)
     }
 
-    fn get_shader(&self, lookup_name: &str) -> Option<ShaderId> {
+    pub fn get_shader_id(&self, lookup_name: &str) -> Option<ShaderId> {
         self.shaders.get_registry_id(lookup_name)
     }
 
-    fn get_vertex_array(&self, lookup_name: &str) -> Option<VertexArrayId> {
+    pub fn get_vertex_array_id(&self, lookup_name: &str) -> Option<VertexArrayId> {
         self.buffers.get_registry_id(lookup_name)
     }
 
-    fn flush_all(&mut self) {
+    pub fn get_shader_mut(&mut self, shader_id: &ShaderId) -> Option<&mut Shader> {
+        self.shaders.fetch_mut(shader_id)
+    }
+
+    pub fn get_shader(&self, shader_id: &ShaderId) -> Option<&Shader> {
+        self.shaders.fetch(shader_id)
+    }
+
+    pub fn get_vertex_array(&self, vertex_array_id: &VertexArrayId) -> Option<&VertexArray> {
+        self.buffers.fetch(vertex_array_id)
+    }
+
+    pub fn flush_all(&mut self) {
         self.shaders.flush();
         self.textures.flush();
         self.buffers.flush();

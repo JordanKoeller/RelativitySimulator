@@ -1,5 +1,6 @@
 use gl;
 use gl::types::GLenum;
+use std::path::Path;
 
 use crate::datastructures::KeyValueBuilder;
 use crate::utils::{ReadAssetRef, RwAssetRef};
@@ -18,6 +19,7 @@ pub struct TextureBuilder {
     height: Option<u32>,
     format: GLenum,
     texture_id: RwAssetRef<(u32, gl::types::GLenum)>,
+    is_cubemap: bool,
 }
 
 impl Default for TextureBuilder {
@@ -28,6 +30,7 @@ impl Default for TextureBuilder {
             height: None,
             format: gl::RGB,
             texture_id: RwAssetRef::new((std::u32::MAX, gl::TEXTURE_2D)),
+            is_cubemap: false,
         }
     }
 }
@@ -40,35 +43,10 @@ impl KeyValueBuilder for TextureBuilder {
         if !self.is_buildable() {
             panic!("Tried to build a texture from a incomplete builder!");
         }
-        if let Some(filename) = self.filename {
-            let file_buffer = texture_helpers::load_file(&filename, true);
-            let texture_id = texture_helpers::create_2d_buffer(
-                &file_buffer.data,
-                &file_buffer.width,
-                &file_buffer.height,
-                &file_buffer.encoding,
-            );
-            self.texture_id.set((texture_id, gl::TEXTURE_2D));
-            Texture::new(self.texture_id, file_buffer)
+        if self.is_cubemap {
+            self.build_cubemap()
         } else {
-            let pixel_size = match self.format {
-                gl::RED => 1,
-                gl::RG => 2,
-                gl::RGB => 3,
-                gl::RGBA => 4,
-                _ => 3,
-            };
-            let data = Vec::with_capacity((self.width.unwrap() * self.height.unwrap() * pixel_size) as usize);
-            let buffer = TextureBuffer {
-                data,
-                width: self.width.unwrap(),
-                height: self.height.unwrap(),
-                encoding: self.format,
-            };
-            let texture_id =
-                texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding);
-            self.texture_id.set((texture_id, gl::TEXTURE_2D));
-            Texture::new(self.texture_id, buffer)
+            self.build_2d_texture()
         }
     }
 
@@ -101,13 +79,82 @@ impl TextureBuilder {
         self.format = format.get_gl_enum();
         self
     }
+
+    pub fn set_is_cubemap(mut self, value: bool) -> Self {
+        self.is_cubemap = value;
+        self
+    }
+
+    fn build_cubemap(mut self) -> Texture {
+        if let Some(dirpath) = self.filename {
+            let dir = Path::new(&dirpath);
+            let mut imgs = FACES.iter().map(|file| {
+                let full_path = dir.join(Path::new(file));
+                texture_helpers::load_file(full_path.to_str().expect("Could not construct path for"), false)
+            });
+            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
+            self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP));
+            Texture::new(self.texture_id, tb)
+        } else {
+            let pixel_size = match self.format {
+                gl::RED => 1,
+                gl::RG => 2,
+                gl::RGB => 3,
+                gl::RGBA => 4,
+                _ => 3,
+            };
+            let mut imgs = FACES.iter().map(|_| TextureBuffer {
+                data: Vec::with_capacity((self.width.unwrap() * self.height.unwrap() * pixel_size) as usize),
+                width: self.width.unwrap(),
+                height: self.height.unwrap(),
+                encoding: self.format,
+            });
+            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
+            self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP));
+            Texture::new(self.texture_id, tb)
+        }
+    }
+
+    fn build_2d_texture(mut self) -> Texture {
+        if let Some(filename) = self.filename {
+            let file_buffer = texture_helpers::load_file(&filename, true);
+            let texture_id = texture_helpers::create_2d_buffer(
+                &file_buffer.data,
+                &file_buffer.width,
+                &file_buffer.height,
+                &file_buffer.encoding,
+            );
+            self.texture_id.set((texture_id, gl::TEXTURE_2D));
+            log::info!("Created texture from file {}", filename);
+            Texture::new(self.texture_id, file_buffer)
+        } else {
+            let pixel_size = match self.format {
+                gl::RED => 1,
+                gl::RG => 2,
+                gl::RGB => 3,
+                gl::RGBA => 4,
+                _ => 3,
+            };
+            let data = Vec::with_capacity((self.width.unwrap() * self.height.unwrap() * pixel_size) as usize);
+            let buffer = TextureBuffer {
+                data,
+                width: self.width.unwrap(),
+                height: self.height.unwrap(),
+                encoding: self.format,
+            };
+            let texture_id =
+                texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding);
+            self.texture_id.set((texture_id, gl::TEXTURE_2D));
+            Texture::new(self.texture_id, buffer)
+        }
+    }
 }
 
 pub enum PixelSpec {
     RED,
     RG,
     RGB,
-    RGBA
+    RGBA,
 }
 
 impl PixelSpec {
@@ -120,6 +167,15 @@ impl PixelSpec {
         }
     }
 }
+
+static FACES: [&str; 6] = [
+    "right.jpg",
+    "left.jpg",
+    "top.jpg",
+    "bottom.jpg",
+    "front.jpg",
+    "back.jpg",
+];
 
 #[cfg(test)]
 mod test {

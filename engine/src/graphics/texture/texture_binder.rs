@@ -66,7 +66,7 @@ impl TextureBinder {
         if new {
             // texture.bind(slot);
             let formatted = format!("{}[{}]", uniform_name, slot);
-            shader.set_texture(slot, &CString::new(formatted).unwrap(), texture);
+            shader.set_texture(slot, &formatted, texture);
         }
         slot
     }

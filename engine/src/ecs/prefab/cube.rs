@@ -1,56 +1,64 @@
-use crate::renderer::{AttributeType, BufferLayout, DataBuffer, IndexBuffer, VertexArray};
-use crate::renderer::{Drawable, Texture};
-use cgmath::prelude::InnerSpace;
-use specs::prelude::*;
-use specs::{Component, VecStorage};
 use std::ops::Deref;
 
-use crate::physics::{Collision, CollisionSummary};
-
+use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
+use crate::graphics::{
+    AttributeType, BufferConfig, BufferLayout, DataBufferBuilder, IndexBufferBuilder, MaterialComponent, MeshComponent,
+    ShaderBuilder, TextureBuilder, VertexArrayBuilder,
+};
 use crate::physics::TransformComponent;
+use crate::physics::{Collision, CollisionSummary};
 use crate::utils::{swizzle_down, swizzle_up, Mat3F, Vec3F, Vec4F};
+use specs::prelude::*;
+use specs::{Component, VecStorage};
 
-use crate::ecs::Material;
-
-pub struct Block {
-    filename: String,
+pub struct CubeState {
+    texture_filename: String,
+    position: Vec3F,
 }
 
-impl Drawable for Block {
-    fn vertex_array(&self) -> VertexArray {
-        let layout = BufferLayout::new(vec![
-            AttributeType::Float3,
-            AttributeType::Float3,
-            AttributeType::Float2,
-        ]);
-        let vert_buff = DataBuffer::static_buffer(&TEXTURE_CUBE_VERTICES, layout);
-        let ind_buff = IndexBuffer::create(TEXTURE_CUBE_INDICES.to_vec());
-        VertexArray::new(vert_buff, ind_buff)
-    }
-    fn material(&self) -> Material {
-        let mut material = Material::new();
-        material.diffuse_texture(Texture::from_file(&self.filename));
-        material
-    }
-
-    fn shader_name(&self) -> String {
-        "instanced".to_string()
-    }
-
-    fn instance_attributes(&self) -> Option<Vec<(String, AttributeType)>> {
-        // None
-        Some(vec![
-            ("model".to_string(), AttributeType::Mat4),
-            ("diffuse_texture".to_string(), AttributeType::Int),
-        ])
-    }
-}
-
-impl Block {
-    pub fn new(texture_file: &str) -> Self {
+impl CubeState {
+    pub fn new(filename: &str, position: Vec3F) -> Self {
         Self {
-            filename: texture_file.to_string(),
+            texture_filename: filename.to_string(),
+            position,
         }
+    }
+}
+
+#[derive(Default)]
+pub struct Cube {
+    cache: ComponentCache,
+}
+impl PrefabBuilder for Cube {
+    type PrefabState = CubeState;
+    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
+        let mesh = self.cache.get_or(|| {
+            let shader_id = api.assets().get_shader_id("default_texture").unwrap();
+            let vai = VertexArrayBuilder::default()
+                .set_index_buffer(IndexBufferBuilder::default().set_data(TEXTURE_CUBE_INDICES.to_vec()))
+                .set_vertex_buffer(
+                    DataBufferBuilder::default()
+                        .set_data(TEXTURE_CUBE_VERTICES.to_vec())
+                        .set_layout(BufferLayout::new(vec![
+                            AttributeType::Float3,
+                            AttributeType::Float3,
+                            AttributeType::Float2,
+                        ]))
+                        .set_config(BufferConfig::static_vbo()),
+                );
+            let vai = api.assets().get_or_create_vertex_array("cube", vai);
+            MeshComponent::new(vai, shader_id)
+        });
+        let texture_id = api.assets().get_or_create_texture(
+            &state.texture_filename,
+            TextureBuilder::default().set_file(&state.texture_filename),
+        );
+        let mut material = MaterialComponent::default();
+        material.diffuse_texture(texture_id);
+        material.ambient(Vec3F::new(1f32, 1f32, 1f32));
+        let mut transform = TransformComponent::identity();
+        transform.push_translation(state.position);
+        api.entity_builder().with(material).with(transform).with(mesh).build();
     }
 }
 

@@ -1,20 +1,19 @@
 use specs::prelude::*;
 use std::time::Duration;
 
-use crate::ecs::components::{DrawableId, Material, MeshComponent};
+use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::ecs::systems::*;
-use crate::ecs::SystemManager;
-use crate::ecs::PrefabBuilder;
+use crate::ecs::{PrefabBuilder, WorldProxy, SystemUtilities};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
+use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction};
 use crate::gui::GuiRenderer;
 use crate::physics::TransformComponent;
-use crate::renderer::{Renderer, Shader};
 use crate::platform::Window;
+use crate::renderer::Renderer;
 use crate::utils::{GetMutRef, MutRef, RunningState, Timestep, Vec2F};
 
 struct RendererBuilder {
-    pub shaders: Vec<Shader>,
     dims: Vec2F,
     receiver_id: ReceiverID,
 }
@@ -22,7 +21,6 @@ struct RendererBuilder {
 impl RendererBuilder {
     pub fn empty() -> Self {
         RendererBuilder {
-            shaders: Vec::default(),
             dims: Vec2F::new(0f32, 0f32),
             receiver_id: 0,
         }
@@ -43,16 +41,13 @@ impl RendererBuilder {
     }
 
     pub fn build(self) -> Renderer {
-        let mut renderer = Renderer::new(self.dims, self.receiver_id);
-        self.shaders
-            .into_iter()
-            .for_each(|shader| renderer.submit_shader(shader));
-        renderer
+        Renderer::new(self.dims, self.receiver_id)
     }
 }
 
 pub struct GameBuilder<'a, 'b> {
     render_builder: RendererBuilder,
+    shaders: Vec<ShaderBuilder>,
     dispatcher_builder: DispatcherBuilder<'a, 'b>,
     world: World,
     window: Window,
@@ -63,23 +58,23 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
     pub fn new(window: Window) -> Self {
         let world = WorldBuilder::build();
 
-        Self {
+        let mut ret = Self {
             render_builder: RendererBuilder::empty(),
+            shaders: Vec::new(),
             dispatcher_builder: DispatcherBuilder::new(),
             world,
             window,
-        }
+        };
+        ret.add_default_shaders();
+        ret
     }
 
     pub fn add_shader(mut self, filename: &str) -> Self {
-        let fname_parts: Vec<&str> = filename.split("/").collect();
-        let fname: &str = fname_parts[fname_parts.len() - 1].split(".").next().unwrap();
-        self.render_builder.shaders.push(Shader::from_file(filename, fname));
-        self
-    }
-
-    pub fn add_shader_id(mut self, filename: &str, shader_id: &str) -> Self {
-        self.render_builder.shaders.push(Shader::from_file(filename, shader_id));
+        // let fname_parts: Vec<&str> = filename.split("/").collect();
+        // let fname: &str = fname_parts[fname_parts.len() - 1].split(".").next().unwrap();
+        let builder = ShaderBuilder::default().set_source_file(filename);
+        self.shaders.push(builder);
+        // self.shaders.push(Shader::from_file(filename, fname));
         self
     }
 
@@ -124,14 +119,15 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self
     }
 
-    pub fn with_prefab<B>(mut self, builder: B, state: B::PrefabState) -> Self
-    where B: PrefabBuilder {
-
-        let entity_builder = self.world.create_entity();
-        let entity_builder = builder.build(entity_builder, state);
-        entity_builder.build();
+    pub fn with_prefab<B>(self, mut builder: B, state: B::PrefabState) -> Self
+    where
+        B: PrefabBuilder,
+    {
+        {
+            let api = self.world.system_data::<SystemUtilities>();
+            builder.build(&api, state);
+        }
         self
-
     }
 
     pub fn build(mut self) -> GameLoop<'a, 'b> {
@@ -150,7 +146,6 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
             .set_dims(self.window.get_dims_f32())
             .bind_window_events(&mut window_channel)
             .build();
-        let renderer = Self::add_default_shaders(renderer);
         self.world.insert(renderer);
 
         // Bind the remaining resources to the world
@@ -173,10 +168,10 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
             })
             .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(EventProcessingSystem::default())
-            .with_thread_local(SystemManager::new(RenderPipelineSystem::new(
+            .with_thread_local(RenderPipelineSystem::new(
                 MutRef::clone(&window_ref),
                 world_id,
-            )))
+            ))
             .with_thread_local(GuiRenderer {
                 window: MutRef::clone(&window_ref),
             })
@@ -187,14 +182,30 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         GameLoop::new(self.world, dispatcher, window_ref)
     }
 
-    fn add_default_shaders(mut renderer: Renderer) -> Renderer {
-        let shader = Shader::from_file("default_texture", "shaders/simple_textured.glsl");
-        renderer.submit_shader(shader);
-        let shader = Shader::from_file("instanced", "shaders/simple_instanced.glsl");
-        renderer.submit_shader(shader);
-        let shader = Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
-        renderer.submit_shader(shader);
-        renderer
+    fn add_default_shaders(&mut self) {
+        let world = WorldProxy::new(&mut self.world);
+        let utils = world.utilities();
+        let assets = utils.assets();
+        assets.get_or_create_shader(
+            "default_texture",
+            ShaderBuilder::default().set_source_file("shaders/simple_textured.glsl"),
+        );
+        assets.get_or_create_shader(
+            "instanced",
+            ShaderBuilder::default().set_source_file("shaders/simple_instanced.glsl"),
+        );
+        assets.get_or_create_shader(
+            "skybox",
+            ShaderBuilder::default()
+                .set_depth_function(ShaderDepthFunction::LEQUAL)
+                .set_source_file("shaders/skybox.glsl"),
+        );
+        // let shader = Shader::from_file("default_texture", "shaders/simple_textured.glsl");
+        // renderer.submit_shader(shader);
+        // let shader = Shader::from_file("instanced", "shaders/simple_instanced.glsl");
+        // renderer.submit_shader(shader);
+        // let shader = Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
+        // renderer.submit_shader(shader);
     }
 }
 
@@ -206,9 +217,12 @@ impl WorldBuilder {
 
         // Register all my default component types
         world.register::<MeshComponent>();
-        world.register::<Material>();
+        world.register::<MaterialComponent>();
         world.register::<TransformComponent>();
-        world.register::<DrawableId>();
+        world.register::<MeshComponent>();
+        world.insert(AssetLibrary::default());
+        SystemUtilities::setup(&mut world);
+        // SystemUtilities::setup(world);
 
         // Insert default resources
         // world.insert(window_channel);

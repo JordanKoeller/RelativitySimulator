@@ -131,14 +131,14 @@ impl Window {
         self.window.swap_buffers();
     }
 
-    pub fn clear_framebuffer(&mut self) {
+    pub fn clear_intrinsic_canvas(&mut self) {
         unsafe {
             gl::ClearColor(0.1, 0.2, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
 
-    pub fn clear_framebuffer2(&mut self) {
+    pub fn clear_framebuffer(&mut self) {
         unsafe {
             gl::ClearColor(0.7, 0.2, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);

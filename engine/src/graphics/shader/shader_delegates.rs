@@ -53,16 +53,18 @@ impl ShaderBinder for DepthFuncShaderBinder {
 
 #[derive(Default)]
 pub struct UniformSlots {
-    slots: RwAssetRef<HashMap<CString, i32>>,
+    slots: RwAssetRef<HashMap<String, i32>>,
 }
 
 impl UniformSlots {
-    pub fn get_slot(&self, name: &CStr, shader_id: u32) -> i32 {
-        if let Some(slot) = self.slots.get().get(name) {
-            *slot
+    pub fn get_slot(&self, name: &str, shader_id: u32) -> i32 {
+        let has_key = self.slots.get().contains_key(name);
+        if has_key {
+            *self.slots.get().get(name).unwrap()
         } else {
-            let slot = unsafe { gl::GetUniformLocation(shader_id, name.as_ptr()) };
-            self.slots.get_mut().insert(name.to_owned(), slot);
+            let c_string = CString::new(name).unwrap();
+            let slot = unsafe { gl::GetUniformLocation(shader_id, c_string.as_ptr()) };
+            self.slots.get_mut().insert(name.to_owned(), slot.clone());
             slot
         }
     }

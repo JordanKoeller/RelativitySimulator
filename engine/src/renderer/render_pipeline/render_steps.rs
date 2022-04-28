@@ -5,10 +5,13 @@ use either::Either;
 use specs::prelude::*;
 
 use crate::renderer::{
-    AssetLibrary, GPUState, Mesh, RenderCommand, RenderQueueConsumer, Shader, ShaderId, TextureBinder, Uniform,
+     GPUState, RenderCommand, RenderQueueConsumer,
 };
 
-use crate::ecs::components::{DrawableId, Material};
+use crate::graphics::{
+    MeshComponent, Shader, ShaderId, TextureBinder, Uniform, TextureId, AssetLibrary, MaterialComponent
+};
+
 use crate::physics::TransformComponent;
 use crate::utils::Mat4F;
 
@@ -61,13 +64,14 @@ impl<'a, S: RenderStep> RenderPipeline<'a, S> {
 
 impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
     pub fn new<'b>(queue: &mut RenderQueueConsumer<'b>, assets: &'a mut AssetLibrary) -> Option<Self> {
-        if let Some(state) = queue.peek() {
+        if let Some(mut state) = queue.peek() {
             let mut ret = Self {
                 _marker: std::marker::PhantomData::default(),
-                state: assets.select(&state.drawable),
+                state: GPUState::new(assets, state.mesh_component)
             };
-            ret.state.shader().bind();
-            ret.state.mesh().vao.bind();
+            ret.state.bind_shader();
+            ret.state.bind_mesh();
+            // ret.state.bind();
             Some(ret)
         } else {
             None
@@ -76,7 +80,7 @@ impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
 
     pub fn bind_global_uniforms<'b>(
         mut self,
-        uniforms: &[&HashMap<CString, Uniform>],
+        uniforms: &[&HashMap<String, Uniform>],
     ) -> RenderPipeline<'a, ActivatedShaderStep> {
         for mgr in uniforms.iter() {
             for (unif_name, unif_value) in mgr.iter() {
@@ -88,63 +92,29 @@ impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
 }
 
 impl<'a> RenderPipeline<'a, ActivatedShaderStep> {
-    fn activated_on(&self, d_id: &DrawableId) -> bool {
-        self.state.id.0 == d_id.0 && self.state.id.1 == d_id.1
+    fn activated_on(&self, mesh: &MeshComponent) -> bool {
+        self.state.active_mesh == mesh.clone()
     }
     pub fn intake_queue<'b>(
-        mut self,
+        self,
         queue: &mut RenderQueueConsumer<'b>,
-        materials: &ReadStorage<'a, Material>,
+        materials: &ReadStorage<'a, MaterialComponent>,
         models: &ReadStorage<'a, TransformComponent>,
     ) -> RenderPipeline<'a, SaturatedDrawCallStep> {
-        if self.state.mesh().instanced() {
-            let ret = self.ingress_instances(queue, materials, models);
-            ret
-        } else {
             let ret = self.ingress_drawable(queue, materials, models);
             ret
-        }
-    }
-
-    fn ingress_instances<'b>(
-        mut self,
-        queue: &mut RenderQueueConsumer<'b>,
-        materials: &ReadStorage<'a, Material>,
-        models: &ReadStorage<'a, TransformComponent>,
-    ) -> RenderPipeline<'a, SaturatedDrawCallStep> {
-        loop {
-            if let Some(dc) = queue.pop_if(|dc| {
-                let ret = self.activated_on(&dc.drawable);
-                ret
-            }) {
-                match dc.cmd {
-                    RenderCommand::Draw => {
-                        self.state.upsert_instance(
-                            &dc.entity,
-                            &models.get(dc.entity).unwrap().matrix(),
-                            &materials.get(dc.entity).unwrap(),
-                        );
-                    }
-                    RenderCommand::Free => {
-                        self.state.mesh().clear_instance(&dc.entity);
-                    }
-                }
-            } else {
-                return self.consume();
-            }
-        }
     }
 
     fn ingress_drawable<'b>(
         mut self,
         queue: &mut RenderQueueConsumer<'b>,
-        materials: &ReadStorage<'a, Material>,
+        materials: &ReadStorage<'a, MaterialComponent>,
         models: &ReadStorage<'a, TransformComponent>,
     ) -> RenderPipeline<'a, SaturatedDrawCallStep> {
         if let Some(dc) = queue.next() {
             let model = models.get(dc.entity).unwrap().matrix();
             let mtl = materials.get(dc.entity).unwrap();
-            self.state.shader().set_uniform(c_str!("model"), &Uniform::Mat4(model));
+            self.state.shader().set_uniform("model", &Uniform::Mat4(model));
             self.state.bind_material(&mtl);
         }
         self.consume()
@@ -152,8 +122,9 @@ impl<'a> RenderPipeline<'a, ActivatedShaderStep> {
 }
 
 impl<'a> RenderPipeline<'a, SaturatedDrawCallStep> {
-    pub fn flush(self) -> RenderPipeline<'a, FlushedDrawCallStep> {
-        self.state.mesh_immut().draw(&self.state.shader_immut().element_type);
+    pub fn flush(mut self) -> RenderPipeline<'a, FlushedDrawCallStep> {
+        self.state.draw();
+        // self.state.mesh_immut().draw(&self.state.shader_immut().element_type);
         self.consume()
     }
 }
@@ -164,27 +135,25 @@ impl<'a> RenderPipeline<'a, FlushedDrawCallStep> {
         self,
         queue: &mut RenderQueueConsumer<'b>,
     ) -> Either<RenderPipeline<'a, ReadyToDrawStep>, RenderPipeline<'a, ActivatedShaderStep>> {
-        if let Some(dc) = queue.peek() {
-            if dc.drawable.1 == self.state.id.1 {
+        if let Some( draw_call) = queue.peek() {
+            if draw_call.mesh_component.shader_id == self.state.active_mesh.shader_id {
+            // if dc.drawable.1 == self.state.id.1 {
                 // We already have the appropriate shader active
                 let mut ret = RenderPipeline::<'a, ActivatedShaderStep> {
                     _marker: std::marker::PhantomData::default(),
-                    state: self.state.assets.select(&dc.drawable),
+                    state: GPUState::new(self.state.assets, draw_call.mesh_component),
                 };
                 ret.state.clear_textures();
-                ret.state.mesh().unbind();
-                ret.state.mesh().vao.bind();
+                ret.state.bind_mesh();
                 Either::Right(ret)
             } else {
                 let mut ret = RenderPipeline::<'a, ReadyToDrawStep> {
                     _marker: std::marker::PhantomData::default(),
-                    state: self.state.assets.select(&dc.drawable),
+                    state: GPUState::new(self.state.assets, draw_call.mesh_component),
                 };
                 ret.state.clear_textures();
-                ret.state.mesh().unbind();
-                ret.state.shader().unbind();
-                ret.state.shader().bind();
-                ret.state.mesh().vao.bind();
+                ret.state.bind_shader();
+                ret.state.bind_mesh();
                 Either::Left(ret)
             }
         } else {

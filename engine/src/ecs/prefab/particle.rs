@@ -3,46 +3,29 @@ use specs::prelude::*;
 use specs::world::LazyBuilder;
 use std::time::Duration;
 
-use crate::ecs::{Particle, PrefabBuilder,};
-use crate::physics::{Gravity, TransformComponent, RigidBody};
-use crate::utils::{Vec3F, QuatF};
+use crate::ecs::{ComponentCache, Particle, PrefabBuilder, SystemUtilities};
+use crate::physics::{Gravity, RigidBody, TransformComponent};
+use crate::utils::{QuatF, Vec3F};
 
-pub struct ParticleBuilder<B: PrefabBuilder> {
-    builder: Option<B>,
+pub struct ParticlePrefab {
     lifetime: Option<Duration>,
     position: Option<Vec3F>,
     velocity: Option<Vec3F>,
     gravity: Option<Gravity>,
-    state: Option<B::PrefabState>,
-
-
 }
 
-impl<B: PrefabBuilder> Default for ParticleBuilder<B> {
+impl Default for ParticlePrefab {
     fn default() -> Self {
         Self {
-            builder: None,
             lifetime: None,
             position: None,
             velocity: None,
             gravity: Some(Gravity),
-            state: None,
         }
     }
 }
 
-impl<B: PrefabBuilder> ParticleBuilder<B> {
-
-    pub fn with_builder(mut self, builder: B) -> Self {
-        self.builder = Some(builder);
-        self
-    }
-
-    pub fn with_prefab_state(mut self, state: B::PrefabState) -> Self {
-        self.state = Some(state);
-        self
-    }
-
+impl ParticlePrefab {
     pub fn with_lifetime(mut self, lifetime: Duration) -> Self {
         self.lifetime = Some(lifetime);
         self
@@ -63,29 +46,6 @@ impl<B: PrefabBuilder> ParticleBuilder<B> {
         self
     }
 
-    pub fn build(self, mut builder: LazyBuilder<'_>) -> LazyBuilder<'_> {
-        if !self.assert_complete() {
-            panic!("Failed to build particle!");
-        } else {
-            builder = builder
-                .with(Particle::new(self.lifetime.unwrap()))
-                .with(TransformComponent::new(
-                    self.position.unwrap(),
-                    Vec3F::zero(),
-                    QuatF::zero(),
-                ))
-                .with(RigidBody::new(self.velocity.unwrap(), -Vec3F::unit_y()));
-            if self.builder.is_some() && self.state.is_some() {
-                builder = self.builder.unwrap().build(builder, self.state.unwrap());
-            }
-            if self.gravity.is_some() {
-                builder = builder.with(Gravity);
-            }
-            builder
-
-        }
-    }
-
     fn assert_complete(&self) -> bool {
         if self.lifetime.is_none() {
             println!("WARN: Tried to build a particle without a lifetime!");
@@ -99,10 +59,32 @@ impl<B: PrefabBuilder> ParticleBuilder<B> {
             println!("WARN: Tried to build a particle without a velocity!");
             return false;
         }
-        if self.builder.is_some() != self.state.is_some() {
-            println!("WARN: Tried to build a particle with only a builder and no state or vice versa");
-            return false;
-        }
         true
+    }
+}
+
+pub struct ParticleBuilder;
+
+impl PrefabBuilder for ParticleBuilder {
+    type PrefabState = ParticlePrefab;
+
+    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
+        if !state.assert_complete() {
+            panic!("Failed to build particle!");
+        } else {
+            let mut builder = api
+                .entity_builder()
+                .with(Particle::new(state.lifetime.unwrap()))
+                .with(TransformComponent::new(
+                    state.position.unwrap(),
+                    Vec3F::zero(),
+                    QuatF::zero(),
+                ))
+                .with(RigidBody::new(state.velocity.unwrap(), -Vec3F::unit_y()));
+            if state.gravity.is_some() {
+                builder = builder.with(Gravity);
+            }
+            builder.build();
+        }
     }
 }

@@ -4,7 +4,7 @@ use std::ffi::{c_void, CStr, CString};
 
 use crate::debug::*;
 
-use crate::renderer::{CubeMap, Shader, Texture, TextureBinder, TextureLike};
+use super::{Shader, TextureId, TextureBinder};
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
@@ -19,8 +19,8 @@ pub enum Uniform {
     Mat3(Mat3F),
     Mat4(Mat4F),
     Bool(bool),
-    Texture(Texture),
-    CubeMap(CubeMap),
+    Texture(TextureId),
+    CubeMap(TextureId),
     UniformBuffer(UniformBuffer),
 }
 

@@ -8,7 +8,29 @@ pub struct VertexArrayBuilder {
     index_buffer_builder: Option<IndexBufferBuilder>,
     vertex_buffer_builder: Option<DataBufferBuilder>,
     instancing_buffer_builder: Option<DataBufferBuilder>,
+}
 
+impl Default for VertexArrayBuilder {
+    fn default() -> Self {
+        Self {
+            id: RwAssetRef::new(std::u32::MAX),
+            index_buffer_builder: None,
+            vertex_buffer_builder: None,
+            instancing_buffer_builder: None,
+        }
+    }
+}
+
+impl VertexArrayBuilder {
+    pub fn set_vertex_buffer(mut self, builder: DataBufferBuilder) -> Self {
+        self.vertex_buffer_builder = Some(builder);
+        self
+    }
+
+    pub fn set_index_buffer(mut self, builder: IndexBufferBuilder) -> Self {
+        self.index_buffer_builder = Some(builder);
+        self
+    }
 }
 
 impl KeyValueBuilder for VertexArrayBuilder {
@@ -24,6 +46,7 @@ impl KeyValueBuilder for VertexArrayBuilder {
             let mut vao = VertexArray::new(
                 self.vertex_buffer_builder.unwrap().build(),
                 self.index_buffer_builder.unwrap().build(),
+                self.id
             );
             if let Some(instancing_buffer) = self.instancing_buffer_builder {
                 vao.add_instancing_buffer(instancing_buffer.build(), false);

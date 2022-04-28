@@ -1,21 +1,2 @@
-pub mod buffer;
-mod buffer_layout;
 pub mod framebuffer;
-pub mod gl_bus;
-mod instancing_table;
-pub mod shader;
-pub mod texture;
-mod texture_binder;
-pub mod uniform;
-pub mod vertex_array;
-
-pub use self::buffer::*;
-pub use self::buffer_layout::*;
 pub use self::framebuffer::*;
-pub use self::gl_bus::*;
-pub use self::instancing_table::*;
-pub use self::shader::*;
-pub use self::texture::*;
-pub use self::texture_binder::*;
-pub use self::uniform::*;
-pub use self::vertex_array::VertexArray;

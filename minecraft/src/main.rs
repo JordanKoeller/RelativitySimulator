@@ -5,18 +5,25 @@ extern crate specs;
 
 mod components;
 mod prefabs;
-mod skybox;
 mod systems;
 
+use engine::info;
 
-use engine::{SkyboxBuilder, SkyboxPrefab};
+
+use engine::ecs::Sys;
+
+use engine::prefab::{SkyboxBuilder, SkyboxPrefab};
+
 use crate::systems::{ChunkManager, PlayerController};
-use engine::ecs::SystemManager;
 
 fn main() {
-    let builder = engine::get_game_builder()
-        .with_system(SystemManager::<PlayerController>::default(), "player_controller", &[])
-        .with_system(ChunkManager::default(), "chunk_manager", &[])
-        .with_prefab(SkyboxBuilder, SkyboxPrefab::new("resources/skybox"));
-    engine::main(builder);
+    info!("App began!");
+    let builder = engine::get_game_builder();
+    info!("Got the builder");
+    let built = builder
+        .with_system(Sys::<PlayerController>::default(), "player_controller", &[])
+        .with_system(Sys::<ChunkManager>::default(), "chunk_manager", &[])
+        .with_prefab(SkyboxBuilder::default(), SkyboxPrefab::new("resources/skybox"));
+    info!("Finished making the builder. About to send it off to engine::main");
+    engine::main(built);
 }

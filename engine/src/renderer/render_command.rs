@@ -1,9 +1,4 @@
-use specs::Entity;
 use std::cmp::{Ord, Ordering};
-
-use crate::ecs::DrawableId;
-use crate::ecs::Material;
-use crate::utils::Mat4F;
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub enum RenderCommand {

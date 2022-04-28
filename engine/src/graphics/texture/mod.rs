@@ -4,7 +4,7 @@ mod texture_helpers;
 mod texture_id;
 mod texture_binder;
 
-use self::texture_binder::*;
+pub use self::texture_binder::*;
 pub use self::texture_id::*;
 pub use self::texture_helpers::*;
 pub use self::texture_asset::*;

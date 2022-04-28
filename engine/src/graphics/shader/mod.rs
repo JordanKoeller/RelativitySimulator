@@ -11,6 +11,7 @@ pub use self::shader_builder::*;
 
 pub use self::shader::Shader;
 pub use self::shader_id::ShaderId;
+pub use self::shader_delegates::ShaderDepthFunction;
 
 use crate::datastructures::GenericRegistry;
 pub type ShaderRegistry = GenericRegistry<ShaderBuilder>;

@@ -3,7 +3,6 @@ use specs::world::LazyBuilder;
 
 use crate::events::{EventChannel, ReceiverID, StatefulEventChannel};
 
-use crate::renderer::modeling::Drawable;
 
 /////////////////////////////////////////////
 // CRUD EVENTS
@@ -79,10 +78,6 @@ impl<'a, 'b> MyBuilder<'a, 'b> {
             MyBuilder::Builder(b) => MyBuilder::Builder(b.with(component)),
             MyBuilder::LazyBuilder(lb) => MyBuilder::LazyBuilder(lb.with(component)),
         }
-    }
-
-    pub fn with_drawable<D: Drawable>(self, d: &D) -> Self {
-        self.with(d.material()).with(d.mesh_component())
     }
 
     pub fn build(self) -> Entity {

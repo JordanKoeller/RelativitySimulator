@@ -17,6 +17,10 @@ extern crate serde_json;
 extern crate specs;
 extern crate tobj;
 extern crate crossbeam_queue;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate env_logger;
 
 pub mod macros;
 
@@ -33,7 +37,6 @@ pub mod game_loop;
 pub mod gui;
 pub mod physics;
 pub mod renderer;
-pub mod shapes;
 pub mod utils;
 pub mod testing;
 mod datastructures;
@@ -47,13 +50,17 @@ use crate::game_loop::GameLoop;
 use crate::utils::Vec3F;
 use specs::{World, WorldExt};
 
-pub use crate::ecs::prefab::*;
+pub use crate::ecs::prefab;
+
+pub use log::info;
 
 // settings
 pub const SCR_WIDTH: u32 = 1600;
 pub const SCR_HEIGHT: u32 = 1200;
 
+
 pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
+    env_logger::init();
     let window = platform::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
     GameBuilder::new(window)
 }

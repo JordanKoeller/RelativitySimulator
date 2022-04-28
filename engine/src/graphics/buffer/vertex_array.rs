@@ -4,29 +4,35 @@ use std::os::raw::c_void;
 use std::ptr;
 
 use super::{DataBuffer, IndexBuffer};
+use crate::utils::RwAssetRef;
 
 #[derive(Debug, Clone)]
 pub struct VertexArray {
-    id: u32,
+    id: RwAssetRef<u32>,
     index_buffer: IndexBuffer,
     vertex_buffer: DataBuffer,
     pub instancing_buffer: Option<DataBuffer>,
 }
 
 impl VertexArray {
-    pub fn new(vertex_buffer: DataBuffer, index_buffer: IndexBuffer) -> VertexArray {
+    pub fn new(vertex_buffer: DataBuffer, index_buffer: IndexBuffer, id: RwAssetRef<u32>) -> VertexArray {
         VertexArray {
-            id: 0,
+            id,
             vertex_buffer: vertex_buffer,
             index_buffer,
             instancing_buffer: None,
         }
     }
 
+    pub fn id(&self) -> u32 {
+        *self.id.get()
+    }
+
     pub fn refresh(&mut self) {
+        let mut id = self.id();
         unsafe {
-            gl::CreateVertexArrays(1, &mut self.id);
-            gl::BindVertexArray(self.id);
+            gl::CreateVertexArrays(1, &mut id);
+            gl::BindVertexArray(id);
         }
         self.vertex_buffer.init();
         self.vertex_buffer.refresh(0);
@@ -36,17 +42,18 @@ impl VertexArray {
         }
         self.index_buffer.refresh();
         self.unbind();
+        self.id.set(id);
     }
 
     pub fn unbind(&self) {
         unsafe {
-            gl::BindVertexArray(self.id);
+            gl::BindVertexArray(0);
         }
     }
 
     pub fn bind(&self) {
         unsafe {
-            gl::BindVertexArray(self.id);
+            gl::BindVertexArray(self.id());
         }
     }
 

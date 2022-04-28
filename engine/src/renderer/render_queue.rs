@@ -8,12 +8,12 @@ use std::thread::ThreadId;
 use crate::utils::{getSyncMutRef, Mat4F, SyncMutRef};
 
 use crate::debug::*;
-use crate::ecs::{DrawableId, Material};
 use crate::renderer::RenderCommand;
+use crate::graphics::{MeshComponent, };
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct DrawCall {
-    pub drawable: DrawableId,
+    pub mesh_component: MeshComponent,
     pub entity: Entity,
     pub cmd: RenderCommand,
 }
@@ -30,8 +30,8 @@ fn reverse(o: Ordering) -> Ordering {
 impl Ord for DrawCall {
     fn cmp(&self, other: &Self) -> Ordering {
         let comparisons: [Ordering; 4] = [
-            self.drawable.1.cmp(&other.drawable.1), // shader compare
-            self.drawable.0.cmp(&other.drawable.0), // drawable id compare
+            self.mesh_component.shader_id.get().cmp(&other.mesh_component.shader_id.get()),
+            self.mesh_component.vertex_array_id.get().cmp(&other.mesh_component.vertex_array_id.get()),
             self.entity.cmp(&other.entity),         // Entity compare
             self.cmd.cmp(&other.cmd),               // Command key compare
         ];
@@ -100,6 +100,7 @@ impl RenderQueue {
     }
 
     pub fn consume(&mut self) -> RenderQueueConsumer<'_> {
+        log::debug!("Consuming {} drawables", self.len());
         RenderQueueConsumer(self)
     }
 }

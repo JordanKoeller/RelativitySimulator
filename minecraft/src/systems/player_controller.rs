@@ -1,6 +1,6 @@
 use cgmath::prelude::*;
-use engine::ecs::components::{Camera, EventReceiver, MeshComponent, Player};
-use engine::ecs::SystemDelegate;
+use engine::ecs::components::{Camera, EventReceiver, Player};
+use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use engine::events::{
     Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent,
 };
@@ -24,10 +24,10 @@ pub struct PlayerControllerSystemData<'a> {
 #[derive(Default)]
 pub struct PlayerController;
 
-impl<'a> SystemDelegate<'a> for PlayerController {
+impl<'a> MonoBehavior<'a> for PlayerController {
     type SystemData = PlayerControllerSystemData<'a>;
 
-    fn run(&mut self, mut s: Self::SystemData) {
+    fn run(&mut self, api: SystemUtilities<'a>, mut s: Self::SystemData) {
         for (_p, mut camera, transform, events) in
             (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join()
         {
@@ -56,15 +56,15 @@ impl<'a> SystemDelegate<'a> for PlayerController {
         }
     }
 
-    fn update_debugger(&mut self, s: &mut Self::SystemData, debugger: &mut DebugPanel) {
-        for (_p, rigid_body, transform) in (&s.player, &mut s.rigid_body, &s.transform).join() {
-            debugger.panel.lines[1] = Box::from(LabeledText::new("Position", &to_string!(transform.translation)));
-            debugger.panel.lines[2] = Box::from(LabeledText::new("Velocity", &to_string!(rigid_body.velocity)));
-            debugger.panel.lines[3] = Box::from(LabeledText::new("Facing", &to_string!(transform.front())));
-        }
-    }
+    // fn update_debugger(&mut self, s: &mut Self::SystemData, debugger: &mut DebugPanel) {
+    //     for (_p, rigid_body, transform) in (&s.player, &mut s.rigid_body, &s.transform).join() {
+    //         debugger.panel.lines[1] = Box::from(LabeledText::new("Position", &to_string!(transform.translation)));
+    //         debugger.panel.lines[2] = Box::from(LabeledText::new("Velocity", &to_string!(rigid_body.velocity)));
+    //         debugger.panel.lines[3] = Box::from(LabeledText::new("Facing", &to_string!(transform.front())));
+    //     }
+    // }
 
-    fn setup(&mut self, world: &mut World) {
+    fn setup(&mut self, mut world: WorldProxy) {
         let receiver = {
             let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
             EventReceiver(listener.register_with_subs(&[
@@ -85,7 +85,6 @@ impl<'a> SystemDelegate<'a> for PlayerController {
         world.register::<TransformComponent>();
         world.register::<EventReceiver>();
         world.register::<Camera>();
-        world.register::<MeshComponent>();
         world
             .create_entity()
             .with(Player)
@@ -96,14 +95,14 @@ impl<'a> SystemDelegate<'a> for PlayerController {
             .build();
     }
 
-    fn setup_debug_panel(&mut self, _world: &mut World) -> Option<DebugPanel> {
-        let mut gui = DebugPanel::new("Player Controller");
-        gui.panel.push(Box::from(LabeledText::new("Pressed Buttons", "")));
-        gui.panel.push(Box::from(LabeledText::new("Position", "")));
-        gui.panel.push(Box::from(LabeledText::new("Velocity", "")));
-        gui.panel.push(Box::from(LabeledText::new("Facing", "")));
-        Some(gui)
-    }
+    // fn setup_debug_panel(&mut self, _world: &mut World) -> Option<DebugPanel> {
+    //     let mut gui = DebugPanel::new("Player Controller");
+    //     gui.panel.push(Box::from(LabeledText::new("Pressed Buttons", "")));
+    //     gui.panel.push(Box::from(LabeledText::new("Position", "")));
+    //     gui.panel.push(Box::from(LabeledText::new("Velocity", "")));
+    //     gui.panel.push(Box::from(LabeledText::new("Facing", "")));
+    //     Some(gui)
+    // }
 }
 
 impl PlayerController {

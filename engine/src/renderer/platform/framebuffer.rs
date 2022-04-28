@@ -1,4 +1,4 @@
-use crate::renderer::Texture;
+use crate::graphics::{PixelSpec, TextureBuilder, TextureId};
 use crate::utils::*;
 
 use std::ptr;
@@ -17,7 +17,7 @@ pub struct Framebuffer {
     pub spec: FramebufferSpec,
     color_attachment: u32,
     depth_attachment: u32,
-    id: u32,
+    id: RwAssetRef<u32>,
 }
 
 impl Framebuffer {
@@ -26,7 +26,7 @@ impl Framebuffer {
             spec,
             color_attachment: 0,
             depth_attachment: 0,
-            id: 0,
+            id: RwAssetRef::new(0),
         };
         ret.invalidate();
         ret
@@ -43,8 +43,15 @@ impl Framebuffer {
 
     pub fn bind(&self) {
         unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.id);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.id());
             gl::Viewport(0, 0, self.spec.dims.x, self.spec.dims.y);
+        }
+    }
+
+    pub fn bind_texture_slot(&self, slot: u32) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + slot);
+            gl::BindTexture(gl::TEXTURE_2D, self.color_attachment);
         }
     }
 
@@ -52,6 +59,10 @@ impl Framebuffer {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        *self.id.get()
     }
 
     pub fn resize(&mut self, dim: Vec2I) {
@@ -63,19 +74,16 @@ impl Framebuffer {
         self.invalidate();
     }
 
-    pub fn texture(&self) -> Texture {
-        Texture::pre_made(self.color_attachment, self.spec.dims.x as u32, self.spec.dims.y as u32)
-    }
-
     fn invalidate(&mut self) {
+        let mut id = self.id();
         unsafe {
-            if self.id != 0 {
-                gl::DeleteFramebuffers(1, &mut self.id);
+            if self.id() != 0 {
+                gl::DeleteFramebuffers(1, &mut id);
                 gl::DeleteTextures(1, &mut self.color_attachment);
                 gl::DeleteTextures(1, &mut self.depth_attachment);
             }
-            gl::CreateFramebuffers(1, &mut self.id);
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.id);
+            gl::CreateFramebuffers(1, &mut id);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, id);
 
             gl::CreateTextures(gl::TEXTURE_2D, 1, &mut self.color_attachment);
             gl::BindTexture(gl::TEXTURE_2D, self.color_attachment);
@@ -120,5 +128,7 @@ impl Framebuffer {
             // TOOD: Assert complete
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         }
+
+        self.id.set(id);
     }
 }

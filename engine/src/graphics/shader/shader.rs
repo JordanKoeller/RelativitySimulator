@@ -40,15 +40,19 @@ impl Shader {
         self.binder.unbind(*self.id.get());
     }
 
-    pub fn set_uniform(&self, name: &CStr, unif: &Uniform) {
+    pub fn set_uniform(&self, name: &str, unif: &Uniform) {
         let uniform_slot = self.uniform_slots.get_slot(name, *self.id.get());
         set_unif_helper(unif, uniform_slot);
     }
 
-    pub fn set_texture(&self, slot: u32, name: &CStr, texture: &TextureId) {
+    pub fn set_texture(&self, slot: u32, name: &str, texture: &TextureId) {
         texture.bind(slot);
         let unif = Uniform::Int(slot as i32);
         self.set_uniform(name, &unif);
+    }
+
+    pub fn element_type(&self) -> &gl::types::GLenum {
+        &self.element_type
     }
 
     pub fn id(&self) -> u32 {

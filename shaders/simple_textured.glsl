@@ -29,6 +29,7 @@ uniform vec3 ambient;
 
 void main()
 {
+    //FragColor = vec4(uv.x, uv.y, 1.0f, 1.0f);
 	FragColor = texture(diffuse_texture, uv) * vec4(ambient, 1.0f);
   if (FragColor.a < 0.5) discard;
 }

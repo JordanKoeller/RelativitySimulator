@@ -27,11 +27,6 @@ impl<'a> SystemUtilities<'a> {
         self.lazy_update.create_entity(&self.entities)
     }
 
-    pub fn build_prefab<B: PrefabBuilder>(&self, builder: B, state: B::PrefabState)  -> Entity {
-        let builder = builder.build(self.entity_builder(), state);
-        builder.build()
-    }
-
     pub fn delete_entity(&self, entity: Entity) -> bool {
         match self.entities.delete(entity) {
             Result::Ok(_) => true,

@@ -10,15 +10,19 @@ impl VertexArrayId {
         Self(v)
     }
 
-    pub fn bind(&self) {
-
-    }
-
     pub fn unbind(&self) {
-
+        unsafe {
+            gl::BindVertexArray(0);
+        }
     }
 
-    pub fn id(&self) -> u32 {
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindVertexArray(self.get());
+        }
+    }
+
+    pub fn get(&self) -> u32 {
         *self.0.get()
     }
 }

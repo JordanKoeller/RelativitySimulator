@@ -6,7 +6,8 @@ use crate::events::ReceiverID;
 pub trait MonoBehavior<'a> {
     type SystemData: specs::SystemData<'a>;
 
-    fn run(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData);
+    #[allow(unused_variables)]
+    fn run(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {}
 
     #[allow(unused_variables)]
     fn setup(&mut self, world: WorldProxy) {}
@@ -15,7 +16,7 @@ pub trait MonoBehavior<'a> {
     fn destroy(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {}
 }
 
-struct Sys<M>
+pub struct Sys<M>
 where
     for<'a> M: MonoBehavior<'a>,
 {

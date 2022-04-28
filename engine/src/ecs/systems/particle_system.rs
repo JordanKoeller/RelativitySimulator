@@ -3,10 +3,10 @@ use specs::world::LazyBuilder;
 use specs::{Component, VecStorage};
 
 use crate::ecs::entity::MyBuilder;
-use crate::ecs::DrawableId;
 
 use crate::debug::*;
 use crate::renderer::{DrawCall, RenderCommand, RenderQueue};
+use crate::graphics::{MeshComponent, MaterialComponent};
 use crate::utils::Timestep;
 
 #[derive(Component, Debug, Default, Clone)]
@@ -29,19 +29,19 @@ pub struct ParticleUpdater;
 impl<'a> System<'a> for ParticleUpdater {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, DrawableId>,
         WriteStorage<'a, Particle>,
+        ReadStorage<'a, MeshComponent>,
         Read<'a, Timestep>,
         Read<'a, RenderQueue>,
     );
 
-    fn run(&mut self, (entities, drawable_id, mut particle_storage, dt, render_queue): Self::SystemData) {
-        for (entity, drawable_id, particle) in (&entities, &drawable_id, &mut particle_storage).join() {
+    fn run(&mut self, (entities, mut particle_storage, meshes, dt, render_queue): Self::SystemData) {
+        for (entity, mesh, particle) in (&entities, &meshes, &mut particle_storage).join() {
             if let Some(remaining_time) = particle.lifetime.checked_sub(dt.dt()) {
                 particle.lifetime = remaining_time;
             } else {
                 render_queue.push(DrawCall {
-                    drawable: drawable_id.clone(),
+                    mesh_component: mesh.clone(),
                     entity: entity,
                     cmd: RenderCommand::Free,
                 });

@@ -4,15 +4,15 @@ use cgmath::prelude::*;
 use specs::prelude::SystemData;
 use specs::prelude::*;
 
-use crate::ecs::SystemDelegate;
 
-use crate::ecs::components::{Camera, DrawableId, Material, MeshComponent, Player};
+use crate::ecs::components::{Camera, Player};
 use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
 use crate::gui::*;
 use crate::renderer::render_pipeline::*;
-use crate::renderer::{AssetLibrary, DrawCall, Mesh, RenderCommand, RenderQueue, Renderer,};
+use crate::renderer::{DrawCall, RenderCommand, RenderQueue, Renderer,};
+use crate::graphics::{AssetLibrary, MeshComponent, MaterialComponent};
 use crate::platform::Window;
 use crate::utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
 
@@ -88,19 +88,10 @@ impl<'a> System<'a> for EndFrameSystem {
 pub struct RegisterDrawableSystem;
 
 impl<'a> System<'a> for RegisterDrawableSystem {
-    type SystemData = (
-        Write<'a, Renderer>,
-        WriteStorage<'a, MeshComponent>,
-        Entities<'a>,
-        Read<'a, LazyUpdate>,
-    );
+    type SystemData = Write<'a, AssetLibrary>;
 
-    fn run(&mut self, (mut renderer, mut drawables_storage, entities, updater): Self::SystemData) {
-        for (entity, mesh) in (&entities, &mut drawables_storage).join() {
-            let id = renderer.submit_model(mesh.mesh.clone());
-            updater.remove::<MeshComponent>(entity);
-            updater.insert(entity, id);
-        }
+    fn run(&mut self, mut assets: Self::SystemData) {
+        assets.flush_all();
     }
 
     fn setup(&mut self, world: &mut World) {
@@ -111,12 +102,13 @@ impl<'a> System<'a> for RegisterDrawableSystem {
 #[derive(SystemData)]
 pub struct RenderSystemData<'a> {
     entities: Entities<'a>,
-    drawable_s: ReadStorage<'a, DrawableId>,
+    drawable_s: ReadStorage<'a, MeshComponent>,
     transform_s: ReadStorage<'a, TransformComponent>,
-    material_s: ReadStorage<'a, Material>,
+    material_s: ReadStorage<'a, MaterialComponent>,
     renderer: Write<'a, Renderer>,
     timestep: Write<'a, Timestep>,
     render_queue: Write<'a, RenderQueue>,
+    assets: Write<'a, AssetLibrary>,
 }
 
 pub struct RenderPipelineSystem {
@@ -137,7 +129,7 @@ impl RenderPipelineSystem {
     }
 }
 
-impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
+impl<'a> System<'a> for RenderPipelineSystem {
     type SystemData = RenderSystemData<'a>;
 
     fn run(&mut self, mut system_data: Self::SystemData) {
@@ -145,6 +137,7 @@ impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
             &mut system_data.render_queue,
             &system_data.entities,
             &system_data.drawable_s,
+            &system_data.assets,
         );
         // self.init_frame(&mut system_data.renderer);
         let start_time = self.window.borrow().glfw_token.get_time();
@@ -154,21 +147,21 @@ impl<'a> SystemDelegate<'a> for RenderPipelineSystem {
         self.draw_call_count = draw_call_count;
     }
 
-    fn update_debugger(&mut self, _data: &mut Self::SystemData, gui: &mut DebugPanel) {
-        gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
-        gui.panel.lines[2] = Box::from(LabeledText::new(
-            "GPU Render Time",
-            &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
-        ));
-    }
+    // fn update_debugger(&mut self, _data: &mut Self::SystemData, gui: &mut DebugPanel) {
+    //     gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
+    //     gui.panel.lines[2] = Box::from(LabeledText::new(
+    //         "GPU Render Time",
+    //         &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
+    //     ));
+    // }
 
-    fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
-        let mut ui = DebugPanel::new("Renderer Debugger");
-        ui.panel.push(Box::from(LineBreak));
-        ui.panel.push(Box::from(LabeledText::new("Draw Calls", "")));
-        ui.panel.push(Box::from(LabeledText::new("GPU Render Time", "")));
-        Some(ui)
-    }
+    // fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
+    //     let mut ui = DebugPanel::new("Renderer Debugger");
+    //     ui.panel.push(Box::from(LineBreak));
+    //     ui.panel.push(Box::from(LabeledText::new("Draw Calls", "")));
+    //     ui.panel.push(Box::from(LabeledText::new("GPU Render Time", "")));
+    //     Some(ui)
+    // }
 }
 
 impl RenderPipelineSystem {
@@ -176,11 +169,12 @@ impl RenderPipelineSystem {
         &self,
         render_queue: &mut RenderQueue,
         entities: &Entities<'a>,
-        drawables: &ReadStorage<'a, DrawableId>,
+        drawables: &ReadStorage<'a, MeshComponent>,
+        assets: &Write<'a, AssetLibrary>,
     ) {
         for (entity, drawable) in (entities, drawables).join() {
             let cmd = DrawCall {
-                drawable: drawable.clone(),
+                mesh_component: drawable.clone(),
                 entity,
                 cmd: RenderCommand::Draw,
             };
@@ -192,11 +186,12 @@ impl RenderPipelineSystem {
         renderer.init_frame(&mut self.window.borrow_mut());
     }
 
-    fn render<'a, 'b>(&mut self, system_data: &mut <Self as SystemDelegate<'a>>::SystemData) -> u32 {
+    fn render<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) -> u32 {
         system_data.renderer.render_scene(
             system_data.render_queue.consume(),
             &system_data.material_s,
             &system_data.transform_s,
+            &mut system_data.assets,
         )
     }
 }
