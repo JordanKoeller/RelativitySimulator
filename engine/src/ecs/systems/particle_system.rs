@@ -5,8 +5,8 @@ use specs::{Component, VecStorage};
 use crate::ecs::entity::MyBuilder;
 
 use crate::debug::*;
+use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::renderer::{DrawCall, RenderCommand, RenderQueue};
-use crate::graphics::{MeshComponent, MaterialComponent};
 use crate::utils::Timestep;
 
 #[derive(Component, Debug, Default, Clone)]
@@ -18,9 +18,7 @@ pub struct Particle {
 
 impl Particle {
     pub fn new(lifetime: std::time::Duration) -> Self {
-        Self {
-            lifetime,
-        }
+        Self { lifetime }
     }
 }
 

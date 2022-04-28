@@ -1,7 +1,7 @@
 use gl;
 
-use crate::utils::{RwAssetRef, ReadAssetRef};
 use super::TextureId;
+use crate::utils::{ReadAssetRef, RwAssetRef};
 
 #[derive(Clone, Debug)]
 pub struct TextureBuffer {
@@ -19,9 +19,7 @@ pub struct Texture {
 
 impl Texture {
     pub fn new(id: RwAssetRef<(u32, gl::types::GLenum)>, buffer: TextureBuffer) -> Self {
-        Self {
-            id, buffer
-        }
+        Self { id, buffer }
     }
 
     pub fn bind(&self, slot: u32) {

@@ -1,17 +1,17 @@
-use std::sync::{Arc, Mutex, RwLock, LockResult, RwLockReadGuard, RwLockWriteGuard};
+use crate::utils::{GetMutRef, MutRef};
 use std::cell::{Cell, Ref, RefMut};
 use std::hash::{Hash, Hasher};
-use crate::utils::{MutRef, GetMutRef};
+use std::sync::{Arc, LockResult, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Debug)]
 pub struct ReadAssetRef<T: Sized> {
-    rc: MutRef<T>
+    rc: MutRef<T>,
 }
 
 impl<T: Sized> ReadAssetRef<T> {
     pub fn new(mut_ref: &MutRef<T>) -> Self {
         Self {
-            rc: MutRef::clone(mut_ref)
+            rc: MutRef::clone(mut_ref),
         }
     }
 
@@ -23,7 +23,7 @@ impl<T: Sized> ReadAssetRef<T> {
 impl<T: Sized> Clone for ReadAssetRef<T> {
     fn clone(&self) -> Self {
         Self {
-            rc: MutRef::clone(&self.rc)
+            rc: MutRef::clone(&self.rc),
         }
     }
 }
@@ -40,20 +40,18 @@ impl<T: Sized + Hash> Hash for ReadAssetRef<T> {
     }
 }
 
-impl<T: Sized + Eq> Eq for ReadAssetRef<T> {} 
+impl<T: Sized + Eq> Eq for ReadAssetRef<T> {}
 unsafe impl<T: Sized> Send for ReadAssetRef<T> {}
 unsafe impl<T: Sized> Sync for ReadAssetRef<T> {}
 
 #[derive(Debug)]
 pub struct RwAssetRef<T: Sized> {
-    rc: MutRef<T>
+    rc: MutRef<T>,
 }
 
 impl<T: Sized> RwAssetRef<T> {
     pub fn new(v: T) -> Self {
-        Self {
-            rc: GetMutRef(v)
-        }
+        Self { rc: GetMutRef(v) }
     }
 
     pub fn ro_ref(&self) -> ReadAssetRef<T> {
@@ -76,7 +74,7 @@ impl<T: Sized> RwAssetRef<T> {
 impl<T: Sized> Clone for RwAssetRef<T> {
     fn clone(&self) -> Self {
         Self {
-            rc: MutRef::clone(&self.rc)
+            rc: MutRef::clone(&self.rc),
         }
     }
 }
@@ -99,10 +97,9 @@ impl<T: Sized + Default> Default for RwAssetRef<T> {
     }
 }
 
-impl<T: Sized + Eq> Eq for RwAssetRef<T> {} 
+impl<T: Sized + Eq> Eq for RwAssetRef<T> {}
 unsafe impl<T: Sized> Send for RwAssetRef<T> {}
 unsafe impl<T: Sized> Sync for RwAssetRef<T> {}
-
 
 #[cfg(test)]
 mod test {

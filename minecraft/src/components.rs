@@ -1,7 +1,6 @@
-use specs::prelude::*;
 use specs::{Component, VecStorage};
 
-use crate::prefabs::{BlockType, MCBlock};
+use crate::prefabs::MCBlock;
 
 pub struct ChunkComponent {
     blocks: [MCBlock; 65536],

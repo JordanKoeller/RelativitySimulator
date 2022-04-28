@@ -2,12 +2,12 @@ use cgmath::prelude::*;
 use specs::prelude::*;
 use specs::world::LazyBuilder;
 
-use crate::utils::{Vec2F, Vec3F};
 use crate::ecs::PrefabBuilder;
+use crate::utils::{Vec2F, Vec3F};
 
 struct SpriteBuilderState {
     path: String,
-    aspect_ratio: f32
+    aspect_ratio: f32,
 }
 
 // struct SpriteBuilder;
@@ -29,4 +29,3 @@ static QUAD_VERTICES: [f32; 32] = [
 ];
 
 static QUAD_INDICES: [u32; 6] = [0, 1, 2, 2, 3, 0];
-

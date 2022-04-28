@@ -1,9 +1,8 @@
 use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
 
-use super::{VertexArrayId, ShaderId};
+use super::{ShaderId, VertexArrayId};
 use crate::utils::Vec3F;
-
 
 #[derive(Debug, Clone, Component, Eq, PartialEq)]
 #[storage(VecStorage)]
@@ -16,7 +15,7 @@ impl MeshComponent {
     pub fn new(vertex_array_id: VertexArrayId, shader_id: ShaderId) -> Self {
         Self {
             vertex_array_id,
-            shader_id
+            shader_id,
         }
     }
 }

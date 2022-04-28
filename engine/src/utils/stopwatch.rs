@@ -16,12 +16,10 @@ pub trait StopwatchLike<T> {
 #[derive(Default)]
 pub struct Stopwatch {
     start_time: Option<SystemTime>,
-    end_time: Option<SystemTime>
+    end_time: Option<SystemTime>,
 }
 
-
 impl StopwatchLike<Duration> for Stopwatch {
-
     fn start(&mut self) {
         self.start_time = Some(SystemTime::now());
         self.end_time = None;
@@ -36,7 +34,9 @@ impl StopwatchLike<Duration> for Stopwatch {
     }
 
     fn get(&self) -> Option<Duration> {
-        self.end_time.zip(self.start_time).map(|(e, s)| e.duration_since(s).unwrap())
+        self.end_time
+            .zip(self.start_time)
+            .map(|(e, s)| e.duration_since(s).unwrap())
     }
 
     fn reset(&mut self) {
@@ -62,13 +62,12 @@ impl IntervalStopwatch {
             count: 0,
             sum_elapsed: None,
             last_avg: None,
-            measurement_interval
+            measurement_interval,
         }
     }
 }
 
 impl StopwatchLike<Duration> for IntervalStopwatch {
-
     /*
     A stopwatch that takes N many samples and reports the average duration.
 
@@ -82,13 +81,12 @@ impl StopwatchLike<Duration> for IntervalStopwatch {
 
     fn stop(&mut self) {
         self.stopwatch.stop();
-        self.sum_elapsed = self.sum_elapsed.map_or(
-            self.stopwatch.get(),
-            |partial| self.stopwatch.get().map(|adding| partial + adding));
+        self.sum_elapsed = self.sum_elapsed.map_or(self.stopwatch.get(), |partial| {
+            self.stopwatch.get().map(|adding| partial + adding)
+        });
         self.count += 1;
         if self.count >= self.measurement_interval {
-            self.last_avg = self.sum_elapsed.map(
-                |total_duration| total_duration / self.count);
+            self.last_avg = self.sum_elapsed.map(|total_duration| total_duration / self.count);
             self.count = 0;
             self.sum_elapsed = None;
         }
@@ -111,7 +109,7 @@ impl StopwatchLike<Duration> for IntervalStopwatch {
 
 pub struct CompoundStopwatch {
     instantaneous_stopwatch: Stopwatch,
-    interval_stopwatch: IntervalStopwatch
+    interval_stopwatch: IntervalStopwatch,
 }
 
 impl StopwatchLike<(Duration, Duration)> for CompoundStopwatch {
@@ -127,9 +125,7 @@ impl StopwatchLike<(Duration, Duration)> for CompoundStopwatch {
 
     // Get the stopwatch's internal value
     fn get(&self) -> Option<(Duration, Duration)> {
-        self.instantaneous_stopwatch.get().zip(
-            self.interval_stopwatch.get()
-        )
+        self.instantaneous_stopwatch.get().zip(self.interval_stopwatch.get())
     }
 
     // Reset the stopwatch
@@ -142,7 +138,7 @@ impl StopwatchLike<(Duration, Duration)> for CompoundStopwatch {
 #[cfg(test)]
 mod test {
     use std::thread::sleep;
-    use std::time::{Duration};
+    use std::time::Duration;
 
     use super::*;
 

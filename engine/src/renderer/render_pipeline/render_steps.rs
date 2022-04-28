@@ -4,12 +4,10 @@ use std::ffi::{CStr, CString};
 use either::Either;
 use specs::prelude::*;
 
-use crate::renderer::{
-     GPUState, RenderCommand, RenderQueueConsumer,
-};
+use crate::renderer::{GPUState, RenderCommand, RenderQueueConsumer};
 
 use crate::graphics::{
-    MeshComponent, Shader, ShaderId, TextureBinder, Uniform, TextureId, AssetLibrary, MaterialComponent
+    AssetLibrary, MaterialComponent, MeshComponent, Shader, ShaderId, TextureBinder, TextureId, Uniform,
 };
 
 use crate::physics::TransformComponent;
@@ -67,7 +65,7 @@ impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
         if let Some(mut state) = queue.peek() {
             let mut ret = Self {
                 _marker: std::marker::PhantomData::default(),
-                state: GPUState::new(assets, state.mesh_component)
+                state: GPUState::new(assets, state.mesh_component),
             };
             ret.state.bind_shader();
             ret.state.bind_mesh();
@@ -101,8 +99,8 @@ impl<'a> RenderPipeline<'a, ActivatedShaderStep> {
         materials: &ReadStorage<'a, MaterialComponent>,
         models: &ReadStorage<'a, TransformComponent>,
     ) -> RenderPipeline<'a, SaturatedDrawCallStep> {
-            let ret = self.ingress_drawable(queue, materials, models);
-            ret
+        let ret = self.ingress_drawable(queue, materials, models);
+        ret
     }
 
     fn ingress_drawable<'b>(
@@ -135,9 +133,9 @@ impl<'a> RenderPipeline<'a, FlushedDrawCallStep> {
         self,
         queue: &mut RenderQueueConsumer<'b>,
     ) -> Either<RenderPipeline<'a, ReadyToDrawStep>, RenderPipeline<'a, ActivatedShaderStep>> {
-        if let Some( draw_call) = queue.peek() {
+        if let Some(draw_call) = queue.peek() {
             if draw_call.mesh_component.shader_id == self.state.active_mesh.shader_id {
-            // if dc.drawable.1 == self.state.id.1 {
+                // if dc.drawable.1 == self.state.id.1 {
                 // We already have the appropriate shader active
                 let mut ret = RenderPipeline::<'a, ActivatedShaderStep> {
                     _marker: std::marker::PhantomData::default(),

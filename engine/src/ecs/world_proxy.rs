@@ -1,5 +1,5 @@
-use std::ops::{Deref, DerefMut};
 use specs::prelude::*;
+use std::ops::{Deref, DerefMut};
 
 use super::SystemUtilities;
 
@@ -9,9 +9,7 @@ pub struct WorldProxy<'a> {
 
 impl<'a> WorldProxy<'a> {
     pub fn new(world: &'a mut World) -> Self {
-        Self {
-            world,
-        }
+        Self { world }
     }
 
     pub fn utilities(&self) -> SystemUtilities<'_> {
@@ -28,7 +26,6 @@ impl<'a> Deref for WorldProxy<'a> {
 }
 
 impl<'a> DerefMut for WorldProxy<'a> {
-
     fn deref_mut(&mut self) -> &mut <Self as Deref>::Target {
         self.world
     }

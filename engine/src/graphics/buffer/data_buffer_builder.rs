@@ -1,4 +1,4 @@
-use super::{BufferLayout, BufferConfig, DataBuffer};
+use super::{BufferConfig, BufferLayout, DataBuffer};
 
 #[derive(Default)]
 pub struct DataBufferBuilder {

@@ -1,7 +1,7 @@
-use std::ptr;
-use std::sync::{Arc, Mutex, LockResult, MutexGuard};
-use glfw::Context;
 use crate::debug::{gl_debug_output, print_limits};
+use glfw::Context;
+use std::ptr;
+use std::sync::{Arc, LockResult, Mutex, MutexGuard};
 
 pub struct TestGLContext {
     glfw_token: glfw::Glfw,

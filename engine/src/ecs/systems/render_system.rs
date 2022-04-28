@@ -4,16 +4,15 @@ use cgmath::prelude::*;
 use specs::prelude::SystemData;
 use specs::prelude::*;
 
-
 use crate::ecs::components::{Camera, Player};
 use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
+use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent};
 use crate::gui::*;
-use crate::renderer::render_pipeline::*;
-use crate::renderer::{DrawCall, RenderCommand, RenderQueue, Renderer,};
-use crate::graphics::{AssetLibrary, MeshComponent, MaterialComponent};
 use crate::platform::Window;
+use crate::renderer::render_pipeline::*;
+use crate::renderer::{DrawCall, RenderCommand, RenderQueue, Renderer};
 use crate::utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
 
 use crate::physics::TransformComponent;

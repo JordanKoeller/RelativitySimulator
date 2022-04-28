@@ -5,7 +5,7 @@ use image::GenericImage;
 use std::os::raw::c_void;
 use std::path::Path;
 
-use super::{TextureBuffer};
+use super::TextureBuffer;
 
 pub fn load_file(path: &str, flipv: bool) -> super::TextureBuffer {
     let img = image::open(&Path::new(path)).expect(&format!("Failed to load texture at {}", path));
@@ -53,10 +53,7 @@ pub fn create_2d_buffer(data: &Vec<u8>, width: &u32, height: &u32, format: &gl::
     texture
 }
 
-pub fn create_cubemap_buffer<'a>(
-    faces: &mut impl Iterator<Item = TextureBuffer>,
-    format: u32,
-) -> (u32, TextureBuffer) {
+pub fn create_cubemap_buffer<'a>(faces: &mut impl Iterator<Item = TextureBuffer>, format: u32) -> (u32, TextureBuffer) {
     let mut texture_id = 0;
     let (mut w, mut h) = (0, 0);
     unsafe {
@@ -85,10 +82,13 @@ pub fn create_cubemap_buffer<'a>(
         gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
     }
-    (texture_id, TextureBuffer {
-        data: vec![],
-        width: w,
-        height: h,
-        encoding: format
-    })
+    (
+        texture_id,
+        TextureBuffer {
+            data: vec![],
+            width: w,
+            height: h,
+            encoding: format,
+        },
+    )
 }

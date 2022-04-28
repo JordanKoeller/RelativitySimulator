@@ -1,12 +1,10 @@
 use cgmath::prelude::*;
 use engine::ecs::components::{Camera, EventReceiver, Player};
 use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
-use engine::events::{
-    Event, EventChannel, EventPayload, KeyCode, StatefulEventChannel, StatelessEventChannel, WindowEvent,
-};
-use engine::gui::*;
-use engine::physics::{Gravity, RigidBody, TransformComponent};
-use engine::utils::{random, Mat4F, QuatF, Timer, TimerLike, Timestep, Vec2F, Vec3F};
+use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatelessEventChannel, WindowEvent};
+
+use engine::physics::{RigidBody, TransformComponent};
+use engine::utils::{Mat4F, QuatF, Timestep, Vec3F};
 use specs::prelude::*;
 const IMPULSE: f32 = 0.2f32;
 
@@ -27,10 +25,8 @@ pub struct PlayerController;
 impl<'a> MonoBehavior<'a> for PlayerController {
     type SystemData = PlayerControllerSystemData<'a>;
 
-    fn run(&mut self, api: SystemUtilities<'a>, mut s: Self::SystemData) {
-        for (_p, mut camera, transform, events) in
-            (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join()
-        {
+    fn run(&mut self, _api: SystemUtilities<'a>, mut s: Self::SystemData) {
+        for (_p, camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
             let init_rotation = transform.clone();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
                 Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f32),
@@ -52,7 +48,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                     evt
                 ),
             });
-            self.refresh_camera(&transform, &mut camera)
+            self.refresh_camera(transform, camera)
         }
     }
 

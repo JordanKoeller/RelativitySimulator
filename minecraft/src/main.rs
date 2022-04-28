@@ -9,7 +9,6 @@ mod systems;
 
 use engine::info;
 
-
 use engine::ecs::Sys;
 
 use engine::prefab::{SkyboxBuilder, SkyboxPrefab};

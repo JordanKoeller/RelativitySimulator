@@ -1,12 +1,12 @@
 use specs::prelude::*;
 use std::time::Duration;
 
-use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::ecs::systems::*;
-use crate::ecs::{PrefabBuilder, WorldProxy, SystemUtilities};
+use crate::ecs::{PrefabBuilder, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
 use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction};
+use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::gui::GuiRenderer;
 use crate::physics::TransformComponent;
 use crate::platform::Window;
@@ -168,10 +168,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
             })
             .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(EventProcessingSystem::default())
-            .with_thread_local(RenderPipelineSystem::new(
-                MutRef::clone(&window_ref),
-                world_id,
-            ))
+            .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))
             .with_thread_local(GuiRenderer {
                 window: MutRef::clone(&window_ref),
             })

@@ -2,7 +2,6 @@ use gl;
 
 use super::{buff_ptr, buff_sz};
 
-
 ////////////////////
 /// INDEX BUFFER
 ////////////////////
@@ -58,7 +57,7 @@ impl IndexBuffer {
 
 #[derive(Default)]
 pub struct IndexBufferBuilder {
-    data: Vec<u32>
+    data: Vec<u32>,
 }
 
 impl IndexBufferBuilder {

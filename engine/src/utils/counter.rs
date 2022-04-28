@@ -1,4 +1,4 @@
-use crate::utils::{Mut};
+use crate::utils::Mut;
 
 pub struct Counter {
     value: Mut<u32>,

@@ -4,6 +4,7 @@
 extern crate glfw;
 
 extern crate cgmath;
+extern crate crossbeam_queue;
 extern crate either;
 extern crate gl;
 extern crate image;
@@ -16,7 +17,6 @@ extern crate serde;
 extern crate serde_json;
 extern crate specs;
 extern crate tobj;
-extern crate crossbeam_queue;
 #[macro_use]
 extern crate log;
 #[macro_use]
@@ -29,23 +29,23 @@ extern crate lazy_static;
 
 #[macro_use]
 pub mod debug;
-mod game_builder;
 pub mod common;
+mod datastructures;
 pub mod ecs;
 pub mod events;
+mod game_builder;
 pub mod game_loop;
+mod graphics;
 pub mod gui;
 pub mod physics;
-pub mod renderer;
-pub mod utils;
-pub mod testing;
-mod datastructures;
-mod graphics;
 mod platform;
+pub mod renderer;
+pub mod testing;
+pub mod utils;
 // mod app;
 
-use crate::game_builder::GameBuilder;
 use crate::events::{Event, EventChannel, KeyCode, StatelessEventChannel, WindowEvent};
+use crate::game_builder::GameBuilder;
 use crate::game_loop::GameLoop;
 use crate::utils::Vec3F;
 use specs::{World, WorldExt};
@@ -57,7 +57,6 @@ pub use log::info;
 // settings
 pub const SCR_WIDTH: u32 = 1600;
 pub const SCR_HEIGHT: u32 = 1200;
-
 
 pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
     env_logger::init();

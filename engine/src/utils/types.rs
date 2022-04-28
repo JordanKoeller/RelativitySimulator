@@ -53,7 +53,6 @@ impl Timestep {
     }
 }
 
-
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
     Rc::new(RefCell::new(v))
@@ -63,4 +62,3 @@ pub fn GetMutRef<T>(v: T) -> MutRef<T> {
 pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
     Arc::new(Mutex::new(v))
 }
-

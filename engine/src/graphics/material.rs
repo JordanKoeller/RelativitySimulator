@@ -98,11 +98,11 @@ impl MaterialComponent {
                 Uniform::Texture(tex) => {
                     let slot = textures.get_slot(tex.id()).0;
                     shader.set_texture(slot, unif_name, tex);
-                },
+                }
                 Uniform::CubeMap(tex) => {
                     let slot = textures.get_slot(tex.id()).0;
                     shader.set_texture(slot, unif_name, tex);
-                },
+                }
                 _ => shader.set_uniform(&unif_name, &unif),
             }
         }

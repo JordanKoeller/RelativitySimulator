@@ -1,15 +1,14 @@
-use std::time::Duration;
+use log::info;
 use specs::prelude::*;
-use log::{info};
-
+use std::time::Duration;
 
 use crate::debug::*;
 use crate::ecs::systems::*;
 use crate::events::ReceiverID;
+use crate::graphics::AssetLibrary;
 use crate::gui::GuiRenderer;
 use crate::platform::Window;
 use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState, Timestep};
-use crate::graphics::AssetLibrary;
 
 pub type SystemsRegistration<'a, 'b> = dyn Fn(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>;
 

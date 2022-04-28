@@ -3,7 +3,6 @@ use specs::world::LazyBuilder;
 
 use crate::events::{EventChannel, ReceiverID, StatefulEventChannel};
 
-
 /////////////////////////////////////////////
 // CRUD EVENTS
 /////////////////////////////////////////////

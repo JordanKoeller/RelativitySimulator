@@ -2,11 +2,10 @@ use specs::prelude::*;
 
 pub struct TestingEcs<'a, 'b> {
     world: World,
-    dispatcher: Dispatcher<'a, 'b>
+    dispatcher: Dispatcher<'a, 'b>,
 }
 
 impl<'a, 'b> TestingEcs<'a, 'b> {
-
     pub fn run(&mut self) {
         self.dispatcher.run_now(&self.world);
         self.world.maintain();
@@ -19,20 +18,21 @@ impl<'a, 'b> TestingEcs<'a, 'b> {
 
 pub struct TestingEcsBuilder<'a, 'b> {
     dispatcher_builder: DispatcherBuilder<'a, 'b>,
-    world: World
+    world: World,
 }
 
 impl<'a, 'b> TestingEcsBuilder<'a, 'b> {
-
     pub fn new() -> Self {
         Self {
             world: World::new(),
-            dispatcher_builder: DispatcherBuilder::new()
+            dispatcher_builder: DispatcherBuilder::new(),
         }
     }
 
-    pub fn with_system<T>(mut self, system: T) -> Self 
-    where T: for<'c> RunNow<'c> + 'b {
+    pub fn with_system<T>(mut self, system: T) -> Self
+    where
+        T: for<'c> RunNow<'c> + 'b,
+    {
         self.dispatcher_builder.add_thread_local(system);
         self
     }

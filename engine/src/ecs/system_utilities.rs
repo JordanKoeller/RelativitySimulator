@@ -1,9 +1,9 @@
 use specs::prelude::*;
 use specs::world::LazyBuilder;
 
-use crate::events::{StatefulEventChannel, EventChannel};
-use crate::debug::{Logger};
+use crate::debug::Logger;
 use crate::ecs::PrefabBuilder;
+use crate::events::{EventChannel, StatefulEventChannel};
 use crate::graphics::AssetLibrary;
 
 // Provides a common interface for accessing commonly used resources
@@ -18,7 +18,6 @@ pub struct SystemUtilities<'a> {
 }
 
 impl<'a> SystemUtilities<'a> {
-
     pub fn log(&self) -> &Logger {
         &self.logger
     }
@@ -30,29 +29,27 @@ impl<'a> SystemUtilities<'a> {
     pub fn delete_entity(&self, entity: Entity) -> bool {
         match self.entities.delete(entity) {
             Result::Ok(_) => true,
-            Result::Err(_) => false
+            Result::Err(_) => false,
         }
     }
 
     pub fn assets(&self) -> &AssetLibrary {
         &self.asset_library
     }
-    
 }
-
 
 #[cfg(test)]
 mod tests {
-    use crate::testing::{TestingEcsBuilder, TestingEcs};
+    use crate::testing::{TestingEcs, TestingEcsBuilder};
 
     use super::*;
 
     #[derive(Default)]
     struct MakePrefabTest {
-        pub ett: Option<Entity>
+        pub ett: Option<Entity>,
     }
 
-    impl <'a> System<'a> for MakePrefabTest {
+    impl<'a> System<'a> for MakePrefabTest {
         type SystemData = SystemUtilities<'a>;
 
         fn run(&mut self, data: Self::SystemData) {
@@ -64,12 +61,9 @@ mod tests {
         }
     }
 
-
     #[test]
     fn build_prefab() {
-        let mut test_ecs = TestingEcsBuilder::new()
-            .with_system(MakePrefabTest::default())
-            .build();
+        let mut test_ecs = TestingEcsBuilder::new().with_system(MakePrefabTest::default()).build();
         test_ecs.run();
         assert_eq!(test_ecs.entities().len(), 1);
         test_ecs.run();

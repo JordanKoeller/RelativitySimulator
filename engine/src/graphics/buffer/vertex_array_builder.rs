@@ -1,7 +1,7 @@
 use crate::datastructures::KeyValueBuilder;
 use crate::utils::RwAssetRef;
 
-use super::{VertexArray, VertexArrayId, DataBuffer, IndexBuffer, IndexBufferBuilder, DataBufferBuilder};
+use super::{DataBuffer, DataBufferBuilder, IndexBuffer, IndexBufferBuilder, VertexArray, VertexArrayId};
 
 pub struct VertexArrayBuilder {
     id: RwAssetRef<u32>,
@@ -46,7 +46,7 @@ impl KeyValueBuilder for VertexArrayBuilder {
             let mut vao = VertexArray::new(
                 self.vertex_buffer_builder.unwrap().build(),
                 self.index_buffer_builder.unwrap().build(),
-                self.id
+                self.id,
             );
             if let Some(instancing_buffer) = self.instancing_buffer_builder {
                 vao.add_instancing_buffer(instancing_buffer.build(), false);

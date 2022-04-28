@@ -127,7 +127,9 @@ mod test {
 
     #[test]
     fn test_kvb_increments_each_key() {
-        unsafe { KEY_NUM = 0; }
+        unsafe {
+            KEY_NUM = 0;
+        }
         let k1 = TestKVB::default();
         let k2 = TestKVB::default();
         let k3 = TestKVB::default();
@@ -138,7 +140,9 @@ mod test {
 
     #[test]
     fn same_readable_name_gives_same_key() {
-        unsafe { KEY_NUM = 0; }
+        unsafe {
+            KEY_NUM = 0;
+        }
         let registry = GenericRegistry::<TestKVB>::default();
         let k1 = registry.enqueue_builder("build1", TestKVB::default());
         let k2 = registry.enqueue_builder("build1", TestKVB::default());
@@ -151,7 +155,9 @@ mod test {
 
     #[test]
     fn values_are_built_when_flushed() {
-        unsafe { KEY_NUM = 0; }
+        unsafe {
+            KEY_NUM = 0;
+        }
         let mut registry = GenericRegistry::<TestKVB>::default();
         let k1 = registry.enqueue_builder("build1", TestKVB::default());
         let k3 = registry.enqueue_builder("build2", TestKVB::default());

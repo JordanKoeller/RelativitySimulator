@@ -8,8 +8,8 @@ use std::thread::ThreadId;
 use crate::utils::{getSyncMutRef, Mat4F, SyncMutRef};
 
 use crate::debug::*;
+use crate::graphics::MeshComponent;
 use crate::renderer::RenderCommand;
-use crate::graphics::{MeshComponent, };
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct DrawCall {
@@ -30,10 +30,16 @@ fn reverse(o: Ordering) -> Ordering {
 impl Ord for DrawCall {
     fn cmp(&self, other: &Self) -> Ordering {
         let comparisons: [Ordering; 4] = [
-            self.mesh_component.shader_id.get().cmp(&other.mesh_component.shader_id.get()),
-            self.mesh_component.vertex_array_id.get().cmp(&other.mesh_component.vertex_array_id.get()),
-            self.entity.cmp(&other.entity),         // Entity compare
-            self.cmd.cmp(&other.cmd),               // Command key compare
+            self.mesh_component
+                .shader_id
+                .get()
+                .cmp(&other.mesh_component.shader_id.get()),
+            self.mesh_component
+                .vertex_array_id
+                .get()
+                .cmp(&other.mesh_component.vertex_array_id.get()),
+            self.entity.cmp(&other.entity), // Entity compare
+            self.cmd.cmp(&other.cmd),       // Command key compare
         ];
         for comparison in comparisons {
             if comparison != Ordering::Equal {

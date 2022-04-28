@@ -1,6 +1,6 @@
-use engine::ecs::{MonoBehavior, WorldProxy, PrefabBuilder};
+use engine::ecs::{MonoBehavior, PrefabBuilder, WorldProxy};
 
-use crate::prefabs::{ChunkBuilder, Chunk};
+use crate::prefabs::{Chunk, ChunkBuilder};
 
 #[derive(Default)]
 pub struct ChunkManager;
@@ -63,4 +63,3 @@ impl<'a> MonoBehavior<'a> for ChunkManager {
 // impl ChunkManager {
 //     fn minify(chunk: &mut ChunkComponent) {}
 // }
-

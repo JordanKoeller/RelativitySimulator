@@ -16,7 +16,6 @@ pub struct DataBuffer {
     // bound: bool,
 }
 
-
 impl DataBuffer {
     pub fn new(data: Vec<f32>, layout: BufferLayout, config: BufferConfig, id: u32) -> Self {
         // assert_eq!(size_of::<T>(), layout.stride() as usize);

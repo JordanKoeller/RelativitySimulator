@@ -4,7 +4,7 @@ use std::ffi::{c_void, CStr, CString};
 
 use crate::debug::*;
 
-use super::{Shader, TextureId, TextureBinder};
+use super::{Shader, TextureBinder, TextureId};
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]

@@ -1,4 +1,4 @@
-use crate::utils::{StopwatchLike, CompoundStopwatch, Counter};
+use crate::utils::{CompoundStopwatch, Counter, StopwatchLike};
 
 struct DebugMetrics {
     pub fps_counter: CompoundStopwatch,

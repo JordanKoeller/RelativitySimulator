@@ -1,8 +1,8 @@
 use crate::datastructures::Registry;
 
 use super::{
-    ShaderBuilder, ShaderId, ShaderRegistry, TextureBuilder, TextureId, TextureRegistry, VertexArrayBuilder,
-    VertexArrayId, VertexArrayRegistry, Shader, VertexArray
+    Shader, ShaderBuilder, ShaderId, ShaderRegistry, TextureBuilder, TextureId, TextureRegistry, VertexArray,
+    VertexArrayBuilder, VertexArrayId, VertexArrayRegistry,
 };
 
 pub struct AssetLibrary {

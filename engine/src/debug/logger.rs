@@ -1,4 +1,4 @@
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex};
 
 use crate::events::{EventChannel, StatefulEventChannel};
 
@@ -7,19 +7,18 @@ pub enum LogLevel {
     Info,
     Debug,
     Warn,
-    Error
+    Error,
 }
 
 #[derive(Default)]
 pub struct Logger {
-    event_channel: Mutex<StatefulEventChannel<LogLevel, String>>
+    event_channel: Mutex<StatefulEventChannel<LogLevel, String>>,
 }
 
 impl Logger {
-
     fn log(&self, level: LogLevel, msg: &str) {
         let mut channel = self.event_channel.lock();
-        channel.as_mut().unwrap().publish((level, msg.to_string()));        
+        channel.as_mut().unwrap().publish((level, msg.to_string()));
     }
 
     pub fn warn(&self, msg: &str) {
@@ -36,4 +35,3 @@ impl Logger {
         self.log(LogLevel::Error, msg);
     }
 }
-
