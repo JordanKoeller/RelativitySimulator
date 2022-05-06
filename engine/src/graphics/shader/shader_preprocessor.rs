@@ -145,12 +145,12 @@ pub fn compile_program(steps: Vec<ShaderStep>) -> u32 {
             );
             let value = str::from_utf8(&err_log);
             if value.is_ok() {
-                println!(
-                    "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}",
-                    value.unwrap()
-                );
+                println!("ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}", value.unwrap());
             } else {
-                println!("ERROR::SHADER::PROGRAM::COMPILATION_FAILED and error message had error\n{}", value.err().unwrap());
+                println!(
+                    "ERROR::SHADER::PROGRAM::COMPILATION_FAILED and error message had error\n{}",
+                    value.err().unwrap()
+                );
             }
         }
         program
@@ -183,7 +183,11 @@ unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
                 value.unwrap()
             );
         } else {
-            println!("ERROR::SHADER::{}::COMPILATION_FAILED and error message had error\n{}", shader.typestring(), value.err().unwrap());
+            println!(
+                "ERROR::SHADER::{}::COMPILATION_FAILED and error message had error\n{}",
+                shader.typestring(),
+                value.err().unwrap()
+            );
         }
     }
     gl::AttachShader(*program, shader_id);

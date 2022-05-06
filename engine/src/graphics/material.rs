@@ -117,12 +117,11 @@ impl MaterialComponent {
                     if debug {
                         println!("{} => {:?}", unif_name, unif);
                     }
-                },
+                }
             }
         }
         if debug {
             println!("End Material Binding=======");
         }
     }
-
 }

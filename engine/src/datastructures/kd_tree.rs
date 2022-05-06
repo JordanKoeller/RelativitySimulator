@@ -227,7 +227,7 @@ mod test {
         let verts = generate_voxel_points(3);
         assert_eq!(verts.len(), 27);
         let tree = KdTree::new(verts, 8);
-        assert_eq!(tree.partition_tree.len(), 7);  
+        assert_eq!(tree.partition_tree.len(), 7);
     }
 
     #[test]
@@ -262,8 +262,6 @@ mod test {
             assert_eq!(pos.z == 3.0 || pos.z == 4.0 || pos.z == 5.0, true);
         });
     }
-
-
 
     fn generate_voxel_points(dims: usize) -> Vec<TesterPoint> {
         let mut verts = Vec::new();
