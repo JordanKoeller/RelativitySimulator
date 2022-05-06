@@ -206,3 +206,91 @@ trait Registry<K, V> {
     enqueue_builder(lookup_name: &str, builder: V::Builder) -> K; 
 }
 ```
+
+
+# Thinking about interfaces for VAO:
++ Question 1: What total properties are involved in constructing a VAO?
++ Question 2: What interface do I _want_?
+
+
+## Properties in constructing a VAO:
+
+1. Index Buffer
+   1. `data: Vec<u32>`
+2. Data Buffer
+   1. `data: Vec<f32>`
+   2. `layout: BufferLayout`
+   3. Buffer Config
+      1. `storage_type: DYNAMIC_DRAW, STATIC_DRAW, etc`
+      2. `buffer_type: ARRAY_Buffer, UNIFORM_BUFFER, etc`
+      3. `attribute_divisor: u32 (1 if instance buffer, 0 if data, etc)`
+      4. `element_type: TRIANGLE | QUAD | PATCH` ???
+
+Total: 6(7) attributes
+
+## New Interface
+
+Of the various attributes, what are the important ones?
+
+Well, it depends on what I'm making a buffer *for*:
+
++ Making a Mesh (Triangle mesh of Pixels(pos, normal, uvMap, etc))
+  + User-specified Properties:
+    + Pixels ==> DataBuffer.data: Vec<Pixel>
+    + Storage Type ==> Dynamic | Static
+    + Primitive Type ==> Triangles | Quads | etc.
+  + Interface
+    + To specify vertices, need
+      + UV Coordinates (u, v)
+      + Position in Model Space (x, y, z)
+    + Normals can be calculated from the coords of a triangle
+      + Need to know if doing surface-wise shading or vertex-wise shading
+    + Need to know the primitive type
+    + Need to know the buffer storage type
++ Making an instancing array
+  + The user should never have to do this explicitly. I will manage this myself with the underlying `VertexArrayBuilder`
++ Other general-purpose buffers for whatever use
+  + They can just use the underlying VertexArray builder. 
+  + I can add `From` and `Into` implementations for converting between the various DataBuffer builders, since they are really all the same thing under the hood - just different interfaces.
+
+Ex:
+```
+struct Pixel {
+    position: Vec3F,
+    uv: Vec2F,
+    // The rest is filled programatically
+    normal: Vec3F,
+    tangent: Vec3F,
+}
+
+struct MeshBufferBuilder {
+    vertices: Vec<Pixel>,
+    primative_type: enum(TRIANGLE|QUAD|TRIANGLE_STRIP),
+    storage_type: enum(STATIC|DYNAMIC)
+    // The rest is filled programatically
+    index_buffer: Vec<u32>,
+    layout: BufferLayout,
+    attribute_divisor: u32,
+}
+
+impl Into<VertexArayBuilder> for MeshBufferBuilder {...}
+
+fn build_sample_mesh() {
+    let mut mesh_builder = MeshBufferBuilder::default()
+        .with_access_pattern(STATIC)
+        .with_primative(TRIANGLE);
+    // 3 calls to push_pixel makes a triangle. Specify pixel coord and its uv
+    mesh_builder.push_pixel(Vec3F::new(-0.5, -0.5, -0.5), Vec2F::new(0.0, 0.0));
+    mesh_builder.push_pixel(Vec3F::new(-0.5, 0.0, -0.5), Vec2F::new(0.0, 0.5));
+    mesh_builder.push_pixel(Vec3F::new(0.0, 0.0, -0.5), Vec2F::new(0.0, 0.0));
+
+    // All the data has been specified
+    // Calling hydrate triggers the MeshBuilder to compute normals, tangents, and populate the index array
+    builder.hydrate();
+
+    // Calling build gives back a VAO builder to be inserted into the AssetLibrary inbox
+    let vertex_array_builder = mesh_builder.build();
+    let vao_id = asset_library.get_or_create("my_cool_new_mesh", mesh_builder);
+}
+```
+

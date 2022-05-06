@@ -26,7 +26,7 @@ where
     // Schedules for building and insertion later, but gives back an ID now.
     // If the same lookup_name is enqueued twice before the lazy queue has been drained
     // This must still give back a key and skip enqueuing twice.
-    fn enqueue_builder(&self, lookup_name: &str, builder: KVB) -> KVB::K;
+    fn enqueue_builder<B: Into<KVB>>(&self, lookup_name: &str, builder: B) -> KVB::K;
 
     // Drains the queue, saving everything into the registry
     fn flush(&mut self);
@@ -69,7 +69,8 @@ where
         self.value_lookup.get_mut(registry_id)
     }
 
-    fn enqueue_builder(&self, lookup_name: &str, builder: KVB) -> KVB::K {
+    fn enqueue_builder<B: Into<KVB>>(&self, lookup_name: &str, builder: B) -> KVB::K {
+        let builder = builder.into();
         if let Some(k) = self.get_registry_id(lookup_name) {
             k.clone()
         } else {

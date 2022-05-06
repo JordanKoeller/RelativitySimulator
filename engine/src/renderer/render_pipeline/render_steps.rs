@@ -62,7 +62,7 @@ impl<'a, S: RenderStep> RenderPipeline<'a, S> {
 
 impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
     pub fn new<'b>(queue: &mut RenderQueueConsumer<'b>, assets: &'a mut AssetLibrary) -> Option<Self> {
-        if let Some(mut state) = queue.peek() {
+        if let Some(state) = queue.peek() {
             let mut ret = Self {
                 _marker: std::marker::PhantomData::default(),
                 state: GPUState::new(assets, state.mesh_component),

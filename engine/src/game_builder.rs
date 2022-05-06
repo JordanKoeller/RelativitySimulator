@@ -72,7 +72,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
     pub fn add_shader(mut self, filename: &str) -> Self {
         // let fname_parts: Vec<&str> = filename.split("/").collect();
         // let fname: &str = fname_parts[fname_parts.len() - 1].split(".").next().unwrap();
-        let builder = ShaderBuilder::default().set_source_file(filename);
+        let builder = ShaderBuilder::default().with_source_file(filename);
         self.shaders.push(builder);
         // self.shaders.push(Shader::from_file(filename, fname));
         self
@@ -185,17 +185,17 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         let assets = utils.assets();
         assets.get_or_create_shader(
             "default_texture",
-            ShaderBuilder::default().set_source_file("shaders/simple_textured.glsl"),
+            ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl"),
         );
         assets.get_or_create_shader(
             "instanced",
-            ShaderBuilder::default().set_source_file("shaders/simple_instanced.glsl"),
+            ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl"),
         );
         assets.get_or_create_shader(
             "skybox",
             ShaderBuilder::default()
-                .set_depth_function(ShaderDepthFunction::LEQUAL)
-                .set_source_file("shaders/skybox.glsl"),
+                .with_depth_function(ShaderDepthFunction::LEQUAL)
+                .with_source_file("shaders/skybox.glsl"),
         );
         // let shader = Shader::from_file("default_texture", "shaders/simple_textured.glsl");
         // renderer.submit_shader(shader);

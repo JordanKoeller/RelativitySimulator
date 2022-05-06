@@ -61,7 +61,7 @@ pub struct IndexBufferBuilder {
 }
 
 impl IndexBufferBuilder {
-    pub fn set_data(mut self, data: Vec<u32>) -> Self {
+    pub fn with_data(mut self, data: Vec<u32>) -> Self {
         self.data = data;
         self
     }

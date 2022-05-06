@@ -1,13 +1,11 @@
-use engine::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
+use engine::ecs::{PrefabBuilder, SystemUtilities};
 use engine::prefab::{Cube, CubeState};
 use engine::utils::Vec3F;
 
 pub struct Chunk;
 
 #[derive(Default)]
-pub struct ChunkBuilder {
-    cache: ComponentCache,
-}
+pub struct ChunkBuilder;
 
 impl PrefabBuilder for ChunkBuilder {
     type PrefabState = Chunk;

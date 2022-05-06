@@ -2,8 +2,6 @@ use specs::prelude::*;
 use specs::world::LazyBuilder;
 use specs::{Component, VecStorage};
 
-use crate::ecs::entity::MyBuilder;
-
 use crate::debug::*;
 use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::renderer::{DrawCall, RenderCommand, RenderQueue};

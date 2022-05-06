@@ -54,7 +54,7 @@ impl<'a> GPUState<'a> {
 
     pub fn bind_material(&mut self, mtl: &MaterialComponent) {
         let shader = self.assets.get_shader(&self.active_mesh.shader_id).unwrap();
-        mtl.bind_to(shader, &mut self.textures);
+        mtl.bind_to(shader, &mut self.textures, false);
     }
 
     pub fn clear_textures(&mut self) {

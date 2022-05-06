@@ -35,27 +35,31 @@ impl PrefabBuilder for Cube {
         let mesh = self.cache.get_or(|| {
             let shader_id = api.assets().get_shader_id("default_texture").unwrap();
             let vai = VertexArrayBuilder::default()
-                .set_index_buffer(IndexBufferBuilder::default().set_data(TEXTURE_CUBE_INDICES.to_vec()))
-                .set_vertex_buffer(
+                .with_index_buffer(IndexBufferBuilder::default().with_data(TEXTURE_CUBE_INDICES.to_vec()))
+                .with_vertex_buffer(
                     DataBufferBuilder::default()
-                        .set_data(TEXTURE_CUBE_VERTICES.to_vec())
-                        .set_layout(BufferLayout::new(vec![
+                        .with_data(TEXTURE_CUBE_VERTICES.to_vec())
+                        .with_layout(BufferLayout::new(vec![
                             AttributeType::Float3,
                             AttributeType::Float3,
                             AttributeType::Float2,
                         ]))
-                        .set_config(BufferConfig::static_vbo()),
+                        .with_config(BufferConfig::static_vbo()),
                 );
             let vai = api.assets().get_or_create_vertex_array("cube", vai);
             MeshComponent::new(vai, shader_id)
         });
         let texture_id = api.assets().get_or_create_texture(
             &state.texture_filename,
-            TextureBuilder::default().set_file(&state.texture_filename),
+            TextureBuilder::default().with_file(&state.texture_filename),
         );
         let mut material = MaterialComponent::default();
-        material.diffuse_texture(texture_id);
-        material.ambient(Vec3F::new(1f32, 1f32, 1f32));
+        // material.ambient(Vec3F::new(1f32, 1f32, 1f32));
+        // material.specular(Vec3F::new(1f32, 1f32, 1f32));
+        // material.diffuse(Vec3F::new(1f32, 1f32, 1f32));
+        material.diffuse_texture(texture_id.clone());
+        material.ambient_texture(texture_id.clone());
+        material.specular_texture(texture_id);
         let mut transform = TransformComponent::identity();
         transform.push_translation(state.position);
         api.entity_builder().with(material).with(transform).with(mesh).build();

@@ -26,12 +26,12 @@ impl Default for ShaderBuilder {
 }
 
 impl ShaderBuilder {
-    pub fn set_source_file(mut self, filename: &str) -> Self {
+    pub fn with_source_file(mut self, filename: &str) -> Self {
         self.filename = Some(filename.to_string());
         self
     }
 
-    pub fn set_depth_function(mut self, depth_func: ShaderDepthFunction) -> Self {
+    pub fn with_depth_function(mut self, depth_func: ShaderDepthFunction) -> Self {
         self.depth_function = depth_func.get_gl_enum();
         self
     }
@@ -76,14 +76,14 @@ mod test {
     fn builder_is_buildable_if_file_set() {
         let builder = ShaderBuilder::default();
         assert_eq!(builder.is_buildable(), false);
-        let builder = builder.set_source_file(SHADER_FILE);
+        let builder = builder.with_source_file(SHADER_FILE);
         assert_eq!(builder.is_buildable(), true);
     }
 
     #[test]
     fn builder_builds_a_shader() {
         let _ctx = get_context();
-        let builder = ShaderBuilder::default().set_source_file(SHADER_FILE);
+        let builder = ShaderBuilder::default().with_source_file(SHADER_FILE);
         let shader_id = builder.key();
         assert_eq!(shader_id.get(), std::u32::MAX);
         let shader = builder.build();

@@ -31,10 +31,10 @@ impl DataBuffer {
         self.bind();
         unsafe {
             gl::BufferData(
-                self.config.buffer_type,
+                self.config.buffer_type.to_gl_enum(),
                 buff_sz(&self.data),
                 buff_ptr(&self.data),
-                self.config.storage_type,
+                self.config.storage_type.to_gl_enum(),
             );
         }
         let stride = self.layout.stride();
@@ -75,7 +75,7 @@ impl DataBuffer {
         unsafe {
             let slice_ref = self.data.get_unchecked(start..end);
             gl::BufferSubData(
-                self.config.buffer_type,
+                self.config.buffer_type.to_gl_enum(),
                 (size_of::<f32>() * start) as isize,
                 (size_of::<f32>() * (end - start)) as isize,
                 &slice_ref[0] as *const f32 as *const c_void,
@@ -88,13 +88,13 @@ impl DataBuffer {
             panic!("Tried to bind a buffer that has not been initialized!");
         }
         unsafe {
-            gl::BindBuffer(self.config.buffer_type, self.id);
+            gl::BindBuffer(self.config.buffer_type.to_gl_enum(), self.id);
         }
     }
 
     pub fn unbind(&self) {
         unsafe {
-            gl::BindBuffer(self.config.buffer_type, 0);
+            gl::BindBuffer(self.config.buffer_type.to_gl_enum(), 0);
         }
     }
 

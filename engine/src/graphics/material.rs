@@ -92,19 +92,37 @@ impl MaterialComponent {
             .map(|(_, value)| value)
     }
 
-    pub fn bind_to(&self, shader: &Shader, textures: &mut TextureBinder) {
+    pub fn bind_to(&self, shader: &Shader, textures: &mut TextureBinder, debug: bool) {
+        if debug {
+            println!("Begin Material Binding=======");
+        }
         for (unif_name, unif) in self.uniforms() {
             match unif {
                 Uniform::Texture(tex) => {
                     let slot = textures.get_slot(tex.id()).0;
                     shader.set_texture(slot, unif_name, tex);
+                    if debug {
+                        println!("{} TEXTURE => {:?}", unif_name, slot);
+                    }
                 }
                 Uniform::CubeMap(tex) => {
                     let slot = textures.get_slot(tex.id()).0;
                     shader.set_texture(slot, unif_name, tex);
+                    if debug {
+                        println!("{} CUBEMAP => {:?}", unif_name, slot);
+                    }
                 }
-                _ => shader.set_uniform(&unif_name, &unif),
+                _ => {
+                    shader.set_uniform(&unif_name, &unif);
+                    if debug {
+                        println!("{} => {:?}", unif_name, unif);
+                    }
+                },
             }
         }
+        if debug {
+            println!("End Material Binding=======");
+        }
     }
+
 }

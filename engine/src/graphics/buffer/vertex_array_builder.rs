@@ -22,12 +22,12 @@ impl Default for VertexArrayBuilder {
 }
 
 impl VertexArrayBuilder {
-    pub fn set_vertex_buffer(mut self, builder: DataBufferBuilder) -> Self {
+    pub fn with_vertex_buffer(mut self, builder: DataBufferBuilder) -> Self {
         self.vertex_buffer_builder = Some(builder);
         self
     }
 
-    pub fn set_index_buffer(mut self, builder: IndexBufferBuilder) -> Self {
+    pub fn with_index_buffer(mut self, builder: IndexBufferBuilder) -> Self {
         self.index_buffer_builder = Some(builder);
         self
     }

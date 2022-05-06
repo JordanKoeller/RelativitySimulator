@@ -8,17 +8,17 @@ pub struct DataBufferBuilder {
 }
 
 impl DataBufferBuilder {
-    pub fn set_config(mut self, config: BufferConfig) -> Self {
+    pub fn with_config(mut self, config: BufferConfig) -> Self {
         self.config = Some(config);
         self
     }
 
-    pub fn set_layout(mut self, layout: BufferLayout) -> Self {
+    pub fn with_layout(mut self, layout: BufferLayout) -> Self {
         self.layout = Some(layout);
         self
     }
 
-    pub fn set_data(mut self, data: Vec<f32>) -> Self {
+    pub fn with_data(mut self, data: Vec<f32>) -> Self {
         self.data = data;
         self
     }

@@ -60,22 +60,22 @@ impl KeyValueBuilder for TextureBuilder {
 }
 
 impl TextureBuilder {
-    pub fn set_file(mut self, fname: &str) -> Self {
+    pub fn with_file(mut self, fname: &str) -> Self {
         self.filename = Some(fname.to_string());
         self
     }
 
-    pub fn set_width(mut self, width: u32) -> Self {
+    pub fn with_width(mut self, width: u32) -> Self {
         self.width = Some(width);
         self
     }
 
-    pub fn set_height(mut self, height: u32) -> Self {
+    pub fn with_height(mut self, height: u32) -> Self {
         self.height = Some(height);
         self
     }
 
-    pub fn set_format(mut self, format: PixelSpec) -> Self {
+    pub fn with_format(mut self, format: PixelSpec) -> Self {
         self.format = format.get_gl_enum();
         self
     }
@@ -186,15 +186,15 @@ mod test {
     fn builder_knows_when_buildable() {
         let builder = TextureBuilder::default();
         assert_eq!(builder.is_buildable(), false);
-        let builder = builder.set_file("test_resources/test_texture.png");
+        let builder = builder.with_file("test_resources/test_texture.png");
         assert_eq!(builder.is_buildable(), true);
         let builder = TextureBuilder::default();
         assert_eq!(builder.is_buildable(), false);
-        let builder = builder.set_height(100);
+        let builder = builder.with_height(100);
         assert_eq!(builder.is_buildable(), false);
-        let builder = builder.set_width(100);
+        let builder = builder.with_width(100);
         assert_eq!(builder.is_buildable(), true);
-        let builder = builder.set_format(PixelSpec::RGB);
+        let builder = builder.with_format(PixelSpec::RGB);
         assert_eq!(builder.is_buildable(), true);
     }
 
@@ -203,7 +203,7 @@ mod test {
         let _ctx = get_context();
         let builder = TextureBuilder::default();
         assert_eq!(builder.is_buildable(), false);
-        let builder = builder.set_file("test_resources/test_texture.png");
+        let builder = builder.with_file("test_resources/test_texture.png");
         assert_eq!(builder.is_buildable(), true);
         let texture = builder.build();
         assert_ne!(texture.id(), std::u32::MAX);

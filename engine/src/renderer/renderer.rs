@@ -39,16 +39,16 @@ impl Screen {
         ];
         let inds = vec![0, 1, 2, 3, 4, 5];
         let screen_quad = VertexArrayBuilder::default()
-            .set_vertex_buffer(
+            .with_vertex_buffer(
                 DataBufferBuilder::default()
-                    .set_layout(BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]))
-                    .set_data(verts)
-                    .set_config(BufferConfig::static_vbo()),
+                    .with_layout(BufferLayout::new(vec![AttributeType::Float2, AttributeType::Float2]))
+                    .with_data(verts)
+                    .with_config(BufferConfig::static_vbo()),
             )
-            .set_index_buffer(IndexBufferBuilder::default().set_data(inds))
+            .with_index_buffer(IndexBufferBuilder::default().with_data(inds))
             .build();
         let shader = ShaderBuilder::default()
-            .set_source_file("shaders/screen_shader.glsl")
+            .with_source_file("shaders/screen_shader.glsl")
             .build();
         Self {
             framebuffer: Framebuffer::dims(x_dim, y_dim),
@@ -210,18 +210,32 @@ impl Renderer {
             .insert("beta".to_string(), Uniform::Float(camera.beta()));
         self.common_uniforms
             .insert("gamma".to_string(), Uniform::Float(camera.gamma()));
+        self.common_uniforms
+            .insert("light_ambient".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
+        self.common_uniforms
+            .insert("light_diffuse".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
+        self.common_uniforms
+            .insert("light_specular".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
+        self.common_uniforms.insert(
+            "camera_position".to_string(),
+            Uniform::Vec3(Vec3F::new(200.0, 200.0, 200.0)),
+        );
+        self.common_uniforms.insert(
+            "light_position".to_string(),
+            Uniform::Vec3(Vec3F::new(200.0, 200.0, -200.0)),
+        );
         // self.common_uniforms.insert(
-        //   "cameraPos").unwrap(),
+        //   "camera_position".to_string(),
         //   Uniform::Vec3(camera.position.clone()),
         // );
-        self.common_uniforms.insert(
-            "changeOfBasis".to_string(),
-            Uniform::Mat3(camera.velocity_basis_matrix()),
-        );
-        self.common_uniforms.insert(
-            "changeOfBasisInverse".to_string(),
-            Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
-        );
+        // self.common_uniforms.insert(
+        //     "changeOfBasis".to_string(),
+        //     Uniform::Mat3(camera.velocity_basis_matrix()),
+        // );
+        // self.common_uniforms.insert(
+        //     "changeOfBasisInverse".to_string(),
+        //     Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
+        // );
     }
 
     pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {

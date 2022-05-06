@@ -129,21 +129,29 @@ pub fn compile_program(steps: Vec<ShaderStep>) -> u32 {
         }
         gl::LinkProgram(program);
         // Error checking
-        let mut err_log = Vec::with_capacity(512);
+        let mut err_log = Vec::with_capacity(1024);
         let mut err_code = 0;
-        err_log.set_len(512 - 1);
+        err_log.set_len(1024);
+        for i in 0..1024 {
+            err_log[i] = 0;
+        }
         gl::GetProgramiv(program, gl::LINK_STATUS, &mut err_code);
         if err_code != gl::TRUE as gl::types::GLint {
             gl::GetProgramInfoLog(
                 program,
-                512,
+                1024,
                 ptr::null_mut(),
                 err_log.as_mut_ptr() as *mut gl::types::GLchar,
             );
-            println!(
-                "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}",
-                str::from_utf8(&err_log).unwrap()
-            );
+            let value = str::from_utf8(&err_log);
+            if value.is_ok() {
+                println!(
+                    "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n{}",
+                    value.unwrap()
+                );
+            } else {
+                println!("ERROR::SHADER::PROGRAM::COMPILATION_FAILED and error message had error\n{}", value.err().unwrap());
+            }
         }
         program
     }
@@ -155,7 +163,10 @@ unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
     gl::CompileShader(shader_id);
     let mut err_log = Vec::with_capacity(2048);
     let mut err_code = 0;
-    err_log.set_len(2048 - 1);
+    err_log.set_len(2048);
+    for i in 0..2048 {
+        err_log[i] = 0;
+    }
     gl::GetShaderiv(shader_id, gl::COMPILE_STATUS, &mut err_code);
     if err_code != gl::TRUE as gl::types::GLint {
         gl::GetShaderInfoLog(
@@ -164,11 +175,16 @@ unsafe fn compile_shader(program: &u32, shader: ShaderStep) {
             ptr::null_mut(),
             err_log.as_mut_ptr() as *mut gl::types::GLchar,
         );
-        println!(
-            "ERROR::SHADER::{}::COMPILATION_FAILED\n{}",
-            shader.typestring(),
-            str::from_utf8(&err_log).unwrap()
-        )
+        let value = str::from_utf8(&err_log);
+        if value.is_ok() {
+            println!(
+                "ERROR::SHADER::{}::COMPILATION_FAILED\n{}",
+                shader.typestring(),
+                value.unwrap()
+            );
+        } else {
+            println!("ERROR::SHADER::{}::COMPILATION_FAILED and error message had error\n{}", shader.typestring(), value.err().unwrap());
+        }
     }
     gl::AttachShader(*program, shader_id);
     gl::DeleteShader(shader_id);

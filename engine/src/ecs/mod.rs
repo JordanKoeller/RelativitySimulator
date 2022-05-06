@@ -1,6 +1,6 @@
 pub mod components;
 pub mod debug;
-pub mod entity;
+// pub mod entity;
 // mod system;
 mod mono_behavior;
 pub mod prefab;
@@ -10,7 +10,7 @@ mod world_proxy;
 
 pub use self::components::*;
 pub use self::debug::*;
-pub use self::entity::*;
+// pub use self::entity::*;
 pub use self::mono_behavior::*;
 pub use self::world_proxy::*;
 // pub use self::system::*;

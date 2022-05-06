@@ -30,16 +30,16 @@ impl PrefabBuilder for SkyboxBuilder {
         let mesh = self.cache.get_or(|| {
             let shader_id = api.assets().get_shader_id("skybox").unwrap();
             let vai = VertexArrayBuilder::default()
-                .set_index_buffer(IndexBufferBuilder::default().set_data(SKYBOX_INDICES.to_vec()))
-                .set_vertex_buffer(
+                .with_index_buffer(IndexBufferBuilder::default().with_data(SKYBOX_INDICES.to_vec()))
+                .with_vertex_buffer(
                     DataBufferBuilder::default()
-                        .set_data(SKYBOX_VERTICES.to_vec())
-                        .set_layout(BufferLayout::new(vec![
+                        .with_data(SKYBOX_VERTICES.to_vec())
+                        .with_layout(BufferLayout::new(vec![
                             AttributeType::Float3,
                             AttributeType::Float3,
                             AttributeType::Float2,
                         ]))
-                        .set_config(BufferConfig::static_vbo()),
+                        .with_config(BufferConfig::static_vbo()),
                 );
             let vai = api.assets().get_or_create_vertex_array("cubemap_mesh", vai);
             MeshComponent::new(vai, shader_id)
@@ -47,7 +47,7 @@ impl PrefabBuilder for SkyboxBuilder {
         let texture_id = api.assets().get_or_create_texture(
             &state.texture_filename,
             TextureBuilder::default()
-                .set_file(&state.texture_filename)
+                .with_file(&state.texture_filename)
                 .set_is_cubemap(true),
         );
         let mut material = MaterialComponent::default();
