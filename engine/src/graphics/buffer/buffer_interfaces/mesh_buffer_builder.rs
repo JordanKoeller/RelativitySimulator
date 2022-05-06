@@ -22,22 +22,22 @@ pub enum ShadingStrategy {
 
 pub trait MeshBuildStep {}
 
-struct NewBuilderStep;
+pub struct NewBuilderStep;
 impl MeshBuildStep for NewBuilderStep {}
 
-struct AddingVerticesStep;
+pub struct AddingVerticesStep;
 impl MeshBuildStep for AddingVerticesStep {}
 
-struct HydratedBuilderStep;
+pub struct HydratedBuilderStep;
 impl MeshBuildStep for HydratedBuilderStep {}
 
 #[derive(Clone)]
 pub struct Vertex {
-    position: Vec3F,
-    uv: Vec2F,
+    pub position: Vec3F,
+    pub uv: Vec2F,
     // The rest will be filled programatically
-    normal: Vec3F,
-    tangent: Vec3F,
+    pub normal: Vec3F,
+    pub tangent: Vec3F,
 }
 
 impl HasPosition for Vertex {
@@ -91,6 +91,14 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
             _marker: std::marker::PhantomData::<N>::default(),
         }
     }
+
+    pub fn vertices(&mut self) -> &mut Vec<Vertex> {
+        &mut self.vertices
+    }
+
+    pub fn num_vertices(&self) -> usize {
+        self.vertices.len()
+    }
 }
 
 impl MeshBufferBuilder<NewBuilderStep> {
@@ -113,6 +121,8 @@ impl MeshBufferBuilder<NewBuilderStep> {
         self.consume::<AddingVerticesStep>()
     }
 }
+
+pub type MeshBuilder = MeshBufferBuilder<NewBuilderStep>;
 
 impl MeshBufferBuilder<AddingVerticesStep> {
     pub fn push_vertex(&mut self, position: Vec3F, uv: Vec2F) {

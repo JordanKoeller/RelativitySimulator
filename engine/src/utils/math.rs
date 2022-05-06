@@ -39,6 +39,7 @@ pub fn lerp(low1: f32, high1: f32, low2: f32, high2: f32, value: f32) -> f32 {
     low2 + d2 * (value - low1) / d1
 }
 
+
 pub fn avg(a: f32, b: f32) -> f32 {
     (a + b) / 2f32
 }

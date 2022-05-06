@@ -152,10 +152,7 @@ impl Renderer {
 
     pub fn end_frame(&mut self, window: &mut Window) {
         self.screen.framebuffer.unbind();
-        unsafe {
-            // gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-            gl::Disable(gl::DEPTH_TEST);
-        }
+
         window.clear_framebuffer();
         self.screen.bind_draw();
         window.swap_buffers();
@@ -168,6 +165,9 @@ impl Renderer {
         transforms: &ReadStorage<'a, TransformComponent>,
         assets: &mut Write<'a, AssetLibrary>,
     ) -> u32 {
+        // unsafe {
+        //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+        // }
         let mut draw_call_count = 0u32;
         let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, assets);
         if let Some(pipeline) = pipeline_opt {
@@ -190,6 +190,9 @@ impl Renderer {
                 }
             }
         }
+        // unsafe {
+        //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+        // }
         draw_call_count
     }
 
