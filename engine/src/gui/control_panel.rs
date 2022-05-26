@@ -35,20 +35,20 @@ impl ControlPanel {
         self.get_by_name(name).get_string()
     }
 
-    pub fn set_float(&self, name: &str, value: f32) {
-        self.get_by_name(name).set_float(value);
+    pub fn set_float(&mut self, name: &str, value: f32) {
+        self.get_by_name_mut(name).set_float(value);
     }
 
-    pub fn set_int(&self, name: &str, value: i32) {
-        self.get_by_name(name).set_int(value);
+    pub fn set_int(&mut self, name: &str, value: i32) {
+        self.get_by_name_mut(name).set_int(value);
     }
 
-    pub fn set_vec2(&self, name: &str, value: Vec2F) {
-        self.get_by_name(name).set_vec2(value);
+    pub fn set_vec2(&mut self, name: &str, value: Vec2F) {
+        self.get_by_name_mut(name).set_vec2(value);
     }
 
-    pub fn set_vec3(&self, name: &str, value: Vec3F) {
-        self.get_by_name(name).set_vec3(value);
+    pub fn set_vec3(&mut self, name: &str, value: Vec3F) {
+        self.get_by_name_mut(name).set_vec3(value);
     }
 
     pub fn set_str(&mut self, name: &str, value: String) {

@@ -33,25 +33,25 @@ pub trait Widget {
             std::any::type_name::<Self>()
         );
     }
-    fn set_float(&self, value: f32) {
+    fn set_float(&mut self, _value: f32) {
         panic!(
             "Widget::set_float not implemented for {}",
             std::any::type_name::<Self>()
         );
     }
-    fn set_int(&self, value: i32) {
+    fn set_int(&mut self, _value: i32) {
         panic!("Widget::set_int not implemented for {}", std::any::type_name::<Self>());
     }
-    fn set_bool(&self, value: bool) {
+    fn set_bool(&mut self, _value: bool) {
         panic!("Widget::set_bool not implemented for {}", std::any::type_name::<Self>());
     }
-    fn set_vec2(&self, value: Vec2F) {
+    fn set_vec2(&mut self, _value: Vec2F) {
         panic!("Widget::set_vec2 not implemented for {}", std::any::type_name::<Self>());
     }
-    fn set_vec3(&self, value: Vec3F) {
+    fn set_vec3(&mut self, _value: Vec3F) {
         panic!("Widget::set_vec3 not implemented for {}", std::any::type_name::<Self>());
     }
-    fn set_string(&mut self, value: String) {
+    fn set_string(&mut self,_value: String) {
         panic!(
             "Widget::set_string not implemented for {}",
             std::any::type_name::<Self>()
