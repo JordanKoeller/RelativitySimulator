@@ -39,7 +39,7 @@ impl<T: HasPosition> KdTree<T> {
 
 impl<T: HasPosition> SpatialIndex<T> for KdTree<T> {
     // TODO: Implement push
-    fn push(&mut self, element: T) {}
+    fn push(&mut self, _element: T) {}
 
     fn set_data(&mut self, data: Vec<T>) {
         self.clear();

@@ -1,13 +1,17 @@
 use specs::prelude::*;
+use std::any::TypeId;
+use std::collections::HashMap;
+use std::sync::RwLock;
 use std::time::Duration;
 
+use crate::debug::DebugMetricsSystem;
 use crate::ecs::systems::*;
-use crate::ecs::{PrefabBuilder, SystemUtilities, WorldProxy};
+use crate::ecs::{PrefabBuilder, Sys, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
 use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction};
 use crate::graphics::{MaterialComponent, MeshComponent};
-use crate::gui::GuiRenderer;
+use crate::gui::{ControlPanel, ControlPanels, GuiRenderer};
 use crate::physics::TransformComponent;
 use crate::platform::Window;
 use crate::renderer::Renderer;
@@ -155,6 +159,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self.world.insert(window_channel);
         self.world.insert(time);
         self.world.insert(RunningState::default());
+        self.world.insert(ControlPanels::default());
 
         // Register some components
 
@@ -166,6 +171,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
                 window: MutRef::clone(&window_ref),
                 receiver_id: world_id,
             })
+            .with_thread_local(Sys::<DebugMetricsSystem>::default())
             .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(EventProcessingSystem::default())
             .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))

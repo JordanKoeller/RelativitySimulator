@@ -4,18 +4,18 @@ use cgmath::prelude::*;
 use specs::prelude::SystemData;
 use specs::prelude::*;
 
+use crate::debug::DebugMetrics;
 use crate::ecs::components::{Camera, Player};
 use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
 use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent};
 use crate::gui::*;
+use crate::physics::TransformComponent;
 use crate::platform::Window;
 use crate::renderer::render_pipeline::*;
 use crate::renderer::{DrawCall, RenderCommand, RenderQueue, Renderer};
-use crate::utils::{Mat4F, MutRef, RunningEnum, RunningState, Timestep};
-
-use crate::physics::TransformComponent;
+use crate::utils::{CompoundStopwatch, Counter, Mat4F, MutRef, RunningEnum, RunningState, StopwatchLike, Timestep};
 
 pub struct StartFrameSystem {
     pub window: MutRef<Window>,
@@ -30,15 +30,17 @@ impl<'a> System<'a> for StartFrameSystem {
         Write<'a, Timestep>,
         Write<'a, RunningState>,
         ReadStorage<'a, Camera>,
+        Write<'a, DebugMetrics>,
     );
 
     fn run(
         &mut self,
-        (mut renderer, mut events, mut window_events, mut timestep, mut running, camera_storage): Self::SystemData,
+        (mut renderer, mut events, mut window_events, mut timestep, mut running, camera_storage, mut debugger): Self::SystemData,
     ) {
         let mut window = self.window.borrow_mut();
         timestep.click_frame(Duration::from_secs_f64(window.glfw_token.get_time()));
         window.poll_events();
+        debugger.frame_time.start();
         window_events.process_events(&mut events, &mut window);
         events.for_each(&self.receiver_id, |window_evt| match window_evt.code {
             Event::KeyPressed(KeyCode::Control) => {
@@ -76,11 +78,12 @@ pub struct EndFrameSystem {
 }
 
 impl<'a> System<'a> for EndFrameSystem {
-    type SystemData = Write<'a, Renderer>;
+    type SystemData = (Write<'a, Renderer>, Write<'a, DebugMetrics>);
 
-    fn run(&mut self, mut renderer: Self::SystemData) {
+    fn run(&mut self, (mut renderer, mut debugger): Self::SystemData) {
         let mut window = self.window.borrow_mut();
         renderer.end_frame(&mut window);
+        debugger.frame_time.stop();
     }
 }
 
@@ -105,9 +108,9 @@ pub struct RenderSystemData<'a> {
     transform_s: ReadStorage<'a, TransformComponent>,
     material_s: ReadStorage<'a, MaterialComponent>,
     renderer: Write<'a, Renderer>,
-    timestep: Write<'a, Timestep>,
     render_queue: Write<'a, RenderQueue>,
     assets: Write<'a, AssetLibrary>,
+    debug_metrics: Write<'a, DebugMetrics>,
 }
 
 pub struct RenderPipelineSystem {
@@ -136,31 +139,12 @@ impl<'a> System<'a> for RenderPipelineSystem {
             &mut system_data.render_queue,
             &system_data.entities,
             &system_data.drawable_s,
-            &system_data.assets,
         );
         // self.init_frame(&mut system_data.renderer);
-        let start_time = self.window.borrow().glfw_token.get_time();
-        let draw_call_count = self.render(&mut system_data);
-        let end_time = self.window.borrow().glfw_token.get_time();
-        self.render_time = Duration::from_secs_f64(end_time - start_time);
-        self.draw_call_count = draw_call_count;
+        system_data.debug_metrics.render_time.start();
+        self.render(&mut system_data);
+        system_data.debug_metrics.render_time.stop();
     }
-
-    // fn update_debugger(&mut self, _data: &mut Self::SystemData, gui: &mut DebugPanel) {
-    //     gui.panel.lines[1] = Box::from(LabeledText::new("Draw Calls", &self.draw_call_count.to_string()));
-    //     gui.panel.lines[2] = Box::from(LabeledText::new(
-    //         "GPU Render Time",
-    //         &format!("{0:.3}", self.render_time.as_secs_f32() * 1000f32),
-    //     ));
-    // }
-
-    // fn setup_debug_panel(&mut self, _: &mut World) -> Option<DebugPanel> {
-    //     let mut ui = DebugPanel::new("Renderer Debugger");
-    //     ui.panel.push(Box::from(LineBreak));
-    //     ui.panel.push(Box::from(LabeledText::new("Draw Calls", "")));
-    //     ui.panel.push(Box::from(LabeledText::new("GPU Render Time", "")));
-    //     Some(ui)
-    // }
 }
 
 impl RenderPipelineSystem {
@@ -169,7 +153,6 @@ impl RenderPipelineSystem {
         render_queue: &mut RenderQueue,
         entities: &Entities<'a>,
         drawables: &ReadStorage<'a, MeshComponent>,
-        assets: &Write<'a, AssetLibrary>,
     ) {
         for (entity, drawable) in (entities, drawables).join() {
             let cmd = DrawCall {
@@ -185,12 +168,13 @@ impl RenderPipelineSystem {
         renderer.init_frame(&mut self.window.borrow_mut());
     }
 
-    fn render<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) -> u32 {
+    fn render<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
         system_data.renderer.render_scene(
             system_data.render_queue.consume(),
             &system_data.material_s,
             &system_data.transform_s,
             &mut system_data.assets,
-        )
+            &system_data.debug_metrics,
+        );
     }
 }

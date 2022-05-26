@@ -6,7 +6,7 @@ use std::ffi::{CStr, CString};
 
 use specs::prelude::*;
 
-use crate::datastructures::KeyValueBuilder;
+use crate::datastructures::RegistryItem;
 use crate::debug::*;
 use crate::graphics::{
     AssetLibrary, AttributeType, BufferConfig, BufferLayout, DataBuffer, DataBufferBuilder, IndexBuffer,
@@ -164,18 +164,19 @@ impl Renderer {
         materials: &ReadStorage<'a, MaterialComponent>,
         transforms: &ReadStorage<'a, TransformComponent>,
         assets: &mut Write<'a, AssetLibrary>,
-    ) -> u32 {
+        debug_metrics: &DebugMetrics,
+    ) {
         // unsafe {
         //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
         // }
-        let mut draw_call_count = 0u32;
+        debug_metrics.draw_calls.reset();
         let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, assets);
         if let Some(pipeline) = pipeline_opt {
             let mut active_pipeline = pipeline.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]);
             loop {
                 let saturated = active_pipeline.intake_queue(&mut queue, materials, transforms);
                 let flushed = saturated.flush();
-                draw_call_count += 1;
+                debug_metrics.draw_calls.increment();
                 if queue.consumed() {
                     self.common_uniforms.clear();
                     break;
@@ -193,7 +194,6 @@ impl Renderer {
         // unsafe {
         //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
         // }
-        draw_call_count
     }
 
     // Private helper functions

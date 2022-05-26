@@ -135,6 +135,15 @@ impl StopwatchLike<(Duration, Duration)> for CompoundStopwatch {
     }
 }
 
+impl CompoundStopwatch {
+    pub fn new(measurement_interval: u32) -> Self {
+        Self {
+            instantaneous_stopwatch: Stopwatch::default(),
+            interval_stopwatch: IntervalStopwatch::new(measurement_interval),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::thread::sleep;

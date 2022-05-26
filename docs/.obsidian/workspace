@@ -1,0 +1,93 @@
+{
+  "main": {
+    "id": "1d5e44323e60a739",
+    "type": "split",
+    "children": [
+      {
+        "id": "c1ac66bfd1aa1e22",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "ECS Design.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e2877a11cc5bea85",
+    "type": "split",
+    "children": [
+      {
+        "id": "3715903af8eae778",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "043c13f688dc8a2c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {}
+            }
+          },
+          {
+            "id": "32fef14c1a4a41a7",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "fbca7811bc7e04b5",
+    "type": "split",
+    "children": [
+      {
+        "id": "9b787f84f9d70adb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8dc17e0e1d9fdfbd",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "ECS Design.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "active": "c1ac66bfd1aa1e22",
+  "lastOpenFiles": [
+    "ECS Design.md"
+  ]
+}

@@ -1,10 +1,12 @@
-use specs::prelude::*;
 use cgmath::prelude::*;
+use specs::prelude::*;
 
-use crate::graphics::{MeshBuilder, ShadingStrategy, MaterialComponent, MeshComponent, MeshBufferBuilder, HydratedBuilderStep};
 use crate::ecs::{PrefabBuilder, SystemUtilities};
+use crate::graphics::{
+    HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShadingStrategy,
+};
 use crate::physics::TransformComponent;
-use crate::utils::{Vec3F, Vec2F, Color, lerp};
+use crate::utils::{lerp, Color, Vec2F, Vec3F};
 
 pub struct SphereState {
     radius: f32,
@@ -19,11 +21,10 @@ impl SphereState {
             radius,
             origin,
             color,
-            lod
+            lod,
         }
     }
 }
-
 
 #[derive(Default)]
 pub struct Sphere;
@@ -33,7 +34,9 @@ impl PrefabBuilder for Sphere {
 
     fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
         let mesh_builder = self.build_from_cube(&state);
-        let vai = api.assets().get_or_create_vertex_array(&format!("sphere_{}", state.lod), mesh_builder.into());
+        let vai = api
+            .assets()
+            .get_or_create_vertex_array(&format!("sphere_{}", state.lod), mesh_builder.into());
         let mesh = MeshComponent::new(vai, api.assets().get_shader_id("default_texture").unwrap());
         let mut material = MaterialComponent::default();
         material.ambient(state.color.clone());
@@ -44,23 +47,19 @@ impl PrefabBuilder for Sphere {
         transform.push_translation(state.origin);
         api.entity_builder().with(material).with(transform).with(mesh).build();
     }
-
-
 }
 
 impl Sphere {
     fn get_unit_sphere_coords(&self, i: u32, j: u32, lod: u32) -> Vec3F {
         let theta = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI * 2f32, i as f32);
         let psi = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI, j as f32);
-        Vec3F::new(
-            psi.sin()*theta.cos(),
-            psi.sin()*theta.sin(),
-            psi.cos()
-        )
+        Vec3F::new(psi.sin() * theta.cos(), psi.sin() * theta.sin(), psi.cos())
     }
 
     fn build_from_polar(&self, state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
-        let mut mesh_builder = MeshBuilder::default().with_shading_strategy(ShadingStrategy::PerVertex).next();
+        let mut mesh_builder = MeshBuilder::default()
+            .with_shading_strategy(ShadingStrategy::PerVertex)
+            .next();
         for i in 0..state.lod {
             for j in 0..state.lod {
                 let tl_coord = self.get_unit_sphere_coords(i, j, state.lod);
@@ -79,7 +78,9 @@ impl Sphere {
     }
 
     fn build_from_cube(&self, state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
-        let mut mesh_builder = MeshBuilder::default().with_shading_strategy(ShadingStrategy::PerFace).next();
+        let mut mesh_builder = MeshBuilder::default()
+            .with_shading_strategy(ShadingStrategy::PerFace)
+            .next();
         for i in 0..state.lod {
             for j in 0..state.lod {
                 let ii = lerp(0 as f32, state.lod as f32, -0.5f32, 0.5f32, i as f32);

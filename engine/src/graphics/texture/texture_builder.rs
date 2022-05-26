@@ -2,7 +2,7 @@ use gl;
 use gl::types::GLenum;
 use std::path::Path;
 
-use crate::datastructures::KeyValueBuilder;
+use crate::datastructures::RegistryItem;
 use crate::utils::{ReadAssetRef, RwAssetRef};
 
 use super::texture_helpers;
@@ -35,7 +35,7 @@ impl Default for TextureBuilder {
     }
 }
 
-impl KeyValueBuilder for TextureBuilder {
+impl RegistryItem for TextureBuilder {
     type K = TextureId;
     type V = Texture;
 

@@ -1,4 +1,4 @@
-use crate::datastructures::KeyValueBuilder;
+use crate::datastructures::RegistryItem;
 use crate::utils::RwAssetRef;
 
 use super::{DataBuffer, DataBufferBuilder, IndexBuffer, IndexBufferBuilder, VertexArray, VertexArrayId};
@@ -33,7 +33,7 @@ impl VertexArrayBuilder {
     }
 }
 
-impl KeyValueBuilder for VertexArrayBuilder {
+impl RegistryItem for VertexArrayBuilder {
     type K = VertexArrayId;
     type V = VertexArray;
 

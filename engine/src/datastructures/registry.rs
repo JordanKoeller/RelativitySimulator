@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::sync::RwLock;
 
-pub trait KeyValueBuilder {
+pub trait RegistryItem {
     type K: Eq + PartialEq + Hash + Clone + Sync + Send;
     type V: Sized;
 
@@ -15,7 +15,7 @@ pub trait KeyValueBuilder {
 
 pub trait Registry<KVB>
 where
-    KVB: KeyValueBuilder,
+    KVB: RegistryItem,
 {
     fn create() -> Self;
     fn get_registry_id(&self, lookup_name: &str) -> Option<KVB::K>;
@@ -35,7 +35,7 @@ where
 #[derive(Default)]
 pub struct GenericRegistry<KVB>
 where
-    KVB: KeyValueBuilder,
+    KVB: RegistryItem,
 {
     name_lookup: RwLock<HashMap<String, KVB::K>>,
     value_lookup: HashMap<KVB::K, KVB::V>,
@@ -44,7 +44,7 @@ where
 
 impl<KVB> Registry<KVB> for GenericRegistry<KVB>
 where
-    KVB: KeyValueBuilder,
+    KVB: RegistryItem,
 {
     fn create() -> Self {
         Self {
@@ -111,7 +111,7 @@ mod test {
         }
     }
 
-    impl KeyValueBuilder for TestKVB {
+    impl RegistryItem for TestKVB {
         type K = u32;
         type V = u32;
         #[allow(unused_mut)]

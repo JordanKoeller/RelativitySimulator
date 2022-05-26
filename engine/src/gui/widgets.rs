@@ -1,4 +1,4 @@
-use crate::utils::{getSyncMutRef, Color, SyncMutRef};
+use crate::utils::{getSyncMutRef, Color, SyncMutRef, Vec2F, Vec3F};
 use imgui::{ImString, SliderFloat, Ui};
 use specs::prelude::*;
 use specs::{Component, VecStorage};
@@ -15,18 +15,45 @@ pub trait Widget {
             std::any::type_name::<Self>()
         );
     }
+    fn get_int(&self) -> i32 {
+        panic!("Widget::get_int not implemented for {}", std::any::type_name::<Self>());
+    }
     fn get_bool(&self) -> bool {
         panic!("Widget::get_bool not implemented for {}", std::any::type_name::<Self>());
     }
-    fn get_color(&self) -> Color {
-        panic!(
-            "Widget::get_color not implemented for {}",
-            std::any::type_name::<Self>()
-        );
+    fn get_vec2(&self) -> Vec2F {
+        panic!("Widget::get_vec2 not implemented for {}", std::any::type_name::<Self>());
+    }
+    fn get_vec3(&self) -> Vec3F {
+        panic!("Widget::get_vec3 not implemented for {}", std::any::type_name::<Self>());
     }
     fn get_string(&self) -> String {
         panic!(
             "Widget::get_string not implemented for {}",
+            std::any::type_name::<Self>()
+        );
+    }
+    fn set_float(&self, value: f32) {
+        panic!(
+            "Widget::set_float not implemented for {}",
+            std::any::type_name::<Self>()
+        );
+    }
+    fn set_int(&self, value: i32) {
+        panic!("Widget::set_int not implemented for {}", std::any::type_name::<Self>());
+    }
+    fn set_bool(&self, value: bool) {
+        panic!("Widget::set_bool not implemented for {}", std::any::type_name::<Self>());
+    }
+    fn set_vec2(&self, value: Vec2F) {
+        panic!("Widget::set_vec2 not implemented for {}", std::any::type_name::<Self>());
+    }
+    fn set_vec3(&self, value: Vec3F) {
+        panic!("Widget::set_vec3 not implemented for {}", std::any::type_name::<Self>());
+    }
+    fn set_string(&mut self, value: String) {
+        panic!(
+            "Widget::set_string not implemented for {}",
             std::any::type_name::<Self>()
         );
     }
@@ -74,7 +101,11 @@ impl LabeledText {
 }
 impl Widget for LabeledText {
     fn render<'ui>(&mut self, ui: &Ui<'ui>) {
-        ui.label_text(&self.label, &self.text);
+        ui.label_text(&self.text, &self.label);
+    }
+
+    fn set_string(&mut self, text: String) {
+        self.text = ImString::from(text.to_string());
     }
 }
 
@@ -152,8 +183,8 @@ impl Widget for InputColor {
         ui.color_picker(&self.label, &mut self.value).build();
     }
 
-    fn get_color(&self) -> Color {
-        Color::new(self.value[0], self.value[1], self.value[2])
+    fn get_vec3(&self) -> Vec3F {
+        Vec3F::new(self.value[0], self.value[1], self.value[2])
     }
 }
 

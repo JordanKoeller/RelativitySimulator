@@ -1,22 +1,20 @@
 use cgmath::prelude::*;
+use specs::prelude::*;
+
 use engine::ecs::components::{Camera, EventReceiver, Player};
 use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatelessEventChannel, WindowEvent};
-
+use engine::gui::{ControlPanelBuilder, LabeledText, SystemDebugger};
 use engine::physics::{RigidBody, TransformComponent};
-use engine::utils::{Mat4F, QuatF, Timestep, Vec3F};
-use specs::prelude::*;
-const IMPULSE: f32 = 0.2f32;
+use engine::utils::{Mat4F, QuatF, Vec3F};
 
 #[derive(SystemData)]
 pub struct PlayerControllerSystemData<'a> {
     player: ReadStorage<'a, Player>,
     camera: WriteStorage<'a, Camera>,
-    rigid_body: WriteStorage<'a, RigidBody>,
     transform: WriteStorage<'a, TransformComponent>,
     event_receiver: ReadStorage<'a, EventReceiver>,
     event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
-    timestep: Read<'a, Timestep>,
 }
 
 #[derive(Default)]
@@ -25,7 +23,7 @@ pub struct PlayerController;
 impl<'a> MonoBehavior<'a> for PlayerController {
     type SystemData = PlayerControllerSystemData<'a>;
 
-    fn run(&mut self, _api: SystemUtilities<'a>, mut s: Self::SystemData) {
+    fn run(&mut self, api: SystemUtilities<'a>, mut s: Self::SystemData) {
         for (_p, camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
             let init_rotation = transform.clone();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
@@ -48,19 +46,15 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                     evt
                 ),
             });
-            self.refresh_camera(transform, camera)
+            self.refresh_camera(transform, camera);
+            let mut panel = self.get_write_panel(&api);
+            panel.set_str("Player Position", to_string!(transform.translation));
+            panel.set_str("Player Facing", to_string!(transform.rotation.normalize()));
         }
     }
 
-    // fn update_debugger(&mut self, s: &mut Self::SystemData, debugger: &mut DebugPanel) {
-    //     for (_p, rigid_body, transform) in (&s.player, &mut s.rigid_body, &s.transform).join() {
-    //         debugger.panel.lines[1] = Box::from(LabeledText::new("Position", &to_string!(transform.translation)));
-    //         debugger.panel.lines[2] = Box::from(LabeledText::new("Velocity", &to_string!(rigid_body.velocity)));
-    //         debugger.panel.lines[3] = Box::from(LabeledText::new("Facing", &to_string!(transform.front())));
-    //     }
-    // }
-
     fn setup(&mut self, mut world: WorldProxy) {
+        self.register_debugger(&world);
         let receiver = {
             let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
             EventReceiver(listener.register_with_subs(&[
@@ -90,15 +84,18 @@ impl<'a> MonoBehavior<'a> for PlayerController {
             .with(receiver)
             .build();
     }
+}
 
-    // fn setup_debug_panel(&mut self, _world: &mut World) -> Option<DebugPanel> {
-    //     let mut gui = DebugPanel::new("Player Controller");
-    //     gui.panel.push(Box::from(LabeledText::new("Pressed Buttons", "")));
-    //     gui.panel.push(Box::from(LabeledText::new("Position", "")));
-    //     gui.panel.push(Box::from(LabeledText::new("Velocity", "")));
-    //     gui.panel.push(Box::from(LabeledText::new("Facing", "")));
-    //     Some(gui)
-    // }
+impl<'a> SystemDebugger<'a> for PlayerController {
+    fn create_panel(&self) -> ControlPanelBuilder {
+        ControlPanelBuilder::default()
+            .with_title("Player Controller")
+            .push_line(
+                "Player Position",
+                LabeledText::new("<0.0, 0.0, 0.0>", "Player Position"),
+            )
+            .push_line("Player Facing", LabeledText::new("<0.0, 0.0, 0.0>", "Player Facing"))
+    }
 }
 
 impl PlayerController {

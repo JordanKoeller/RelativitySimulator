@@ -1,4 +1,4 @@
-use crate::datastructures::KeyValueBuilder;
+use crate::datastructures::RegistryItem;
 use crate::utils::{ReadAssetRef, RwAssetRef};
 use gl;
 
@@ -37,7 +37,7 @@ impl ShaderBuilder {
     }
 }
 
-impl KeyValueBuilder for ShaderBuilder {
+impl RegistryItem for ShaderBuilder {
     type K = ShaderId;
     type V = Shader;
 

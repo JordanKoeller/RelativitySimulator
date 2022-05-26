@@ -1,19 +1,29 @@
+use std::sync::RwLock;
+
 use crate::utils::Mut;
 
 pub struct Counter {
-    value: Mut<u32>,
+    value: RwLock<u32>,
+}
+
+impl Default for Counter {
+    fn default() -> Self {
+        Self {
+            value: RwLock::from(0u32),
+        }
+    }
 }
 
 impl Counter {
     pub fn increment(&self) {
-        *self.value.borrow_mut() += 1u32;
+        *self.value.write().unwrap() += 1u32;
     }
 
     pub fn reset(&self) {
-        self.value.replace(0u32);
+        *self.value.write().unwrap() = 0u32;
     }
 
     pub fn get(&self) -> u32 {
-        self.value.borrow().clone()
+        self.value.read().unwrap().clone()
     }
 }
