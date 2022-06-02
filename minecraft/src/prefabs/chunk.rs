@@ -18,7 +18,7 @@ impl PrefabBuilder for ChunkBuilder {
                 for z in 0..z_dim {
                     let cube_state = CubeState::new(
                         "resources/minecraft/grass_block.png",
-                        Vec3F::new(x as f32, 1f32 - y as f32, z as f32),
+                        Vec3F::new(x as f64, 1f64 - y as f64, z as f64),
                     );
                     cube_builder.build(api, cube_state);
                 }

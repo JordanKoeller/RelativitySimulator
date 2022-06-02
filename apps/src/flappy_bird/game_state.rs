@@ -92,9 +92,9 @@ impl<'a> SystemDelegate<'a> for GameStateSystem {
                 data.game_state.score = 0;
                 data.game_state.state = GameStateEnum::Playing;
                 for (ent, _player) in (&data.entities, &data.player_storage).join() {
-                    let pos = Vec3F::unit_x() * 4f32;
-                    let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
-                    tc.rotation = Vec3F::unit_y() * 90f32;
+                    let pos = Vec3F::unit_x() * 4f64;
+                    let mut tc = TransformComponent::new(pos, Vec3F::new(1f64, 1f64, 1f64), QuatF::zero());
+                    tc.rotation = Vec3F::unit_y() * 90f64;
                     data.updater.insert(ent, tc);
                     data.updater.insert(ent, RigidBody::new_stationary());
                     debugger.panel.lines.pop();
@@ -137,10 +137,10 @@ impl GameStateSystem {
                 let wall_collidable = AxisAlignedCubeCollision::from_transform(&collision_transform);
                 let colliding = wall_collidable.sphere_collision(
                     (&transform.translation, &collider.radius),
-                    &(Vec3F::unit_x() * -0.001f32),
+                    &(Vec3F::unit_x() * -0.001f64),
                 );
                 if let Some(collision) = colliding {
-                    if collision.time < 160f32 {
+                    if collision.time < 160f64 {
                         data.game_state.state = GameStateEnum::GameOver;
                     }
                 }

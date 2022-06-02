@@ -37,9 +37,9 @@ impl PlayerSystem {
         spawner: &mut StatefulEventChannel<EntityCrudEvent, PlayerTailParticleState>,
     ) {
         let pi = 3.14159265;
-        let theta = random::rand_float(3f32 * pi / 2f32, 2f32 * pi);
+        let theta = random::rand_float(3f64 * pi / 2f64, 2f64 * pi);
         let theta = Vec2F::new(theta.cos(), theta.sin());
-        let init_direction = Vec3F::new(theta.x, theta.y, 0f32).normalize_to(5f32);
+        let init_direction = Vec3F::new(theta.x, theta.y, 0f64).normalize_to(5f64);
         spawner.publish((
             EntityCrudEvent::Create,
             PlayerTailParticleState::new(position + Vec3F::unit_z(), lifetime, init_direction),
@@ -68,7 +68,7 @@ impl<'a> System<'a> for PlayerSystem {
             channel.for_each(&events.0, |evt| {
                 match evt.code {
                     Event::KeyDown(KeyCode::Space) => {
-                        rigid_body.velocity = Vec3F::unit_y() * 7f32;
+                        rigid_body.velocity = Vec3F::unit_y() * 7f64;
                         self.tail_spawn_timer.reset_interval(Duration::from_millis(3));
                     }
                     Event::KeyDown(KeyCode::LeftShift) => {}
@@ -78,11 +78,11 @@ impl<'a> System<'a> for PlayerSystem {
                     _ => panic!("Received a subbed event {:?} with no handler!", evt.code),
                 };
             });
-            if transform.translation.y < -16f32 {
-                transform.translation.y = -16f32;
+            if transform.translation.y < -16f64 {
+                transform.translation.y = -16f64;
             }
-            if transform.translation.y > 16f32 {
-                transform.translation.y = 16f32;
+            if transform.translation.y > 16f64 {
+                transform.translation.y = 16f64;
             }
             for _ in 0..self.tail_spawn_timer.start_poll_all(dt.curr_time()) {
                 self.spawn_tail_particle(transform.translation, Duration::from_secs(2), &mut spawner);
@@ -100,9 +100,9 @@ impl<'a> System<'a> for PlayerSystem {
             ]))
         };
         let sprite = Sprite::new("resources/flappy_bird/ship.png", false);
-        let pos = Vec3F::unit_x() * 4f32;
-        let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
-        tc.rotation = Vec3F::unit_y() * 90f32;
+        let pos = Vec3F::unit_x() * 4f64;
+        let mut tc = TransformComponent::new(pos, Vec3F::new(1f64, 1f64, 1f64), QuatF::zero());
+        tc.rotation = Vec3F::unit_y() * 90f64;
         // world.setup::<Self::SystemData>();
         world.register::<Player>();
         world.register::<RigidBody>();
@@ -121,7 +121,7 @@ impl<'a> System<'a> for PlayerSystem {
             .with(Gravity)
             .with(sprite.mesh_component())
             .with(sprite.material())
-            .with(CanCollide { radius: 0.5f32 })
+            .with(CanCollide { radius: 0.5f64 })
             .with(UiComponent::new("Player"))
             .build();
     }

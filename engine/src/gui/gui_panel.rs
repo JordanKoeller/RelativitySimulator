@@ -10,8 +10,8 @@ pub struct GuiInputPanel {
 }
 
 impl GuiInputPanel {
-    pub fn height(&self) -> f32 {
-        self.lines.len() as f32 * 20f32
+    pub fn height(&self) -> f64 {
+        self.lines.len() as f64 * 20f64
     }
 
     pub fn empty(&self) -> bool {

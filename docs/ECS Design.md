@@ -218,7 +218,7 @@ trait Registry<K, V> {
 1. Index Buffer
    1. `data: Vec<u32>`
 2. Data Buffer
-   1. `data: Vec<f32>`
+   1. `data: Vec<f64>`
    2. `layout: BufferLayout`
    3. Buffer Config
       1. `storage_type: DYNAMIC_DRAW, STATIC_DRAW, etc`
@@ -294,3 +294,11 @@ fn build_sample_mesh() {
 }
 ```
 
+## Floating point cleanup
+
+# 32-bit floats are needed for:
++ Writing data to uniforms
++ Writing data to buffer objects
+
+# 64-bit floats are needed for:
++ All cpu-bound computations

@@ -8,8 +8,8 @@ use std::slice::SliceIndex;
 /////////////////
 
 // Float Buffer
-// pub type FloatBuffer = BufferLayout<f32>;
-// impl BufferLayout<f32> {
+// pub type FloatBuffer = BufferLayout<f64>;
+// impl BufferLayout<f64> {
 //   pub fn new() -> Self {
 //     BufferLayout::create(vec![AttributeType::Float])
 //   }
@@ -88,7 +88,7 @@ impl BufferLayout {
                 v
                 // let v = summation.clone();
                 // summation += x.width();
-                // (i, v * size_of::<f32>() as u32, x)
+                // (i, v * size_of::<f64>() as u32, x)
             })
             .collect()
     }

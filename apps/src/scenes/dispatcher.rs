@@ -18,7 +18,7 @@ pub fn setup_dispatcher<'a, 'b>(window: MutRef<Window>, receiver_id: ReceiverID)
   DispatcherBuilder::new()
     .with_thread_local(StartFrameSystem {
       window,
-      last_time: 0f32,
+      last_time: 0f64,
       receiver_id,
     })
     .with_thread_local(RegisterDrawableSystem)

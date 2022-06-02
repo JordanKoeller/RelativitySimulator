@@ -92,8 +92,8 @@ impl TimerLike for WindowedTimer {
                     .map(|le| le + (self.max_interval - self.min_interval) / 2u32); // Add the expectation value
                 true
             } else if time_since > self.min_interval {
-                let probability = (time_since - self.min_interval).as_secs_f32()
-                    / (self.max_interval - self.min_interval).as_secs_f32();
+                let probability = (time_since - self.min_interval).as_secs_f64()
+                    / (self.max_interval - self.min_interval).as_secs_f64();
                 if rand_choice(probability) {
                     self.last_emitted = Some(time);
                     true

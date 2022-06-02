@@ -12,7 +12,7 @@ pub enum Uniform {
     Uint(u32),
     Int(i32),
     IntArray(Vec<i32>),
-    Float(f32),
+    Float(f64),
     Vec2(Vec2F),
     Vec3(Vec3F),
     Vec4(Vec4F),
@@ -34,26 +34,27 @@ impl Uniform {
     ) {
         match self {
             Uniform::Int(elem) => collector[0] = *(elem as *const i32 as *const c_void as *const f32),
-            Uniform::Float(elem) => collector[0] = *elem,
+            Uniform::Float(elem) => collector[0] = *elem as f32,
             Uniform::Vec2(v) => {
-                collector[0] = v.x;
-                collector[1] = v.y;
+                collector[0] = v.x as f32;
+                collector[1] = v.y as f32;
             }
             Uniform::Vec3(v) => {
-                collector[0] = v.x;
-                collector[1] = v.y;
-                collector[2] = v.z;
+                collector[0] = v.x as f32;
+                collector[1] = v.y as f32;
+                collector[2] = v.z as f32;
             }
             Uniform::Vec4(v) => {
-                collector[0] = v.x;
-                collector[1] = v.y;
-                collector[2] = v.z;
-                collector[3] = v.w;
+                collector[0] = v.x as f32;
+                collector[1] = v.y as f32;
+                collector[2] = v.z as f32;
+                collector[3] = v.w as f32;
             }
             Uniform::Mat3(m) => {
                 let m_sz = 9;
+                let m_f32 = m.cast::<f32>().unwrap();
                 let m_ptr = {
-                    let ptr = m.clone().as_ptr();
+                    let ptr = m_f32.as_ptr();
                     std::slice::from_raw_parts(ptr, m_sz)
                 };
                 for i in 0..m_sz {
@@ -62,8 +63,9 @@ impl Uniform {
             }
             Uniform::Mat4(m) => {
                 let m_sz = 16;
+                let m_32 = m.cast::<f32>().unwrap();
                 let m_ptr = {
-                    let ptr = m.clone().as_ptr();
+                    let ptr = m_32.as_ptr();
                     std::slice::from_raw_parts(ptr, m_sz)
                 };
                 for i in 0..m_sz {

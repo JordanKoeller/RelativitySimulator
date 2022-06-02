@@ -23,10 +23,10 @@ pub fn create_player<'a>(pos: Vec3F, world: &'a mut World) {
   };
     world.create_entity()
     .with(Player)
-    .with(TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero()))
+    .with(TransformComponent::new(pos, Vec3F::new(1f64, 1f64, 1f64), QuatF::zero()))
     .with(RigidBody::new_stationary())
     .with(receiver)
-    .with(CanCollide {radius: 1f32})
+    .with(CanCollide {radius: 1f64})
     .with(GuiInputPanel::new("Player"))
     .build();
 }

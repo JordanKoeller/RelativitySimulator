@@ -20,14 +20,14 @@ use app::AxisAlignedCubeCollision;
 pub struct WallComponent;
 
 struct WallSpec {
-    gap_start: f32,
-    gap_end: f32,
-    speed: f32,
+    gap_start: f64,
+    gap_end: f64,
+    speed: f64,
 }
 
 pub struct WallSpawner {
     spawn_timer: WindowedTimer,
-    gap_length: f32,
+    gap_length: f64,
     id: Option<DrawableId>,
     material: Option<Material>,
 }
@@ -48,14 +48,14 @@ impl<'a> System<'a> for WallSpawner {
             match game_state.state {
                 GameStateEnum::Playing => {
                     self.spawn_pipe(
-                        0f32,
+                        0f64,
                         wall_data.gap_start,
                         wall_data.speed,
-                        1f32,
+                        1f64,
                         ent1,
                         &game_state.state,
                     );
-                    self.spawn_pipe(wall_data.gap_end, 1f32, wall_data.speed, -1f32, ent2, &game_state.state);
+                    self.spawn_pipe(wall_data.gap_end, 1f64, wall_data.speed, -1f64, ent2, &game_state.state);
                 }
                 _ => {}
             }
@@ -74,28 +74,28 @@ impl<'a> System<'a> for WallSpawner {
 
 impl WallSpawner {
     fn generate_wall(&self) -> WallSpec {
-        let top_wall_length = random::rand_float(0.05f32, 0.95f32 - self.gap_length);
+        let top_wall_length = random::rand_float(0.05f64, 0.95f64 - self.gap_length);
         WallSpec {
             gap_start: top_wall_length,
             gap_end: top_wall_length + self.gap_length,
-            speed: 5f32,
+            speed: 5f64,
         }
     }
 
     fn spawn_pipe<'a>(
         &self,
-        start: f32,
-        end: f32,
-        speed: f32,
-        invert: f32,
+        start: f64,
+        end: f64,
+        speed: f64,
+        invert: f64,
         ent: specs::world::LazyBuilder<'a>,
         running_state: &GameStateEnum,
     ) {
-        let half_height = 8.25f32;
-        let scaled_start = lerp(0f32, 1f32, -half_height, half_height, start);
-        let scaled_end = lerp(0f32, 1f32, -half_height, half_height, end);
-        let position = Vec3F::new(-12f32, avg(scaled_start, scaled_end), 0f32);
-        let scaled = Vec3F::new(1f32, (scaled_end - scaled_start) * invert, 1f32);
+        let half_height = 8.25f64;
+        let scaled_start = lerp(0f64, 1f64, -half_height, half_height, start);
+        let scaled_end = lerp(0f64, 1f64, -half_height, half_height, end);
+        let position = Vec3F::new(-12f64, avg(scaled_start, scaled_end), 0f64);
+        let scaled = Vec3F::new(1f64, (scaled_end - scaled_start) * invert, 1f64);
         let transform = TransformComponent::new(position, scaled, QuatF::zero());
         // let position = Vec3F::unit_x();
         if let Some(d_id) = &self.id {
@@ -122,7 +122,7 @@ impl Default for WallSpawner {
     fn default() -> Self {
         Self {
             spawn_timer: WindowedTimer::new(Duration::from_millis(1600), Duration::from_millis(4200)),
-            gap_length: 0.15f32,
+            gap_length: 0.15f64,
             id: None,
             material: None,
         }

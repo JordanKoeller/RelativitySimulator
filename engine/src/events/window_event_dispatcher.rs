@@ -64,7 +64,7 @@ impl WindowEventDispatcher {
                 }
                 glfw::WindowEvent::CursorPos(xpos, ypos) => {
                     if !window.cursor {
-                        let new_pos = Vec2F::new(xpos as f32, ypos as f32);
+                        let new_pos = Vec2F::new(xpos as f64, ypos as f64);
                         if let Some(last_pos) = self.last_mouse_pos {
                             let offset = Vec2F::new(new_pos.x - last_pos.x, last_pos.y - new_pos.y);
                             let evt = WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset));
@@ -73,7 +73,7 @@ impl WindowEventDispatcher {
                         }
                         self.last_mouse_pos = Some(new_pos);
                     } else {
-                        let new_pos = Vec2F::new(xpos as f32, ypos as f32);
+                        let new_pos = Vec2F::new(xpos as f64, ypos as f64);
                         self.last_mouse_pos = Some(new_pos);
                     }
                 }

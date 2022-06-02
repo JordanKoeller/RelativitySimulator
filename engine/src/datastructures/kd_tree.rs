@@ -71,13 +71,13 @@ impl<T: HasPosition> SpatialIndex<T> for KdTree<T> {
     }
     fn query_near(&self, position: &Vec3F, radius: f64) -> Vec<usize> {
         let mut ret = Vec::new();
-        let r32 = radius as f32;
+        let r32 = radius as f64;
         self.kd_reduce(position, &r32, |&i| ret.push(i));
         ret
     }
     fn query_near_count(&self, position: &Vec3F, radius: f64) -> usize {
         let mut ret = 0usize;
-        let r32 = radius as f32;
+        let r32 = radius as f64;
         self.kd_reduce(position, &r32, |_| ret = ret + 1);
         ret
     }
@@ -88,7 +88,7 @@ impl<T: HasPosition> SpatialIndex<T> for KdTree<T> {
 }
 
 impl<T: HasPosition> KdTree<T> {
-    fn partition(&mut self, start_i: usize, end_i: usize, d: usize) -> f32 {
+    fn partition(&mut self, start_i: usize, end_i: usize, d: usize) -> f64 {
         // Todo: Optimize this another time. I'm just going to heapsort
         let mut heap = BinaryHeap::new();
         let k = (start_i + end_i) / 2;
@@ -106,11 +106,11 @@ impl<T: HasPosition> KdTree<T> {
         ret
     }
 
-    fn within(&self, left: &f32, right: &f32, value: &f32) -> bool {
+    fn within(&self, left: &f64, right: &f64, value: &f64) -> bool {
         left <= value && value <= right
     }
 
-    fn kd_reduce<R: FnMut(&usize) -> ()>(&self, position: &Vec3F, radius: &f32, mut reducer: R) {
+    fn kd_reduce<R: FnMut(&usize) -> ()>(&self, position: &Vec3F, radius: &f64, mut reducer: R) {
         let mut nodes = vec![0];
         let r2 = radius * radius;
         while nodes.len() > 0 {
@@ -144,7 +144,7 @@ impl<T: HasPosition> KdTree<T> {
 struct KdTreeNode {
     pub start_index: usize,
     pub end_index: usize,
-    pub partition_value: f32,
+    pub partition_value: f64,
     pub dimension: usize,
 }
 
@@ -153,7 +153,7 @@ impl KdTreeNode {
         Self {
             start_index: s,
             end_index: e,
-            partition_value: 0f32,
+            partition_value: 0f64,
             dimension,
         }
     }
@@ -166,7 +166,7 @@ struct SortIndexArrayElem<'a, T: HasPosition> {
 }
 
 impl<'a, T: HasPosition> SortIndexArrayElem<'a, T> {
-    fn value(&self) -> &f32 {
+    fn value(&self) -> &f64 {
         &self.data[self.index].position()[self.dimension]
     }
 
@@ -268,7 +268,7 @@ mod test {
         for i in 0..dims {
             for j in 0..dims {
                 for k in 0..dims {
-                    verts.push(TesterPoint(Vec3F::new(i as f32, j as f32, k as f32)));
+                    verts.push(TesterPoint(Vec3F::new(i as f64, j as f64, k as f64)));
                 }
             }
         }

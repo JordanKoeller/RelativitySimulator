@@ -67,12 +67,12 @@ fn set_unif_helper(unif: &Uniform, loc: i32) {
     unsafe {
         match unif {
             Uniform::Int(v) => gl::Uniform1i(loc, v.clone()),
-            Uniform::Float(v) => gl::Uniform1f(loc, v.clone()),
-            Uniform::Vec2(v) => gl::Uniform2f(loc, v.x, v.y),
-            Uniform::Vec3(v) => gl::Uniform3f(loc, v.x, v.y, v.z),
-            Uniform::Vec4(v) => gl::Uniform4f(loc, v.x, v.y, v.z, v.w),
-            Uniform::Mat3(v) => gl::UniformMatrix3fv(loc, 1, gl::FALSE, v.as_ptr()),
-            Uniform::Mat4(v) => gl::UniformMatrix4fv(loc, 1, gl::FALSE, v.as_ptr()),
+            Uniform::Float(v) => gl::Uniform1f(loc, *v as f32),
+            Uniform::Vec2(v) => gl::Uniform2f(loc, v.x as f32, v.y as f32),
+            Uniform::Vec3(v) => gl::Uniform3f(loc, v.x as f32, v.y as f32, v.z as f32),
+            Uniform::Vec4(v) => gl::Uniform4f(loc, v.x as f32, v.y as f32, v.z as f32, v.w as f32),
+            Uniform::Mat3(v) => gl::UniformMatrix3fv(loc, 1, gl::FALSE, v.cast::<f32>().unwrap().as_ptr()),
+            Uniform::Mat4(v) => gl::UniformMatrix4fv(loc, 1, gl::FALSE, v.cast::<f32>().unwrap().as_ptr()),
             Uniform::Bool(v) => gl::Uniform1i(loc, v.clone() as i32),
             Uniform::IntArray(arr) => gl::Uniform1iv(loc, arr.len() as i32, &arr[0] as *const i32),
             _ => panic!("Please set texture uniforms through the set_texture method"),

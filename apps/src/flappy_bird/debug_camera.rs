@@ -27,12 +27,12 @@ impl<'a> System<'a> for CameraDebugger {
             let init_rotation = transform.clone();
             events_channel.for_each(&event_id.0, |evt| {
                 match evt.code {
-                    Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f32),
-                    Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f32),
-                    Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f32),
-                    Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f32),
-                    Event::KeyDown(KeyCode::Q) => transform.translation -= init_rotation.up().normalize_to(0.04f32),
-                    Event::KeyDown(KeyCode::E) => transform.translation += init_rotation.up().normalize_to(0.04f32),
+                    Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f64),
+                    Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f64),
+                    Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f64),
+                    Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f64),
+                    Event::KeyDown(KeyCode::Q) => transform.translation -= init_rotation.up().normalize_to(0.04f64),
+                    Event::KeyDown(KeyCode::E) => transform.translation += init_rotation.up().normalize_to(0.04f64),
                     Event::MouseMoved => {
                         if let Some(payload) = &evt.payload {
                             match payload {
@@ -97,11 +97,11 @@ impl<'a> System<'a> for CameraDebugger {
         world.register::<DebugPanel>();
         world.register::<Camera>();
         let mut tc = TransformComponent::new(
-            Vec3F::unit_z() * -20f32,
-            Vec3F::new(1f32, 1f32, 1f32),
-            QuatF::from_angle_x(Rad::from(Deg(90f32))),
+            Vec3F::unit_z() * -20f64,
+            Vec3F::new(1f64, 1f64, 1f64),
+            QuatF::from_angle_x(Rad::from(Deg(90f64))),
         );
-        tc.rotation = Vec3F::unit_y() * 90f32;
+        tc.rotation = Vec3F::unit_y() * 90f64;
         world
             .create_entity()
             .with(Camera::default())
@@ -114,9 +114,9 @@ impl<'a> System<'a> for CameraDebugger {
 
 impl CameraDebugger {
     fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
-        let location = cgmath::Point3::<f32>::new(t.translation.x, t.translation.y, t.translation.z);
+        let location = cgmath::Point3::<f64>::new(t.translation.x, t.translation.y, t.translation.z);
         let pov = t.translation + t.front();
-        let center = cgmath::Point3::<f32>::new(pov.x, pov.y, pov.z);
+        let center = cgmath::Point3::<f64>::new(pov.x, pov.y, pov.z);
         let up = Vec3F::unit_y();
         let matrix = Mat4F::look_at(location, center, up);
         cam.set_matrix(matrix);

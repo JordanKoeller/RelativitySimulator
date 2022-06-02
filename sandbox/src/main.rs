@@ -25,8 +25,8 @@ fn main() {
         .with_prefab(
             Cube::default(),
             CubeState::new(
-                1.0f32,
-                Vec3F::new(4f32, 4f32, 4f32),
+                1.0f64,
+                Vec3F::new(4f64, 4f64, 4f64),
                 "resources/debug/brickwall.jpg",
                 "resources/debug/bricks_tangent.png",
             ),
@@ -34,9 +34,9 @@ fn main() {
     // .with_prefab(
     //     Sphere::default(),
     //     SphereState::new(
-    //         3f32,
-    //         Vec3F::new(0f32, 4f32, 16f32),
-    //         Color::new(1f32, 0.3f32, 0.3f32),
+    //         3f64,
+    //         Vec3F::new(0f64, 4f64, 16f64),
+    //         Color::new(1f64, 0.3f64, 0.3f64),
     //         "resources/earth/2k_earth_daymap.jpg",
     //         "resources/earth/2k_earth_daymap.jpg",
     //         "resources/earth/2k_earth_normal_map.png",

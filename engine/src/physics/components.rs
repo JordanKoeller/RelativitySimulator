@@ -24,7 +24,7 @@ impl TransformComponent {
     pub fn identity() -> Self {
         Self {
             translation: Vec3F::zero(),
-            scale: Vec3F::new(1f32, 1f32, 1f32),
+            scale: Vec3F::new(1f64, 1f64, 1f64),
             rotation: QuatF::one(),
         }
     }
@@ -32,7 +32,7 @@ impl TransformComponent {
     pub fn matrix(&self) -> Mat4F {
         let rotation_3 = Mat3F::from(self.rotation);
         let mut rotation_4 = Mat4F::from(rotation_3);
-        rotation_4.w.w = 1f32;
+        rotation_4.w.w = 1f64;
         Mat4F::from_translation(self.translation) * rotation_4 * nonunif_scale(self.scale)
     }
 
@@ -68,7 +68,7 @@ impl TransformComponent {
 
 impl Default for TransformComponent {
     fn default() -> Self {
-        Self::new(Vec3F::zero(), Vec3F::new(1f32, 1f32, 1f32), QuatF::one())
+        Self::new(Vec3F::zero(), Vec3F::new(1f64, 1f64, 1f64), QuatF::one())
     }
 }
 

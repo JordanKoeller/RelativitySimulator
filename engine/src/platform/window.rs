@@ -118,9 +118,9 @@ impl Window {
         !self.native_window().should_close()
     }
 
-    pub fn get_dims_f32(&self) -> Vec2F {
+    pub fn get_dims_f64(&self) -> Vec2F {
         let (x, y) = self.window.get_size();
-        Vec2F::new(x as f32, y as f32)
+        Vec2F::new(x as f64, y as f64)
     }
 
     pub fn poll_events(&mut self) {

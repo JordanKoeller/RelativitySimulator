@@ -96,7 +96,7 @@ impl<'a> SystemDebugger<'a> for StartFrameSystem {
             .push_line("diffuse_strength", InputFloat::new("Diffuse Strength", 0.5))
             .push_line(
                 "specular_strength",
-                InputFloat::new_with_limits("Specular Strength", 32f32, 4f32, 64f32),
+                InputFloat::new_with_limits("Specular Strength", 32f64, 4f64, 64f64),
             )
             .push_line("normal_strength", InputFloat::new("Normals Strength", 1.0))
     }

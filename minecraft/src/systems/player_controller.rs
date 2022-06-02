@@ -27,12 +27,12 @@ impl<'a> MonoBehavior<'a> for PlayerController {
         for (_p, camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
             let init_rotation = transform.clone();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
-                Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f32),
-                Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f32),
-                Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f32),
-                Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f32),
-                Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(0.04f32),
-                Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(0.04f64),
                 Event::MouseMoved => {
                     if let Some(payload) = &evt.payload {
                         match payload {
@@ -67,9 +67,9 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                 WindowEvent::new(Event::MouseMoved),
             ]))
         };
-        let pos = Vec3F::new(4f32, 4f32, 2f32);
-        let mut tc = TransformComponent::new(pos, Vec3F::new(1f32, 1f32, 1f32), QuatF::zero());
-        tc.rotation = Vec3F::unit_y() * 90f32;
+        let pos = Vec3F::new(4f64, 4f64, 2f64);
+        let mut tc = TransformComponent::new(pos, Vec3F::new(1f64, 1f64, 1f64), QuatF::zero());
+        tc.rotation = Vec3F::unit_y() * 90f64;
         world.register::<Player>();
         world.register::<RigidBody>();
         world.register::<TransformComponent>();
@@ -100,9 +100,9 @@ impl<'a> SystemDebugger<'a> for PlayerController {
 
 impl PlayerController {
     fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
-        let location = cgmath::Point3::<f32>::new(t.translation.x, t.translation.y, t.translation.z);
+        let location = cgmath::Point3::<f64>::new(t.translation.x, t.translation.y, t.translation.z);
         let pov = t.translation + t.front();
-        let center = cgmath::Point3::<f32>::new(pov.x, pov.y, pov.z);
+        let center = cgmath::Point3::<f64>::new(pov.x, pov.y, pov.z);
         let up = Vec3F::unit_y();
         let matrix = Mat4F::look_at(location, center, up);
         cam.set_matrix(matrix);

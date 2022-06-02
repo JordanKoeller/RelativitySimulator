@@ -34,8 +34,8 @@ impl Screen {
     pub fn new(x_dim: i32, y_dim: i32) -> Self {
         let verts = vec![
             // Positions  // uv
-            -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32,
-            -1f32, 1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
+            -1f64, 1f64, 0f64, 1f64, -1f64, -1f64, 0f64, 0f64, 1f64, -1f64, 1f64, 0f64, -1f64, 1f64, 0f64, 1f64, 1f64,
+            -1f64, 1f64, 0f64, 1f64, 1f64, 1f64, 1f64,
         ];
         let inds = vec![0, 1, 2, 3, 4, 5];
         let screen_quad = VertexArrayBuilder::default()
@@ -202,13 +202,13 @@ impl Renderer {
     fn extract_camera_uniforms(&mut self, camera: &Camera) {
         self.common_uniforms
             .insert("view".to_string(), Uniform::Mat4(*camera.view_matrix()));
-        let f32_dims = Vec2F::new(
-            self.screen.framebuffer.spec.dims.x as f32,
-            self.screen.framebuffer.spec.dims.y as f32,
+        let f64_dims = Vec2F::new(
+            self.screen.framebuffer.spec.dims.x as f64,
+            self.screen.framebuffer.spec.dims.y as f64,
         );
         self.common_uniforms.insert(
             "projection".to_string(),
-            Uniform::Mat4(camera.projection_matrix(&f32_dims)),
+            Uniform::Mat4(camera.projection_matrix(&f64_dims)),
         );
         self.common_uniforms
             .insert("beta".to_string(), Uniform::Float(camera.beta()));

@@ -22,7 +22,7 @@ pub enum Event {
 pub enum EventPayload {
     MouseScroll(i32),
     MouseMove(Vec2F),
-    Duration(f32),
+    Duration(f64),
     WindowSize(Vec2F),
 }
 

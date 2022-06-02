@@ -14,7 +14,7 @@ use app::{Cube, AxisAlignedCubeCollision};
 pub struct BuildingState {
   bounding_box: Vec3F,
   position: Vec3F,
-  ratio: f32,
+  ratio: f64,
 }
 
 impl Default for BuildingState {
@@ -28,7 +28,7 @@ impl Default for BuildingState {
 }
 
 impl BuildingState {
-  pub fn new(position: Vec3F, bounding_box: Vec3F, ratio: f32) -> Self {
+  pub fn new(position: Vec3F, bounding_box: Vec3F, ratio: f64) -> Self {
     Self {
       position,
       bounding_box,
@@ -55,12 +55,12 @@ impl<'a> EntityDelegate<'a> for BuildingDelegate {
 
     // TODO: Set up some type of transform stack for hierarchical transforms
     let mut stack = TransformStack::default();
-    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(1f32,  state.ratio, 1f32)));
+    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(1f64,  state.ratio, 1f64)));
     stack.push_translate(state.position);
     let transform1 = stack.pop();
     stack.clear();
-    let top_scale = state.ratio + (1f32 - state.ratio) / 2f32;
-    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(top_scale, 1f32 - state.ratio, top_scale)));
+    let top_scale = state.ratio + (1f64 - state.ratio) / 2f64;
+    stack.push_nonunif_scale(state.bounding_box.mul_element_wise(Vec3F::new(top_scale, 1f64 - state.ratio, top_scale)));
     stack.push_translate(state.position + Vec3F::unit_y() * state.bounding_box.y * state.ratio);
     let transform2 = stack.pop();
 

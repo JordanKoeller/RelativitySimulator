@@ -10,7 +10,7 @@ use stateful::Scene;
 use mechanics::Updatable;
 use crate::utils::*;
 
-pub const LIGHT_SPEED: f32 = 36.0;
+pub const LIGHT_SPEED: f64 = 36.0;
 
 pub struct MechanicsEngine {
     pub listener: EventListener,

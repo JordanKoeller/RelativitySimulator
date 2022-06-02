@@ -59,7 +59,7 @@ impl<'a> EntityDelegate<'a> for PlayerTailDelegate {
             vec![constructor()
                 .with(TransformComponent::new(
                     state.position,
-                    Vec3F::new(0.5f32, 0.5f32, 0.5f32),
+                    Vec3F::new(0.5f64, 0.5f64, 0.5f64),
                     QuatF::zero(),
                 ))
                 .with(Particle {

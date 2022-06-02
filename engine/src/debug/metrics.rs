@@ -38,8 +38,8 @@ impl<'a> MonoBehavior<'a> for DebugMetricsSystem {
                 "RenderTime",
                 format!(
                     "{:.3} ({:.3} Avg)",
-                    instant.as_micros() as f32 / 1000f32,
-                    avg.as_micros() as f32 / 1000f32
+                    instant.as_micros() as f64 / 1000f64,
+                    avg.as_micros() as f64 / 1000f64
                 ),
             );
         }

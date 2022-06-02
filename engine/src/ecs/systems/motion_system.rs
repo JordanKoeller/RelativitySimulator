@@ -7,12 +7,12 @@ use cgmath::prelude::*;
 use crate::physics::{AxisAlignedCubeCollision, Drag, Gravity, RigidBody, TransformComponent};
 
 use crate::renderer::LIGHT_SPEED;
-const MAX_ACCELERATION: f32 = 6f32;
+const MAX_ACCELERATION: f64 = 6f64;
 
-const DRAG: f32 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
-const GRAVITY: f32 = 14f32;
+const DRAG: f64 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
+const GRAVITY: f64 = 14f64;
 
-const ACCELERATION_MIN_MAGNITUDE: f32 = 0.00000001;
+const ACCELERATION_MIN_MAGNITUDE: f64 = 0.00000001;
 
 pub struct MotionSystem;
 
@@ -40,16 +40,16 @@ impl<'a> System<'a> for MotionSystem {
         )
             .join()
         {
-            self.compute_kinematics(rigid_body, gravity, drag, dt.dt().as_secs_f32() as f32);
+            self.compute_kinematics(rigid_body, gravity, drag, dt.dt().as_secs_f64() as f64);
             // println!("Pushing update");
-            self.push_frame_update(rigid_body, transform, dt.dt().as_secs_f32() as f32);
+            self.push_frame_update(rigid_body, transform, dt.dt().as_secs_f64() as f64);
             rigid_body.reset_acceleration();
         }
     }
 }
 
 impl MotionSystem {
-    fn compute_kinematics(&self, rigid_body: &mut RigidBody, gravity: Option<&Gravity>, drag: Option<&Drag>, dt: f32) {
+    fn compute_kinematics(&self, rigid_body: &mut RigidBody, gravity: Option<&Gravity>, drag: Option<&Drag>, dt: f64) {
         if let Some(_g) = gravity {
             rigid_body.acceleration -= Vec3F::unit_y() * GRAVITY;
         }
@@ -61,7 +61,7 @@ impl MotionSystem {
         self.integrate_rigid_body(rigid_body, dt);
     }
 
-    fn integrate_rigid_body(&self, rigid_body: &mut RigidBody, dt: f32) {
+    fn integrate_rigid_body(&self, rigid_body: &mut RigidBody, dt: f64) {
         // Linear first
         if rigid_body.acceleration.magnitude2() > ACCELERATION_MIN_MAGNITUDE {
             rigid_body.velocity += rigid_body.acceleration * dt;
@@ -75,7 +75,7 @@ impl MotionSystem {
 
     // Returns a vector and quaternion, representing how far this RigidBody
     // has translated and rotated over this frame.
-    fn push_frame_update(&self, rigid_body: &RigidBody, transform: &mut TransformComponent, dt: f32) {
+    fn push_frame_update(&self, rigid_body: &RigidBody, transform: &mut TransformComponent, dt: f64) {
         transform.push_translation(rigid_body.velocity * dt);
         transform.push_rotation(&(rigid_body.angular_velocity * dt));
     }

@@ -10,7 +10,7 @@ use crate::physics::TransformComponent;
 use crate::utils::{lerp, Color, Vec2F, Vec3F};
 
 pub struct SphereState {
-    radius: f32,
+    radius: f64,
     origin: Vec3F,
     color: Color,
     texture_file: String,
@@ -21,7 +21,7 @@ pub struct SphereState {
 
 impl SphereState {
     pub fn new(
-        radius: f32,
+        radius: f64,
         origin: Vec3F,
         color: Color,
         texture_file: &str,
@@ -79,10 +79,10 @@ impl PrefabBuilder for Sphere {
 
 impl Sphere {
     fn get_unit_sphere_coords(&self, i: u32, j: u32, lod: u32) -> (Vec3F, Vec2F) {
-        let theta = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI * 2f32, i as f32);
-        let psi = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI, j as f32);
-        let u = (j as f32) / (lod as f32);
-        let v = (i as f32) / (lod as f32);
+        let theta = lerp(0f64, lod as f64, 0f64, std::f64::consts::PI * 2f64, i as f64);
+        let psi = lerp(0f64, lod as f64, 0f64, std::f64::consts::PI, j as f64);
+        let u = (j as f64) / (lod as f64);
+        let v = (i as f64) / (lod as f64);
         (
             Vec3F::new(psi.sin() * theta.cos(), psi.sin() * theta.sin(), psi.cos()),
             Vec2F::new(v, u),
@@ -116,69 +116,69 @@ impl Sphere {
             .next();
         for i in 0..state.lod {
             for j in 0..state.lod {
-                let ii = lerp(0 as f32, state.lod as f32, -0.5f32, 0.5f32, i as f32);
-                let i1 = lerp(0 as f32, state.lod as f32, -0.5f32, 0.5f32, (i + 1) as f32);
-                let jj = lerp(0 as f32, state.lod as f32, -0.5f32, 0.5f32, j as f32);
-                let j1 = lerp(0 as f32, state.lod as f32, -0.5f32, 0.5f32, (j + 1) as f32);
+                let ii = lerp(0 as f64, state.lod as f64, -0.5f64, 0.5f64, i as f64);
+                let i1 = lerp(0 as f64, state.lod as f64, -0.5f64, 0.5f64, (i + 1) as f64);
+                let jj = lerp(0 as f64, state.lod as f64, -0.5f64, 0.5f64, j as f64);
+                let j1 = lerp(0 as f64, state.lod as f64, -0.5f64, 0.5f64, (j + 1) as f64);
                 // front
-                mesh_builder.push_vertex(ii, jj, -0.5f32);
-                mesh_builder.push_vertex(i1, j1, -0.5f32);
-                mesh_builder.push_vertex(ii, j1, -0.5f32);
+                mesh_builder.push_vertex(ii, jj, -0.5f64);
+                mesh_builder.push_vertex(i1, j1, -0.5f64);
+                mesh_builder.push_vertex(ii, j1, -0.5f64);
 
-                mesh_builder.push_vertex(ii, jj, -0.5f32);
-                mesh_builder.push_vertex(i1, jj, -0.5f32);
-                mesh_builder.push_vertex(i1, j1, -0.5f32);
+                mesh_builder.push_vertex(ii, jj, -0.5f64);
+                mesh_builder.push_vertex(i1, jj, -0.5f64);
+                mesh_builder.push_vertex(i1, j1, -0.5f64);
                 // // back
-                mesh_builder.push_vertex(ii, jj, 0.5f32);
-                mesh_builder.push_vertex(ii, j1, 0.5f32);
-                mesh_builder.push_vertex(i1, j1, 0.5f32);
+                mesh_builder.push_vertex(ii, jj, 0.5f64);
+                mesh_builder.push_vertex(ii, j1, 0.5f64);
+                mesh_builder.push_vertex(i1, j1, 0.5f64);
 
-                mesh_builder.push_vertex(ii, jj, 0.5f32);
-                mesh_builder.push_vertex(i1, j1, 0.5f32);
-                mesh_builder.push_vertex(i1, jj, 0.5f32);
+                mesh_builder.push_vertex(ii, jj, 0.5f64);
+                mesh_builder.push_vertex(i1, j1, 0.5f64);
+                mesh_builder.push_vertex(i1, jj, 0.5f64);
                 // //top
-                mesh_builder.push_vertex(ii, 0.5f32, jj);
-                mesh_builder.push_vertex(i1, 0.5f32, jj);
-                mesh_builder.push_vertex(i1, 0.5f32, j1);
+                mesh_builder.push_vertex(ii, 0.5f64, jj);
+                mesh_builder.push_vertex(i1, 0.5f64, jj);
+                mesh_builder.push_vertex(i1, 0.5f64, j1);
 
-                mesh_builder.push_vertex(ii, 0.5f32, jj);
-                mesh_builder.push_vertex(i1, 0.5f32, j1);
-                mesh_builder.push_vertex(ii, 0.5f32, j1);
+                mesh_builder.push_vertex(ii, 0.5f64, jj);
+                mesh_builder.push_vertex(i1, 0.5f64, j1);
+                mesh_builder.push_vertex(ii, 0.5f64, j1);
                 // //bottom
-                mesh_builder.push_vertex(ii, -0.5f32, jj);
-                mesh_builder.push_vertex(i1, -0.5f32, j1);
-                mesh_builder.push_vertex(i1, -0.5f32, jj);
+                mesh_builder.push_vertex(ii, -0.5f64, jj);
+                mesh_builder.push_vertex(i1, -0.5f64, j1);
+                mesh_builder.push_vertex(i1, -0.5f64, jj);
 
-                mesh_builder.push_vertex(ii, -0.5f32, jj);
-                mesh_builder.push_vertex(i1, -0.5f32, j1);
-                mesh_builder.push_vertex(ii, -0.5f32, j1);
+                mesh_builder.push_vertex(ii, -0.5f64, jj);
+                mesh_builder.push_vertex(i1, -0.5f64, j1);
+                mesh_builder.push_vertex(ii, -0.5f64, j1);
                 // //left
-                mesh_builder.push_vertex(-0.5f32, ii, jj);
-                mesh_builder.push_vertex(-0.5f32, i1, jj);
-                mesh_builder.push_vertex(-0.5f32, i1, j1);
+                mesh_builder.push_vertex(-0.5f64, ii, jj);
+                mesh_builder.push_vertex(-0.5f64, i1, jj);
+                mesh_builder.push_vertex(-0.5f64, i1, j1);
 
-                mesh_builder.push_vertex(-0.5f32, ii, jj);
-                mesh_builder.push_vertex(-0.5f32, i1, j1);
-                mesh_builder.push_vertex(-0.5f32, ii, j1);
+                mesh_builder.push_vertex(-0.5f64, ii, jj);
+                mesh_builder.push_vertex(-0.5f64, i1, j1);
+                mesh_builder.push_vertex(-0.5f64, ii, j1);
                 // //right
-                mesh_builder.push_vertex(0.5f32, ii, jj);
-                mesh_builder.push_vertex(0.5f32, i1, j1);
-                mesh_builder.push_vertex(0.5f32, i1, jj);
+                mesh_builder.push_vertex(0.5f64, ii, jj);
+                mesh_builder.push_vertex(0.5f64, i1, j1);
+                mesh_builder.push_vertex(0.5f64, i1, jj);
 
-                mesh_builder.push_vertex(0.5f32, ii, jj);
-                mesh_builder.push_vertex(0.5f32, ii, j1);
-                mesh_builder.push_vertex(0.5f32, i1, j1);
+                mesh_builder.push_vertex(0.5f64, ii, jj);
+                mesh_builder.push_vertex(0.5f64, ii, j1);
+                mesh_builder.push_vertex(0.5f64, i1, j1);
             }
         }
 
-        let mut maxes = Vec2F::new(0.5f32, 0.5f32);
-        let mut mins = Vec2F::new(0.5f32, 0.5f32);
+        let mut maxes = Vec2F::new(0.5f64, 0.5f64);
+        let mut mins = Vec2F::new(0.5f64, 0.5f64);
         for i in 0..mesh_builder.num_vertices() {
             let mut vert = mesh_builder.vertices()[i].clone();
             let direction_vector = vert.position.normalize();
-            let theta = (-direction_vector.y).acos() / std::f32::consts::PI;
-            let phi = direction_vector.z.atan2(direction_vector.x) / std::f32::consts::PI / 2f32;
-            vert.uv = Vec2F::new(1f32 - phi, theta);
+            let theta = (-direction_vector.y).acos() / std::f64::consts::PI;
+            let phi = direction_vector.z.atan2(direction_vector.x) / std::f64::consts::PI / 2f64;
+            vert.uv = Vec2F::new(1f64 - phi, theta);
             maxes.x = vert.uv.x.max(maxes.x);
             mins.x = vert.uv.x.min(mins.y);
             maxes.y = vert.uv.y.max(maxes.y);

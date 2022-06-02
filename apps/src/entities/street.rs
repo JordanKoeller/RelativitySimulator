@@ -24,9 +24,9 @@ pub struct StreetState {
 impl Default for StreetState {
   fn default() -> Self {
     Self {
-      position: Vec3F::new(0f32, 0f32, 0f32),
-      footprint: Vec2F::new(1f32, 1f32),
-      rotation: cgmath::Deg(0f32),
+      position: Vec3F::new(0f64, 0f64, 0f64),
+      footprint: Vec2F::new(1f64, 1f64),
+      rotation: cgmath::Deg(0f64),
       piece: StreetPiece::Straightaway,
     }
   }
@@ -60,7 +60,7 @@ impl<'a> EntityDelegate<'a> for StreetDelegate {
   ) -> Vec<Entity> {
     let mut stack = TransformStack::default();
     stack.push_euler(state.rotation, Vec3F::unit_y());
-    stack.push_nonunif_scale(Vec3F::new(state.footprint.x, 1f32, state.footprint.y));
+    stack.push_nonunif_scale(Vec3F::new(state.footprint.x, 1f64, state.footprint.y));
     stack.push_translate(state.position);
     let mut material = Material::new();
     let texture = match state.piece {

@@ -25,7 +25,7 @@ struct RendererBuilder {
 impl RendererBuilder {
     pub fn empty() -> Self {
         RendererBuilder {
-            dims: Vec2F::new(0f32, 0f32),
+            dims: Vec2F::new(0f64, 0f64),
             receiver_id: 0,
         }
     }
@@ -147,7 +147,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         // Build the Renderer resource, bind it to the world
         let renderer = self
             .render_builder
-            .set_dims(self.window.get_dims_f32())
+            .set_dims(self.window.get_dims_f64())
             .bind_window_events(&mut window_channel)
             .build();
         self.world.insert(renderer);

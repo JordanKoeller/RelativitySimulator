@@ -20,8 +20,8 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             perspective: Mat4F::identity(),
-            velocity: Vec3F::new(0f32, 0f32, 0f32),
-            position: Vec3F::new(0f32, 0f32, 0f32),
+            velocity: Vec3F::new(0f64, 0f64, 0f64),
+            position: Vec3F::new(0f64, 0f64, 0f64),
         }
     }
 }
@@ -35,33 +35,33 @@ impl Camera {
         }
     }
     pub fn projection_matrix(&self, dims: &Vec2F) -> Mat4F {
-        cgmath::perspective(cgmath::Deg(45f32), dims.x / dims.y, 0.1, 10000.0)
+        cgmath::perspective(cgmath::Deg(45f64), dims.x / dims.y, 0.1, 10000.0)
     }
 
     pub fn view_matrix(&self) -> &Mat4F {
         &self.perspective
     }
 
-    pub fn beta(&self) -> f32 {
+    pub fn beta(&self) -> f64 {
         self.velocity.magnitude() / LIGHT_SPEED
     }
 
-    pub fn beta2(&self) -> f32 {
+    pub fn beta2(&self) -> f64 {
         self.velocity.magnitude2() / LIGHT_SPEED / LIGHT_SPEED
     }
 
-    pub fn gamma(&self) -> f32 {
+    pub fn gamma(&self) -> f64 {
         (1.0 - self.beta2()).powf(-0.5)
     }
 
     pub fn velocity_basis_matrix(&self) -> Mat3F {
         if self.beta() == 0.0 {
-            cgmath::Matrix3::<f32>::identity()
+            cgmath::Matrix3::<f64>::identity()
         } else {
             let vel_norm = self.velocity.normalize();
             let right = vel_norm.cross(Vec3F::unit_y()).normalize();
             let up = right.cross(vel_norm);
-            cgmath::Matrix3::<f32>::from_cols(vel_norm, right, up).transpose()
+            cgmath::Matrix3::<f64>::from_cols(vel_norm, right, up).transpose()
         }
     }
 

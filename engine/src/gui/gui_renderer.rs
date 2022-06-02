@@ -23,7 +23,7 @@ impl<'a> System<'a> for GuiRenderer {
 
 impl GuiRenderer {
     fn run_helper(&self, window: &mut Window, panels: <Self as System>::SystemData) {
-        let mut auto_pos = [10f32, 10f32];
+        let mut auto_pos = [10f64, 10f64];
         let ui = window.imgui_glfw.frame(&mut window.window, &mut window.im_context);
         {
             let _ = ui.push_style_color(StyleColor::WindowBg, [0.0, 0.0, 0.0, 0.3]);
@@ -33,7 +33,7 @@ impl GuiRenderer {
                 .write()
                 .map(|mut p| {
                     p.render(&ui, &auto_pos);
-                    auto_pos[1] += p.height() as f32;
+                    auto_pos[1] += p.height() as f64;
                 })
                 .expect("Could not unlock control panel mutex");
         }

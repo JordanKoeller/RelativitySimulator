@@ -21,8 +21,8 @@ pub struct DistrictState {
 impl Default for DistrictState {
   fn default() -> Self {
     Self {
-      position: Vec3F::new(0f32, 0f32, 0f32),
-      footprint: Vec2F::new(0f32, 0f32),
+      position: Vec3F::new(0f64, 0f64, 0f64),
+      footprint: Vec2F::new(0f64, 0f64),
       layout: "#@#@#\n#@#@#\n#@#@#\n#@#@#\n#@#@#".to_string(),
     }
   }
@@ -65,10 +65,10 @@ impl<'a> EntityDelegate<'a> for DistrictDelegate {
     let num_cols = lines.iter().map(|l| l.len()).max().unwrap();
     let block_scale = state
       .footprint
-      .div_element_wise(Vec2F::new(num_cols as f32, num_rows as f32));
+      .div_element_wise(Vec2F::new(num_cols as f64, num_rows as f64));
     for i in 0..num_rows {
       for j in 0..num_cols {
-        let offset = state.position + Vec3F::new(i as f32 * block_scale.x, 0f32, j as f32 * block_scale.y);
+        let offset = state.position + Vec3F::new(i as f64 * block_scale.x, 0f64, j as f64 * block_scale.y);
         if !lines[i][j].1 && lines[i][j].0 == BUILDING {
           // A building
           self.make_building(&mut resources.1, &mut lines, i, j, &block_scale, state.position + offset);
@@ -167,13 +167,13 @@ impl DistrictDelegate {
         }
       }
       // Publish the building state
-      let my_dims = Vec3F::new(block_scale.x * dims.x as f32, 20f32, block_scale.y * dims.y as f32);
-      let bl_corner = position - Vec3F::new(block_scale.x / 2f32, 0f32, block_scale.y / 2f32);
-      let new_center = bl_corner + Vec3F::new(my_dims.x / 2f32, 0f32, my_dims.z / 2f32);
+      let my_dims = Vec3F::new(block_scale.x * dims.x as f64, 20f64, block_scale.y * dims.y as f64);
+      let bl_corner = position - Vec3F::new(block_scale.x / 2f64, 0f64, block_scale.y / 2f64);
+      let new_center = bl_corner + Vec3F::new(my_dims.x / 2f64, 0f64, my_dims.z / 2f64);
       evts.publish((EntityCrudEvent::Create, BuildingState::new(
         new_center,
         my_dims,
-        0.7f32
+        0.7f64
       )));
   }
 
@@ -209,18 +209,18 @@ impl DistrictDelegate {
   }
 }
 
-const STREET_PIECE_LOOKUP: [(&[usize], StreetPiece, cgmath::Deg<f32>); 13] = [
-  (&[1, 3, 4, 5, 7], StreetPiece::Intersection, cgmath::Deg(0f32)), // Intersection
-  (&[3,4,5,7], StreetPiece::Tee, cgmath::Deg(90f32)), // Tee down
-  (&[1,4,5,7], StreetPiece::Tee, cgmath::Deg(0f32)), // Tee right
-  (&[1,3,4,5], StreetPiece::Tee, cgmath::Deg(270f32)), // Tee up
-  (&[1,3,4,7], StreetPiece::Tee, cgmath::Deg(180f32)), // Tee left
-  (&[4,5,7], StreetPiece::Turn, cgmath::Deg(0f32)), // Turn bottom - right
-  (&[1,4,5], StreetPiece::Turn, cgmath::Deg(270f32)), // Turn top - right
-  (&[1,3,4], StreetPiece::Turn, cgmath::Deg(180f32)), // Turn top - left
-  (&[3,4,7], StreetPiece::Turn, cgmath::Deg(90f32)), // Turn bottom - left
-  (&[1,4], StreetPiece::Straightaway, cgmath::Deg(0f32)), // Vertical straight
-  (&[4,7], StreetPiece::Straightaway, cgmath::Deg(0f32)), // Vertical Straight
-  (&[3,4], StreetPiece::Straightaway, cgmath::Deg(90f32)), // Horizontal Straight
-  (&[4,5], StreetPiece::Straightaway, cgmath::Deg(90f32)), // Horizontal Straight
+const STREET_PIECE_LOOKUP: [(&[usize], StreetPiece, cgmath::Deg<f64>); 13] = [
+  (&[1, 3, 4, 5, 7], StreetPiece::Intersection, cgmath::Deg(0f64)), // Intersection
+  (&[3,4,5,7], StreetPiece::Tee, cgmath::Deg(90f64)), // Tee down
+  (&[1,4,5,7], StreetPiece::Tee, cgmath::Deg(0f64)), // Tee right
+  (&[1,3,4,5], StreetPiece::Tee, cgmath::Deg(270f64)), // Tee up
+  (&[1,3,4,7], StreetPiece::Tee, cgmath::Deg(180f64)), // Tee left
+  (&[4,5,7], StreetPiece::Turn, cgmath::Deg(0f64)), // Turn bottom - right
+  (&[1,4,5], StreetPiece::Turn, cgmath::Deg(270f64)), // Turn top - right
+  (&[1,3,4], StreetPiece::Turn, cgmath::Deg(180f64)), // Turn top - left
+  (&[3,4,7], StreetPiece::Turn, cgmath::Deg(90f64)), // Turn bottom - left
+  (&[1,4], StreetPiece::Straightaway, cgmath::Deg(0f64)), // Vertical straight
+  (&[4,7], StreetPiece::Straightaway, cgmath::Deg(0f64)), // Vertical Straight
+  (&[3,4], StreetPiece::Straightaway, cgmath::Deg(90f64)), // Horizontal Straight
+  (&[4,5], StreetPiece::Straightaway, cgmath::Deg(90f64)), // Horizontal Straight
 ];

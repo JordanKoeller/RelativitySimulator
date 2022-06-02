@@ -128,7 +128,7 @@ impl MeshBufferBuilder<NewBuilderStep> {
 pub type MeshBuilder = MeshBufferBuilder<NewBuilderStep>;
 
 impl MeshBufferBuilder<AddingVerticesStep> {
-    pub fn push_vertex(&mut self, x: f32, y: f32, z: f32) {
+    pub fn push_vertex(&mut self, x: f64, y: f64, z: f64) {
         let vertex = Vertex {
             position: Vec3F::new(x, y, z),
             uv: Vec2F::zero(),
@@ -140,7 +140,7 @@ impl MeshBufferBuilder<AddingVerticesStep> {
         self.vertices.push(vertex);
     }
 
-    pub fn push_vertex_flat(&mut self, x: f32, y: f32, z: f32, u: f32, v: f32) {
+    pub fn push_vertex_flat(&mut self, x: f64, y: f64, z: f64, u: f64, v: f64) {
         let vertex = Vertex {
             position: Vec3F::new(x, y, z),
             uv: Vec2F::new(u, v),
@@ -177,7 +177,7 @@ impl MeshBufferBuilder<AddingVerticesStep> {
                 let duv1 = b.uv - a.uv;
                 let duv2 = c.uv - a.uv;
                 let normal = edge1.cross(edge2).normalize();
-                let f = 1.0f32 / (duv1.x * duv2.y - duv2.x * duv1.y);
+                let f = 1.0f64 / (duv1.x * duv2.y - duv2.x * duv1.y);
                 let tangent = Vec3F::new(
                     f * (duv2.y * edge1.x - duv1.y * edge2.x),
                     f * (duv2.y * edge1.y - duv1.y * edge2.y),
@@ -207,15 +207,15 @@ impl MeshBufferBuilder<AddingVerticesStep> {
                 builder.vertices[i].normal = faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
-                    / (faces.len() as f32);
+                    / (faces.len() as f64);
                 builder.vertices[i].tangent = faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
-                    / (faces.len() as f32);
+                    / (faces.len() as f64);
                 builder.vertices[i].bitangent = faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
-                    / (faces.len() as f32);
+                    / (faces.len() as f64);
             }
         }
         builder
@@ -224,7 +224,7 @@ impl MeshBufferBuilder<AddingVerticesStep> {
 
 impl Into<VertexArrayBuilder> for MeshBufferBuilder<HydratedBuilderStep> {
     fn into(self) -> VertexArrayBuilder {
-        let vertex_data: Vec<f32> = self
+        let vertex_data: Vec<f64> = self
             .vertices
             .iter()
             .flat_map(|vertex| {
