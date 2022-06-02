@@ -33,8 +33,15 @@ impl<'a> MonoBehavior<'a> for DebugMetricsSystem {
         if let Some((_instant, avg)) = debugger.frame_time.get() {
             panel.set_str("FrameTime", format!("{:#?}", avg));
         }
-        if let Some((_instant, avg)) = debugger.render_time.get() {
-            panel.set_str("RenderTime", format!("{:#?}", avg));
+        if let Some((instant, avg)) = debugger.render_time.get() {
+            panel.set_str(
+                "RenderTime",
+                format!(
+                    "{:.3} ({:.3} Avg)",
+                    instant.as_micros() as f32 / 1000f32,
+                    avg.as_micros() as f32 / 1000f32
+                ),
+            );
         }
         panel.set_str("DrawCalls", format!("{}", debugger.draw_calls.get()));
     }
@@ -50,7 +57,7 @@ impl<'a> SystemDebugger<'a> for DebugMetricsSystem {
         ControlPanelBuilder::default()
             .with_title("Debug Metrics")
             .push_line("FrameTime", LabeledText::new("NaN", "Frame Time (avg)"))
-            .push_line("RenderTime", LabeledText::new("NaN", "Render Time (avg)"))
+            .push_line("RenderTime", LabeledText::new("NaN", "Render Time"))
             .push_line("DrawCalls", LabeledText::new("NaN", "Draw Calls"))
     }
 }

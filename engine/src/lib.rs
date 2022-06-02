@@ -35,7 +35,7 @@ pub mod ecs;
 pub mod events;
 mod game_builder;
 pub mod game_loop;
-mod graphics;
+pub mod graphics;
 pub mod gui;
 pub mod physics;
 mod platform;
@@ -65,37 +65,6 @@ pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
 }
 
 pub fn main(builder: GameBuilder) {
-    // glfw: initialize and configure
-    // ------------------------------
-
-    // Initialize high-level "singleton" structures
-    // --------------------------------------------
-
-    // Initialize the player/camera and the respective event handling
-    // --------------------------------------------------------------
-
-    // Initialize assets/shaders
-    // -------------------------
-    // let cube = app::ColoredCube::new(Vec3F::new(2.0, 0.0, -10.0), Color::new(0.5, 0.2, 0.8));
-    // let cube: Ref<dyn renderer::Drawable> = Ref::new(cube);
-    // let shader = renderer::Shader::from_file("debug", "shaders/debug_tessellation.glsl");
-    // render.submit_shader(shader);
-    // let shader = renderer::Shader::from_file("default", "shaders/simple_shader.glsl");
-    // render.submit_shader(shader);
-
-    // let shader = renderer::Shader::from_file("lorentz", "shaders/lorentz.glsl");
-    // render.submit_shader(shader);
-    // let shader = renderer::Shader::from_file("face_cube", "shaders/face_cube.glsl");
-    // render.submit_shader(shader);
-
-    // app::build_city(&mut world);
-
-    // app::flappy_bird::setup_world(&mut world);
-    // app::minecraft::setup_world(&mut world);
-    // let mut runtime = GameLoop::new(window, world, world_id);
-    // runtime.with_systems(app::minecraft::get_system_registration());
-    // runtime.with_systems(app::flappy_bird::get_system_registration());
-    // runtime.run();
     let mut runtime = builder.build();
     runtime.run();
 }

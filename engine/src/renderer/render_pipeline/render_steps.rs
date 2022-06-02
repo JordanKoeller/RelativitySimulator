@@ -62,15 +62,16 @@ impl<'a, S: RenderStep> RenderPipeline<'a, S> {
 
 impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
     pub fn new<'b>(queue: &mut RenderQueueConsumer<'b>, assets: &'a mut AssetLibrary) -> Option<Self> {
-        if let Some(state) = queue.peek() {
-            let mut ret = Self {
+        if let Some(draw_call) = queue.peek() {
+            let gpu_state = GPUState::new(
+                assets,
+                draw_call.mesh_component.vertex_array_id,
+                draw_call.mesh_component.shader_id,
+            );
+            Some(Self {
                 _marker: std::marker::PhantomData::default(),
-                state: GPUState::new(assets, state.mesh_component),
-            };
-            ret.state.bind_shader();
-            ret.state.bind_mesh();
-            // ret.state.bind();
-            Some(ret)
+                state: gpu_state,
+            })
         } else {
             None
         }
@@ -91,7 +92,7 @@ impl<'a> RenderPipeline<'a, ReadyToDrawStep> {
 
 impl<'a> RenderPipeline<'a, ActivatedShaderStep> {
     fn activated_on(&self, mesh: &MeshComponent) -> bool {
-        self.state.active_mesh == mesh.clone()
+        self.state.active_mesh == mesh.vertex_array_id && self.state.active_shader == mesh.shader_id
     }
     pub fn intake_queue<'b>(
         self,
@@ -120,7 +121,7 @@ impl<'a> RenderPipeline<'a, ActivatedShaderStep> {
 }
 
 impl<'a> RenderPipeline<'a, SaturatedDrawCallStep> {
-    pub fn flush(mut self) -> RenderPipeline<'a, FlushedDrawCallStep> {
+    pub fn flush(self) -> RenderPipeline<'a, FlushedDrawCallStep> {
         self.state.draw();
         // self.state.mesh_immut().draw(&self.state.shader_immut().element_type);
         self.consume()
@@ -130,28 +131,26 @@ impl<'a> RenderPipeline<'a, SaturatedDrawCallStep> {
 impl<'a> RenderPipeline<'a, FlushedDrawCallStep> {
     // TODO: Handle moving to the next ReadyStep or the next ActivatedStep
     pub fn proceed<'b>(
-        self,
+        mut self,
         queue: &mut RenderQueueConsumer<'b>,
     ) -> Either<RenderPipeline<'a, ReadyToDrawStep>, RenderPipeline<'a, ActivatedShaderStep>> {
         if let Some(draw_call) = queue.peek() {
-            if draw_call.mesh_component.shader_id == self.state.active_mesh.shader_id {
-                // if dc.drawable.1 == self.state.id.1 {
-                // We already have the appropriate shader active
+            if draw_call.mesh_component.shader_id == self.state.active_shader {
+                self.state.bind_mesh(draw_call.mesh_component.vertex_array_id);
                 let mut ret = RenderPipeline::<'a, ActivatedShaderStep> {
                     _marker: std::marker::PhantomData::default(),
-                    state: GPUState::new(self.state.assets, draw_call.mesh_component),
+                    state: self.state,
                 };
                 ret.state.clear_textures();
-                ret.state.bind_mesh();
                 Either::Right(ret)
             } else {
+                self.state.bind_shader(draw_call.mesh_component.shader_id);
+                self.state.bind_mesh(draw_call.mesh_component.vertex_array_id);
                 let mut ret = RenderPipeline::<'a, ReadyToDrawStep> {
                     _marker: std::marker::PhantomData::default(),
-                    state: GPUState::new(self.state.assets, draw_call.mesh_component),
+                    state: self.state,
                 };
                 ret.state.clear_textures();
-                ret.state.bind_shader();
-                ret.state.bind_mesh();
                 Either::Left(ret)
             }
         } else {

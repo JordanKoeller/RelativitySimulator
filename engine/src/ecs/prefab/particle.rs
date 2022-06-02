@@ -80,7 +80,12 @@ impl PrefabBuilder for ParticleBuilder {
                     Vec3F::zero(),
                     QuatF::zero(),
                 ))
-                .with(RigidBody::new(state.velocity.unwrap(), -Vec3F::unit_y()));
+                .with(RigidBody::new(
+                    state.velocity.unwrap(),
+                    -Vec3F::unit_y(),
+                    QuatF::zero(),
+                    QuatF::zero(),
+                ));
             if state.gravity.is_some() {
                 builder = builder.with(Gravity);
             }

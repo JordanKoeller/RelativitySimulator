@@ -120,5 +120,6 @@ impl CameraDebugger {
         let up = Vec3F::unit_y();
         let matrix = Mat4F::look_at(location, center, up);
         cam.set_matrix(matrix);
+        cam.set_position(location);
     }
 }

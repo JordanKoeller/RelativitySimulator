@@ -51,7 +51,7 @@ pub trait Widget {
     fn set_vec3(&mut self, _value: Vec3F) {
         panic!("Widget::set_vec3 not implemented for {}", std::any::type_name::<Self>());
     }
-    fn set_string(&mut self,_value: String) {
+    fn set_string(&mut self, _value: String) {
         panic!(
             "Widget::set_string not implemented for {}",
             std::any::type_name::<Self>()
@@ -141,18 +141,31 @@ impl Widget for LabeledInputTextBox {
 pub struct InputFloat {
     value: f32,
     label: ImString,
+    low_value: f32,
+    high_value: f32,
 }
 impl InputFloat {
     pub fn new(label: &str, value: f32) -> Self {
         Self {
             value: value,
             label: ImString::from(label.to_string()),
+            low_value: 0f32,
+            high_value: 1f32,
+        }
+    }
+
+    pub fn new_with_limits(label: &str, value: f32, low_value: f32, high_value: f32) -> Self {
+        Self {
+            value: value,
+            label: ImString::from(label.to_string()),
+            low_value,
+            high_value,
         }
     }
 }
 impl Widget for InputFloat {
     fn render<'ui>(&mut self, ui: &Ui<'ui>) {
-        let slider = SliderFloat::new(ui, &self.label, &mut self.value, 0f32, 10f32);
+        let slider = SliderFloat::new(ui, &self.label, &mut self.value, self.low_value, self.high_value);
         slider.build();
         // ui.input_float(&self.label, &mut self.value).build();
     }

@@ -26,11 +26,7 @@ impl StopwatchLike<Duration> for Stopwatch {
     }
 
     fn stop(&mut self) {
-        if let Some(_) = self.start_time {
-            self.end_time = Some(SystemTime::now());
-        } else {
-            panic!("Tried to stop a stopwatch that was never started!");
-        }
+        self.end_time = Some(SystemTime::now());
     }
 
     fn get(&self) -> Option<Duration> {

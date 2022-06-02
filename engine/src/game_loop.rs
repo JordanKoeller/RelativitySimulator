@@ -31,11 +31,11 @@ impl<'a, 'b> GameLoop<'a, 'b> {
 
     pub fn run(&mut self) {
         let mut running = true;
-        info!("About to dispatch");
+        println!("About to dispatch");
         self.dispatcher.setup(&mut self.world);
-        info!("Finished setting up. About to begin running");
+        println!("Finished setting up. About to begin running");
         self.maintain();
-        info!("Called preemptive maintain");
+        println!("Called preemptive maintain");
         while running {
             running = self.step_frame();
         }

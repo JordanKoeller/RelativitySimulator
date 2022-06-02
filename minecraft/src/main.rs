@@ -15,7 +15,7 @@ use engine::utils::{Color, Vec3F};
 
 use engine::prefab::{SkyboxBuilder, SkyboxPrefab, Sphere, SphereState};
 
-use crate::systems::{ChunkManager, PlayerController};
+use crate::systems::{PlayerController};
 
 fn main() {
     info!("App began!");
@@ -23,14 +23,16 @@ fn main() {
     info!("Got the builder");
     let built = builder
         .with_system(Sys::<PlayerController>::default(), "player_controller", &[])
-        .with_system(Sys::<ChunkManager>::default(), "chunk_manager", &[])
         .with_prefab(SkyboxBuilder::default(), SkyboxPrefab::new("resources/skybox"))
         .with_prefab(
             Sphere::default(),
             SphereState::new(
                 3f32,
-                Vec3F::new(16f32, 10f32, 16f32),
+                Vec3F::new(0f32, 4f32, 16f32),
                 Color::new(1f32, 0.3f32, 0.3f32),
+                "resources/earth/2k_earth_daymap.jpg",
+                "resources/earth/2k_earth_daymap.jpg",
+                "resources/earth/2k_earth_normal_map.png",
                 16,
             ),
         );

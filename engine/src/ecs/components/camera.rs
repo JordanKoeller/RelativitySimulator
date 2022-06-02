@@ -12,6 +12,7 @@ use crate::renderer::LIGHT_SPEED;
 #[storage(VecStorage)]
 pub struct Camera {
     perspective: Mat4F,
+    position: Vec3F,
     velocity: Vec3F,
 }
 
@@ -20,15 +21,17 @@ impl Default for Camera {
         Self {
             perspective: Mat4F::identity(),
             velocity: Vec3F::new(0f32, 0f32, 0f32),
+            position: Vec3F::new(0f32, 0f32, 0f32),
         }
     }
 }
 
 impl Camera {
-    pub fn new(pers: Mat4F, vel: Vec3F) -> Self {
+    pub fn new(pers: Mat4F, position: Vec3F, vel: Vec3F) -> Self {
         Self {
             perspective: pers,
             velocity: vel,
+            position,
         }
     }
     pub fn projection_matrix(&self, dims: &Vec2F) -> Mat4F {
@@ -68,5 +71,13 @@ impl Camera {
 
     pub fn set_matrix(&mut self, mat: Mat4F) {
         self.perspective = mat;
+    }
+
+    pub fn position(&self) -> Vec3F {
+        self.position
+    }
+
+    pub fn set_position(&mut self, pos: Vec3F) {
+        self.position = pos;
     }
 }

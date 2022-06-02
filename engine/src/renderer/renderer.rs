@@ -122,6 +122,10 @@ impl Renderer {
         }
     }
 
+    pub fn submit_env_uniform(&mut self, name: &str, uniform: Uniform) {
+        self.common_uniforms.insert(name.to_string(), uniform);
+    }
+
     pub fn submit_config(&mut self, config: RendererConfig) {
         self.submit_common_uniform(
             "lorentzFlag",
@@ -166,9 +170,6 @@ impl Renderer {
         assets: &mut Write<'a, AssetLibrary>,
         debug_metrics: &DebugMetrics,
     ) {
-        // unsafe {
-        //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-        // }
         debug_metrics.draw_calls.reset();
         let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, assets);
         if let Some(pipeline) = pipeline_opt {
@@ -219,26 +220,14 @@ impl Renderer {
             .insert("light_diffuse".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
         self.common_uniforms
             .insert("light_specular".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
-        self.common_uniforms.insert(
-            "camera_position".to_string(),
-            Uniform::Vec3(Vec3F::new(200.0, 200.0, 200.0)),
-        );
+        self.common_uniforms
+            .insert("camera_position".to_string(), Uniform::Vec3(camera.position()));
+        self.common_uniforms
+            .insert("debug_line_length".to_string(), Uniform::Float(0.1));
         self.common_uniforms.insert(
             "light_position".to_string(),
             Uniform::Vec3(Vec3F::new(200.0, 200.0, -200.0)),
         );
-        // self.common_uniforms.insert(
-        //   "camera_position".to_string(),
-        //   Uniform::Vec3(camera.position.clone()),
-        // );
-        // self.common_uniforms.insert(
-        //     "changeOfBasis".to_string(),
-        //     Uniform::Mat3(camera.velocity_basis_matrix()),
-        // );
-        // self.common_uniforms.insert(
-        //     "changeOfBasisInverse".to_string(),
-        //     Uniform::Mat3(camera.velocity_inverse_basis_matrix()),
-        // );
     }
 
     pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {

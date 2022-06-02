@@ -12,6 +12,8 @@ const MAX_ACCELERATION: f32 = 6f32;
 const DRAG: f32 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
 const GRAVITY: f32 = 14f32;
 
+const ACCELERATION_MIN_MAGNITUDE: f32 = 0.00000001;
+
 pub struct MotionSystem;
 
 impl<'a> System<'a> for MotionSystem {
@@ -39,7 +41,9 @@ impl<'a> System<'a> for MotionSystem {
             .join()
         {
             self.compute_kinematics(rigid_body, gravity, drag, dt.dt().as_secs_f32() as f32);
-            transform.push_translation(rigid_body.velocity * dt.dt().as_secs_f32() as f32);
+            // println!("Pushing update");
+            self.push_frame_update(rigid_body, transform, dt.dt().as_secs_f32() as f32);
+            rigid_body.reset_acceleration();
         }
     }
 }
@@ -54,12 +58,25 @@ impl MotionSystem {
                 rigid_body.acceleration -= DRAG * rigid_body.velocity.magnitude2() * rigid_body.velocity.normalize();
             }
         }
-        if rigid_body.acceleration.magnitude2() > 0.000001 {
+        self.integrate_rigid_body(rigid_body, dt);
+    }
+
+    fn integrate_rigid_body(&self, rigid_body: &mut RigidBody, dt: f32) {
+        // Linear first
+        if rigid_body.acceleration.magnitude2() > ACCELERATION_MIN_MAGNITUDE {
             rigid_body.velocity += rigid_body.acceleration * dt;
-            // } else if norm_acc.magnitude2() > 0.1 {
-            //   kinetics.velocity += norm_acc * dt;
-            // }
         }
-        rigid_body.acceleration = Vec3F::new(0.0, 0.0, 0.0);
+
+        // Angular
+        if rigid_body.angular_acceleration.magnitude2() > ACCELERATION_MIN_MAGNITUDE {
+            rigid_body.angular_velocity = rigid_body.angular_velocity * rigid_body.angular_acceleration * dt;
+        }
+    }
+
+    // Returns a vector and quaternion, representing how far this RigidBody
+    // has translated and rotated over this frame.
+    fn push_frame_update(&self, rigid_body: &RigidBody, transform: &mut TransformComponent, dt: f32) {
+        transform.push_translation(rigid_body.velocity * dt);
+        transform.push_rotation(&(rigid_body.angular_velocity * dt));
     }
 }

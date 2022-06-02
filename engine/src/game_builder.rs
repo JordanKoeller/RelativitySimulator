@@ -167,10 +167,10 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         let window_ref = GetMutRef(self.window);
         let dispatcher = self
             .dispatcher_builder
-            .with_thread_local(StartFrameSystem {
+            .with_thread_local(Sys::new(StartFrameSystem {
                 window: MutRef::clone(&window_ref),
                 receiver_id: world_id,
-            })
+            }))
             .with_thread_local(Sys::<DebugMetricsSystem>::default())
             .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(EventProcessingSystem::default())
@@ -194,6 +194,10 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
             ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl"),
         );
         assets.get_or_create_shader(
+            "debug_normals",
+            ShaderBuilder::default().with_source_file("shaders/debug/normals.glsl"),
+        );
+        assets.get_or_create_shader(
             "instanced",
             ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl"),
         );
@@ -203,12 +207,6 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
                 .with_depth_function(ShaderDepthFunction::LEQUAL)
                 .with_source_file("shaders/skybox.glsl"),
         );
-        // let shader = Shader::from_file("default_texture", "shaders/simple_textured.glsl");
-        // renderer.submit_shader(shader);
-        // let shader = Shader::from_file("instanced", "shaders/simple_instanced.glsl");
-        // renderer.submit_shader(shader);
-        // let shader = Shader::from_file_skybox("skybox", "shaders/skybox.glsl");
-        // renderer.submit_shader(shader);
     }
 }
 

@@ -52,3 +52,15 @@ where
         }
     }
 }
+
+impl<M> Sys<M>
+where
+    for<'a> M: MonoBehavior<'a>,
+{
+    pub fn new(mono_behavior: M) -> Self {
+        Self {
+            mono_behavior,
+            receiver_id: None,
+        }
+    }
+}

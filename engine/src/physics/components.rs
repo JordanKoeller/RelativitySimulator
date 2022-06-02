@@ -9,15 +9,15 @@ use specs::{Component, NullStorage, VecStorage};
 pub struct TransformComponent {
     pub translation: Vec3F,
     pub scale: Vec3F,
-    pub rotation: Vec3F,
+    pub rotation: QuatF,
 }
 
 impl TransformComponent {
-    pub fn new(translation: Vec3F, scale: Vec3F, _rotation: QuatF) -> Self {
+    pub fn new(translation: Vec3F, scale: Vec3F, rotation: QuatF) -> Self {
         Self {
             translation,
             scale,
-            rotation: Vec3F::zero(),
+            rotation,
         }
     }
 
@@ -25,12 +25,15 @@ impl TransformComponent {
         Self {
             translation: Vec3F::zero(),
             scale: Vec3F::new(1f32, 1f32, 1f32),
-            rotation: Vec3F::zero(),
+            rotation: QuatF::one(),
         }
     }
 
     pub fn matrix(&self) -> Mat4F {
-        Mat4F::from_translation(self.translation) * nonunif_scale(self.scale)
+        let rotation_3 = Mat3F::from(self.rotation);
+        let mut rotation_4 = Mat4F::from(rotation_3);
+        rotation_4.w.w = 1f32;
+        Mat4F::from_translation(self.translation) * rotation_4 * nonunif_scale(self.scale)
     }
 
     pub fn push_translation(&mut self, dr: Vec3F) {
@@ -41,62 +44,31 @@ impl TransformComponent {
         self.scale = Vec3F::new(self.scale.x * ds.x, self.scale.y * ds.y, self.scale.z * ds.z);
     }
 
+    pub fn push_rotation(&mut self, dtheta: &QuatF) {
+        self.rotation = (dtheta * self.rotation).normalize();
+    }
+
     pub fn front(&self) -> Vec3F {
-        Vec3F {
-            x: self.rotation.y.to_radians().cos() * self.rotation.x.to_radians().cos(),
-            y: self.rotation.x.to_radians().sin(),
-            z: self.rotation.y.to_radians().sin() * self.rotation.x.to_radians().cos(),
-        }
-        .normalize()
+        self.rotation.rotate_vector(Vec3F::unit_z()).normalize()
     }
 
     pub fn right(&self) -> Vec3F {
-        self.front().cross(self.world_up()).normalize()
+        -self.rotation.rotate_vector(Vec3F::unit_x()).normalize()
+        // -self.up().cross(self.front()).normalize()
     }
 
     pub fn up(&self) -> Vec3F {
-        self.right().cross(self.front()).normalize()
+        self.rotation.rotate_vector(Vec3F::unit_y()).normalize()
     }
 
     pub fn world_up(&self) -> Vec3F {
         Vec3F::unit_y()
     }
-
-    pub fn rotate(&mut self, xoffset: f32, yoffset: f32) {
-        // println!("Rotating");
-        self.rotation.y += xoffset;
-        self.rotation.x += yoffset;
-        // Make sure that when pitch is out of bounds, screen doesn't get flipped
-        if self.rotation.x > 89.0 {
-            self.rotation.x = 89f32;
-        }
-        if self.rotation.x < -89.0 {
-            self.rotation.x = -89f32;
-        }
-        // Update Front, Right and Up Vectors using the updated Euler angles
-    }
 }
 
 impl Default for TransformComponent {
     fn default() -> Self {
-        Self::new(Vec3F::zero(), Vec3F::new(1f32, 1f32, 1f32), QuatF::zero())
-    }
-}
-
-impl From<Mat4F> for TransformComponent {
-    fn from(v: Mat4F) -> Self {
-        let translation = Vec3F::new(v.w[0], v.w[1], v.w[2]);
-        let scale = Vec3F::new(
-            swizzle_down(&v.x).magnitude(),
-            swizzle_down(&v.y).magnitude(),
-            swizzle_down(&v.z).magnitude(),
-        );
-        let mut rotation_matrix = Mat3F::from_cols(swizzle_down(&v.x), swizzle_down(&v.y), swizzle_down(&v.z));
-        rotation_matrix.x = rotation_matrix.x / scale.x;
-        rotation_matrix.y = rotation_matrix.y / scale.y;
-        rotation_matrix.z = rotation_matrix.z / scale.z;
-        let rotation = QuatF::from(rotation_matrix);
-        Self::new(translation, scale, rotation)
+        Self::new(Vec3F::zero(), Vec3F::new(1f32, 1f32, 1f32), QuatF::one())
     }
 }
 
@@ -113,6 +85,8 @@ pub struct Gravity;
 pub struct RigidBody {
     pub velocity: Vec3F,
     pub acceleration: Vec3F,
+    pub angular_velocity: QuatF,     // Euler Angles
+    pub angular_acceleration: QuatF, // Euler Angles
 }
 
 impl Default for RigidBody {
@@ -120,6 +94,8 @@ impl Default for RigidBody {
         Self {
             velocity: Vec3F::zero(),
             acceleration: Vec3F::zero(),
+            angular_velocity: QuatF::one(),
+            angular_acceleration: QuatF::one(),
         }
     }
 }
@@ -129,10 +105,22 @@ impl RigidBody {
         Self {
             velocity: Vec3F::zero(),
             acceleration: Vec3F::zero(),
+            angular_velocity: QuatF::one(),
+            angular_acceleration: QuatF::one(),
         }
     }
 
-    pub fn new(velocity: Vec3F, acceleration: Vec3F) -> Self {
-        Self { velocity, acceleration }
+    pub fn new(velocity: Vec3F, acceleration: Vec3F, angular_velocity: QuatF, angular_acceleration: QuatF) -> Self {
+        Self {
+            velocity,
+            acceleration,
+            angular_velocity,
+            angular_acceleration,
+        }
+    }
+
+    pub fn reset_acceleration(&mut self) {
+        self.acceleration = Vec3F::zero();
+        self.angular_acceleration = QuatF::zero();
     }
 }
