@@ -7,7 +7,7 @@ use engine::graphics::{
     TextureBuilder,
 };
 use engine::physics::{RigidBody, TransformComponent};
-use engine::utils::{lerp, Color, QuatF, Vec2F, Vec3F};
+use engine::utils::{QuatF, Vec3F};
 
 pub struct CubeState {
     scale: f32,

@@ -6,8 +6,6 @@ extern crate specs;
 mod prefabs;
 mod systems;
 
-use cgmath::prelude::*;
-
 use engine::ecs::{MotionSystem, Sys};
 use engine::info;
 use engine::prefab::{SkyboxBuilder, SkyboxPrefab};

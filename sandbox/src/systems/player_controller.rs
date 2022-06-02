@@ -48,16 +48,16 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                         match payload {
                             EventPayload::MouseMove(vec) => {
                                 // Rotate in frame of camera
-                                let right = init_rotation.right();
-                                let up = init_rotation.up();
+                                // let right = init_rotation.right();
+                                // let up = init_rotation.up();
                                 let dx = cgmath::Rad(-vec.x * self.sensitivity_scalar);
                                 let dy = cgmath::Rad(vec.y * self.sensitivity_scalar);
 
-                                let delta = QuatF::from_axis_angle(up, dx) * QuatF::from_axis_angle(right, dy);
+                                // let delta = QuatF::from_axis_angle(up, dx) * QuatF::from_axis_angle(right, dy);
 
                                 // Rotate around Euler angles
-                                let euler_angles = cgmath::Euler::new(-dy, dx, cgmath::Rad(0f32));
-                                let mut delta = QuatF::from(euler_angles);
+                                // let euler_angles = cgmath::Euler::new(-dy, dx, cgmath::Rad(0f32));
+                                // let mut delta = QuatF::from(euler_angles);
 
                                 // Rotate around world coordinates
                                 let delta = QuatF::from_angle_y(dx) * QuatF::from_angle_x(-dy);
