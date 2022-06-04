@@ -1,13 +1,13 @@
 use cgmath::prelude::*;
 use specs::prelude::*;
 
-use crate::ecs::{PrefabBuilder, SystemUtilities};
+use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
 use crate::graphics::{
     HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShadingStrategy,
     TextureBuilder,
 };
-use crate::physics::TransformComponent;
-use crate::utils::{lerp, Color, Vec2F, Vec3F};
+use crate::physics::{RigidBody, TransformComponent};
+use crate::utils::{lerp, Color, QuatF, Vec2F, Vec3F};
 
 pub struct SphereState {
     radius: f64,
@@ -42,17 +42,21 @@ impl SphereState {
 }
 
 #[derive(Default)]
-pub struct Sphere;
+pub struct Sphere {
+    cache: ComponentCache,
+}
 
 impl PrefabBuilder for Sphere {
     type PrefabState = SphereState;
 
     fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
-        let mesh_builder = self.build_from_polar(&state);
-        let vai = api
-            .assets()
-            .get_or_create_vertex_array(&format!("sphere_{}", state.lod), mesh_builder.into());
-        let mesh = MeshComponent::new(vai, api.assets().get_shader_id("default_texture").unwrap());
+        let mesh = self.cache.get_or(|| {
+            let mesh_builder = Self::build_from_polar(&state);
+            let vai = api
+                .assets()
+                .get_or_create_vertex_array(&format!("sphere_{}", state.lod), mesh_builder.into());
+            MeshComponent::new(vai, api.assets().get_shader_id("default_texture").unwrap())
+        });
         let mut material = MaterialComponent::default();
         material.ambient_texture(api.assets().get_or_create_texture(
             "earth_texture",
@@ -68,37 +72,49 @@ impl PrefabBuilder for Sphere {
         ));
         material.normal_texture(
             api.assets()
-                .get_or_create_texture("earth_texture", TextureBuilder::default().with_file(&state.normal_file)),
+                .get_or_create_texture("earth_normal", TextureBuilder::default().with_file(&state.normal_file)),
         );
         let mut transform = TransformComponent::identity();
         transform.push_scale(Vec3F::new(state.radius, state.radius, state.radius));
         transform.push_translation(state.origin);
-        api.entity_builder().with(material).with(transform).with(mesh).build();
+        let axis_tilt = QuatF::from_angle_z(-cgmath::Deg(23.5f64));
+        transform.push_rotation(&QuatF::from_angle_x(cgmath::Deg(90f64)));
+        transform.push_rotation(&axis_tilt);
+        let axis = axis_tilt.rotate_vector(Vec3F::unit_y());
+        let mut rigid_body = RigidBody::new_stationary();
+        let rotation = QuatF::from_axis_angle(axis, cgmath::Deg(0.25f64));
+        rigid_body.angular_velocity = rotation;
+        api.entity_builder()
+            .with(material)
+            .with(transform)
+            .with(mesh)
+            .with(rigid_body)
+            .build();
     }
 }
 
 impl Sphere {
-    fn get_unit_sphere_coords(&self, i: u32, j: u32, lod: u32) -> (Vec3F, Vec2F) {
+    fn get_unit_sphere_coords(i: u32, j: u32, lod: u32) -> (Vec3F, Vec2F) {
         let theta = lerp(0f64, lod as f64, 0f64, std::f64::consts::PI * 2f64, i as f64);
         let psi = lerp(0f64, lod as f64, 0f64, std::f64::consts::PI, j as f64);
         let u = (j as f64) / (lod as f64);
         let v = (i as f64) / (lod as f64);
         (
             Vec3F::new(psi.sin() * theta.cos(), psi.sin() * theta.sin(), psi.cos()),
-            Vec2F::new(v, u),
+            Vec2F::new(1.0 - v, u),
         )
     }
 
-    fn build_from_polar(&self, state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
+    fn build_from_polar(state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
         let mut mesh_builder = MeshBuilder::default()
-            .with_shading_strategy(ShadingStrategy::PerVertex)
+            .with_shading_strategy(ShadingStrategy::PerFace)
             .next();
         for i in 0..state.lod {
             for j in 0..state.lod {
-                let tl = self.get_unit_sphere_coords(i, j, state.lod);
-                let tr = self.get_unit_sphere_coords(i + 1, j, state.lod);
-                let bl = self.get_unit_sphere_coords(i, j + 1, state.lod);
-                let br = self.get_unit_sphere_coords(i + 1, j + 1, state.lod);
+                let tl = Self::get_unit_sphere_coords(i, j, state.lod);
+                let tr = Self::get_unit_sphere_coords(i + 1, j, state.lod);
+                let bl = Self::get_unit_sphere_coords(i, j + 1, state.lod);
+                let br = Self::get_unit_sphere_coords(i + 1, j + 1, state.lod);
                 mesh_builder.push_vertex_flat(bl.0.x, bl.0.y, bl.0.z, bl.1.x, bl.1.y);
                 mesh_builder.push_vertex_flat(tr.0.x, tr.0.y, tr.0.z, tr.1.x, tr.1.y);
                 mesh_builder.push_vertex_flat(tl.0.x, tl.0.y, tl.0.z, tl.1.x, tl.1.y);
@@ -170,24 +186,16 @@ impl Sphere {
                 mesh_builder.push_vertex(0.5f64, i1, j1);
             }
         }
-
-        let mut maxes = Vec2F::new(0.5f64, 0.5f64);
-        let mut mins = Vec2F::new(0.5f64, 0.5f64);
         for i in 0..mesh_builder.num_vertices() {
             let mut vert = mesh_builder.vertices()[i].clone();
             let direction_vector = vert.position.normalize();
             let theta = (-direction_vector.y).acos() / std::f64::consts::PI;
             let phi = direction_vector.z.atan2(direction_vector.x) / std::f64::consts::PI / 2f64;
             vert.uv = Vec2F::new(1f64 - phi, theta);
-            maxes.x = vert.uv.x.max(maxes.x);
-            mins.x = vert.uv.x.min(mins.y);
-            maxes.y = vert.uv.y.max(maxes.y);
-            mins.y = vert.uv.y.min(mins.y);
             vert.position = direction_vector;
             mesh_builder.vertices()[i] = vert;
         }
         let mesh_builder = mesh_builder.hydrate();
-        println!("Min = {:?} Max = {:?}", mins, maxes);
         mesh_builder
         // mesh_builder.hydrate_mock()
     }

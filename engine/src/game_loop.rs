@@ -8,7 +8,7 @@ use crate::events::ReceiverID;
 use crate::graphics::AssetLibrary;
 use crate::gui::GuiRenderer;
 use crate::platform::Window;
-use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState, Timestep};
+use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState};
 
 pub type SystemsRegistration<'a, 'b> = dyn Fn(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>;
 

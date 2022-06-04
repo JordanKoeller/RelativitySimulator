@@ -24,7 +24,12 @@ impl DataBufferBuilder {
     }
 
     pub fn build(self) -> DataBuffer {
-        let buf = DataBuffer::new(self.data.iter().map(|e| *e as f32).collect(), self.layout.unwrap(), self.config.unwrap(), std::u32::MAX);
+        let buf = DataBuffer::new(
+            self.data.iter().map(|e| *e as f32).collect(),
+            self.layout.unwrap(),
+            self.config.unwrap(),
+            std::u32::MAX,
+        );
         buf
     }
 }

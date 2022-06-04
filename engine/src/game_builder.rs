@@ -123,7 +123,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self
     }
 
-    pub fn with_prefab<B>(self, mut builder: B, state: B::PrefabState) -> Self
+    pub fn with_prefab<B>(self, builder: &mut B, state: B::PrefabState) -> Self
     where
         B: PrefabBuilder,
     {
@@ -153,11 +153,8 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self.world.insert(renderer);
 
         // Bind the remaining resources to the world
-        let mut time = Timestep::default();
-        time.click_frame(Duration::from_secs_f64(self.window.glfw_token.get_time()));
-        time.click_frame(Duration::from_secs_f64(self.window.glfw_token.get_time() + 1e-8f64));
         self.world.insert(window_channel);
-        self.world.insert(time);
+        self.world.insert(Timestep::default());
         self.world.insert(RunningState::default());
         self.world.insert(ControlPanels::default());
 

@@ -5,7 +5,7 @@ pub mod multi_map;
 pub mod random;
 pub mod running_state;
 mod stopwatch;
-mod timer;
+mod timestep;
 pub mod transform_stack;
 pub mod types;
 
@@ -16,6 +16,6 @@ pub use self::multi_map::*;
 pub use self::random::*;
 pub use self::running_state::*;
 pub use self::stopwatch::*;
-pub use self::timer::*;
+pub use self::timestep::*;
 pub use self::transform_stack::*;
 pub use self::types::*;

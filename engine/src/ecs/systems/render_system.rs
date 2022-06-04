@@ -40,7 +40,7 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
         (mut renderer, mut events, mut window_events, mut timestep, mut running, camera_storage, mut debugger): Self::SystemData,
     ) {
         let mut window = self.window.borrow_mut();
-        timestep.click_frame(Duration::from_secs_f64(window.glfw_token.get_time()));
+        timestep.click();
         window.poll_events();
         debugger.frame_time.stop();
         debugger.frame_time.start();
@@ -71,7 +71,7 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
         });
         renderer.init_frame(&mut window);
         for camera in (&camera_storage).join() {
-            renderer.start_scene(&camera, &timestep);
+            renderer.start_scene(&camera);
         }
         let panel = self.get_panel(&api);
         renderer.submit_env_uniform("ambient_strength", Uniform::Float(panel.get_float("ambient_strength")));

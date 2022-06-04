@@ -40,9 +40,8 @@ impl<'a> System<'a> for MotionSystem {
         )
             .join()
         {
-            self.compute_kinematics(rigid_body, gravity, drag, dt.dt().as_secs_f64() as f64);
-            // println!("Pushing update");
-            self.push_frame_update(rigid_body, transform, dt.dt().as_secs_f64() as f64);
+            self.compute_kinematics(rigid_body, gravity, drag, dt.dt_f64());
+            self.push_frame_update(rigid_body, transform, dt.dt_f64());
             rigid_body.reset_acceleration();
         }
     }

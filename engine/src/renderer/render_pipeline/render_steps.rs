@@ -137,11 +137,10 @@ impl<'a> RenderPipeline<'a, FlushedDrawCallStep> {
         if let Some(draw_call) = queue.peek() {
             if draw_call.mesh_component.shader_id == self.state.active_shader {
                 self.state.bind_mesh(draw_call.mesh_component.vertex_array_id);
-                let mut ret = RenderPipeline::<'a, ActivatedShaderStep> {
+                let ret = RenderPipeline::<'a, ActivatedShaderStep> {
                     _marker: std::marker::PhantomData::default(),
                     state: self.state,
                 };
-                ret.state.clear_textures();
                 Either::Right(ret)
             } else {
                 self.state.bind_shader(draw_call.mesh_component.shader_id);

@@ -137,12 +137,8 @@ impl Renderer {
 
     // Methods that do something instead of just get/set things
 
-    pub fn start_scene<'a>(&mut self, camera: &Camera, _timestep: &Timestep) {
-        // self.process_all_events();
+    pub fn start_scene<'a>(&mut self, camera: &Camera) {
         self.extract_camera_uniforms(&camera);
-
-        // #[cfg(feature = "debug")]
-        // self.ui_renderer.add_diagnostics_pannel(camera, timestep, &self.config);
     }
 
     pub fn init_frame(&mut self, window: &mut Window) {

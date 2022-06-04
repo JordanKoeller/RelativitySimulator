@@ -204,18 +204,21 @@ impl MeshBufferBuilder<AddingVerticesStep> {
             let kd_tree = KdTree::new(builder.vertices.clone(), 8);
             for i in 0..builder.vertices.len() {
                 let faces = kd_tree.query_near(&builder.vertices[i].position(), 0.0001);
-                builder.vertices[i].normal = faces
+                builder.vertices[i].normal = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
-                    / (faces.len() as f64);
-                builder.vertices[i].tangent = faces
+                    / (faces.len() as f64))
+                    .normalize();
+                builder.vertices[i].tangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
-                    / (faces.len() as f64);
-                builder.vertices[i].bitangent = faces
+                    / (faces.len() as f64))
+                    .normalize();
+                builder.vertices[i].bitangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
-                    / (faces.len() as f64);
+                    / (faces.len() as f64))
+                    .normalize();
             }
         }
         builder

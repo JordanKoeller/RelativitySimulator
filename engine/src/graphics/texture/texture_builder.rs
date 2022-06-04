@@ -39,7 +39,7 @@ impl RegistryItem for TextureBuilder {
     type K = TextureId;
     type V = Texture;
 
-    fn build(mut self) -> Self::V {
+    fn build(self) -> Self::V {
         if !self.is_buildable() {
             panic!("Tried to build a texture from a incomplete builder!");
         }
