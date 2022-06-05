@@ -75,6 +75,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
     }
 
     fn setup(&mut self, mut world: WorldProxy) {
+        Self::SystemData::setup(&mut world);
         self.register_debugger(&world);
         let receiver = {
             let mut listener = world.write_resource::<StatelessEventChannel<WindowEvent>>();
@@ -88,19 +89,11 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                 WindowEvent::new(Event::MouseMoved),
             ]))
         };
-        let pos = Vec3F::new(4f64, 4f64, 2f64);
-        let tc = TransformComponent::new(pos, Vec3F::new(1f64, 1f64, 1f64), QuatF::one());
-        world.register::<Player>();
-        world.register::<RigidBody>();
-        world.register::<TransformComponent>();
-        world.register::<EventReceiver>();
-        world.register::<Camera>();
+        let camera = Camera::new(Vec3F::new(4f64, 4f64, 2f64), Vec3F::new(0f64, 0f64, 1f64));
         world
             .create_entity()
             .with(Player)
-            .with(tc)
-            .with(Camera::default())
-            .with(RigidBody::new_stationary())
+            .with(camera)
             .with(receiver)
             .build();
     }

@@ -33,6 +33,20 @@ impl Default for Camera {
 }
 
 impl Camera {
+
+    pub fn new(position: Vec3F, facing: Vec3F) -> Self {
+        let facing = facing.normalize();
+        let euler_angles = cgmath::Euler::new(
+            cgmath::Rad(facing.y.sin()),
+            cgmath::Rad(facing.z.atan2(facing.x)),
+            cgmath::Rad(0f64),
+        );
+        let mut ret = Self::default();
+        ret.position = position;
+        ret.euler_angles = euler_angles;
+        ret
+    }
+
     // Camera matrices
     pub fn projection_matrix(&self) -> Mat4F {
         cgmath::perspective(self.fovy, self.aspect_ratio, self.near_distance, self.far_distance)
