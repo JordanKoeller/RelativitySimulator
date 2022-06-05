@@ -24,15 +24,15 @@ impl<'a> MonoBehavior<'a> for PlayerController {
     type SystemData = PlayerControllerSystemData<'a>;
 
     fn run(&mut self, api: SystemUtilities<'a>, mut s: Self::SystemData) {
-        for (_p, camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
-            let init_rotation = transform.clone();
+        for (_p, camera, events) in (&s.player, &mut s.camera, &s.event_receiver).join() {
+            let mut delta: Vec3F = Vec3F::zero();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
-                Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::LeftShift) => transform.translation -= init_rotation.up().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::Space) => transform.translation += init_rotation.up().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::A) => delta -= camera.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::S) => delta -= camera.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::D) => delta += camera.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::LeftShift) => delta -= Vec3F::unit_y().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::Space) =>     delta += Vec3F::unit_y().normalize_to(0.04f64),
                 Event::MouseMoved => {
                     if let Some(payload) = &evt.payload {
                         match payload {
@@ -98,13 +98,13 @@ impl<'a> SystemDebugger<'a> for PlayerController {
     }
 }
 
-impl PlayerController {
-    fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
-        let location = cgmath::Point3::<f64>::new(t.translation.x, t.translation.y, t.translation.z);
-        let pov = t.translation + t.front();
-        let center = cgmath::Point3::<f64>::new(pov.x, pov.y, pov.z);
-        let up = Vec3F::unit_y();
-        let matrix = Mat4F::look_at(location, center, up);
-        cam.set_matrix(matrix);
-    }
-}
+// impl PlayerController {
+//     fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
+//         let location = cgmath::Point3::<f64>::new(t.translation.x, t.translation.y, t.translation.z);
+//         let pov = t.translation + t.front();
+//         let center = cgmath::Point3::<f64>::new(pov.x, pov.y, pov.z);
+//         let up = Vec3F::unit_y();
+//         let matrix = Mat4F::look_at(location, center, up);
+//         cam.set_matrix(matrix);
+//     }
+// }

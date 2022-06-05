@@ -75,7 +75,7 @@ impl Window {
             // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
         }
 
-        // print_limits();
+        print_limits();
 
         let mut im_ctx = ImContext::create();
 

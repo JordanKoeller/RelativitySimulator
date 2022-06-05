@@ -8,7 +8,7 @@ use crate::events::ReceiverID;
 use crate::graphics::AssetLibrary;
 use crate::gui::GuiRenderer;
 use crate::platform::Window;
-use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState};
+use crate::utils::{GetMutRef, MutRef, RunningEnum, RunningState, StopwatchLike, Timestep};
 
 pub type SystemsRegistration<'a, 'b> = dyn Fn(DispatcherBuilder<'a, 'b>) -> DispatcherBuilder<'a, 'b>;
 
@@ -31,11 +31,11 @@ impl<'a, 'b> GameLoop<'a, 'b> {
 
     pub fn run(&mut self) {
         let mut running = true;
-        println!("About to dispatch");
         self.dispatcher.setup(&mut self.world);
-        println!("Finished setting up. About to begin running");
         self.maintain();
-        println!("Called preemptive maintain");
+        {
+            self.world.write_resource::<DebugMetrics>().frame_time.start();
+        }
         while running {
             running = self.step_frame();
         }
@@ -71,5 +71,8 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         self.world.maintain();
         let mut asset_library = self.world.write_resource::<AssetLibrary>();
         asset_library.flush_all();
+        {
+            self.world.write_resource::<Timestep>().click();
+        }
     }
 }

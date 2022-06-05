@@ -16,11 +16,7 @@ impl Default for EventProcessingSystem {
 }
 
 impl<'a> System<'a> for EventProcessingSystem {
-    type SystemData = (
-        Write<'a, Renderer>,
-        Write<'a, StatelessEventChannel<WindowEvent>>,
-        // Write<'a, EventChannel<ImguiUiEvent>>,
-    );
+    type SystemData = (Write<'a, Renderer>, Write<'a, StatelessEventChannel<WindowEvent>>);
 
     fn run(&mut self, (mut renderer, mut window_evt): Self::SystemData) {
         // Load component data into the UI

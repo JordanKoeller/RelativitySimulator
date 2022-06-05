@@ -1,4 +1,5 @@
 use cgmath::prelude::*;
+use cgmath::{Deg, Euler, Rad};
 use specs::prelude::*;
 
 use engine::ecs::components::{Camera, EventReceiver, Player};
@@ -17,9 +18,18 @@ pub struct PlayerControllerSystemData<'a> {
     event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
 }
 
-#[derive(Default)]
 pub struct PlayerController {
     sensitivity_scalar: f64,
+    euler_angles: cgmath::Euler<cgmath::Rad<f64>>,
+}
+
+impl Default for PlayerController {
+    fn default() -> Self {
+        Self {
+            sensitivity_scalar: 0.001f64,
+            euler_angles: cgmath::Euler::new(cgmath::Rad(0f64), cgmath::Rad(0f64), cgmath::Rad(0f64)),
+        }
+    }
 }
 
 impl<'a> MonoBehavior<'a> for PlayerController {
@@ -30,38 +40,23 @@ impl<'a> MonoBehavior<'a> for PlayerController {
             let panel = self.get_write_panel(&api);
             self.sensitivity_scalar = panel.get_float("Mouse Sensitivity");
         }
-        for (_p, camera, transform, events) in (&s.player, &mut s.camera, &mut s.transform, &s.event_receiver).join() {
-            let init_rotation = transform.clone();
+        for (_p, camera, events) in (&s.player, &mut s.camera, &s.event_receiver).join() {
+            let mut delta = Vec3F::zero();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
-                Event::KeyDown(KeyCode::W) => transform.translation += init_rotation.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::A) => transform.translation -= init_rotation.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::S) => transform.translation -= init_rotation.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::D) => transform.translation += init_rotation.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::LeftShift) => {
-                    transform.translation -= init_rotation.world_up().normalize_to(0.04f64)
-                }
-                Event::KeyDown(KeyCode::Space) => {
-                    transform.translation += init_rotation.world_up().normalize_to(0.04f64)
-                }
+                Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::A) => delta -= camera.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::S) => delta -= camera.front().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::D) => delta += camera.right().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::LeftShift) => delta -= Vec3F::unit_y().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::Space) => delta += Vec3F::unit_y().normalize_to(0.04f64),
                 Event::MouseMoved => {
                     if let Some(payload) = &evt.payload {
                         match payload {
                             EventPayload::MouseMove(vec) => {
-                                // Rotate in frame of camera
-                                // let right = init_rotation.right();
-                                // let up = init_rotation.up();
-                                let dx = cgmath::Rad(-vec.x * self.sensitivity_scalar);
+                                let dx = -cgmath::Rad(-vec.x * self.sensitivity_scalar);
                                 let dy = cgmath::Rad(vec.y * self.sensitivity_scalar);
-
-                                // let delta = QuatF::from_axis_angle(up, dx) * QuatF::from_axis_angle(right, dy);
-
-                                // Rotate around Euler angles
-                                // let euler_angles = cgmath::Euler::new(-dy, dx, cgmath::Rad(0f64));
-                                // let mut delta = QuatF::from(euler_angles);
-
-                                // Rotate around world coordinates
-                                let delta = QuatF::from_angle_y(dx) * QuatF::from_angle_x(-dy);
-                                transform.push_rotation(&delta.normalize());
+                                let euler_angles = cgmath::Euler::new(dy, dx, cgmath::Rad(0f64));
+                                camera.push_rotation(euler_angles);
                             }
                             _ => panic!("Received a payload of {:?} on MouseMoved event!", payload),
                         }
@@ -72,15 +67,10 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                     evt
                 ),
             });
-            self.refresh_camera(transform, camera);
+            camera.push_translation(delta);
             let mut panel = self.get_write_panel(&api);
-            let quat = &transform.rotation;
-            panel.set_str("Player Position", to_string!(transform.translation));
-            panel.set_str("Player Facing", to_string!(transform.front()));
-            panel.set_str(
-                "Player Quaternion",
-                format!("<{:.3}, {:.3}, {:.3}> {:.3}", quat.v.x, quat.v.y, quat.v.z, quat.s),
-            );
+            panel.set_str("Player Position", to_string!(camera.position()));
+            panel.set_str("Player Facing", to_string!(camera.front()));
         }
     }
 
@@ -133,17 +123,5 @@ impl<'a> SystemDebugger<'a> for PlayerController {
                 "Mouse Sensitivity",
                 InputFloat::new_with_limits("Mouse Sensitivity", 0.001, 0.001, 0.01),
             )
-    }
-}
-
-impl PlayerController {
-    fn refresh_camera(&self, t: &TransformComponent, cam: &mut Camera) {
-        let location = cgmath::Point3::<f64>::new(t.translation.x, t.translation.y, t.translation.z);
-        let pov = t.translation + t.front();
-        let center = cgmath::Point3::<f64>::new(pov.x, pov.y, pov.z);
-        let up = Vec3F::unit_y();
-        let matrix = Mat4F::look_at(location, center, up);
-        cam.set_matrix(matrix);
-        cam.set_position(t.translation);
     }
 }

@@ -6,10 +6,9 @@ use cgmath::prelude::*;
 
 use crate::physics::{AxisAlignedCubeCollision, Drag, Gravity, RigidBody, TransformComponent};
 
-use crate::renderer::LIGHT_SPEED;
 const MAX_ACCELERATION: f64 = 6f64;
 
-const DRAG: f64 = MAX_ACCELERATION / LIGHT_SPEED / LIGHT_SPEED;
+const DRAG: f64 = MAX_ACCELERATION / 36f64 / 36f64;
 const GRAVITY: f64 = 14f64;
 
 const ACCELERATION_MIN_MAGNITUDE: f64 = 0.00000001;
@@ -68,12 +67,10 @@ impl MotionSystem {
 
         // Angular
         if rigid_body.angular_acceleration.magnitude2() > ACCELERATION_MIN_MAGNITUDE {
-            rigid_body.angular_velocity = rigid_body.angular_velocity * rigid_body.angular_acceleration * dt;
+            rigid_body.angular_velocity += rigid_body.angular_acceleration * dt;
         }
     }
 
-    // Returns a vector and quaternion, representing how far this RigidBody
-    // has translated and rotated over this frame.
     fn push_frame_update(&self, rigid_body: &RigidBody, transform: &mut TransformComponent, dt: f64) {
         transform.push_translation(rigid_body.velocity * dt);
         transform.push_rotation(&(rigid_body.angular_velocity * dt));

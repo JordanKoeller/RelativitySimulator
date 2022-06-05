@@ -197,19 +197,9 @@ impl Renderer {
 
     fn extract_camera_uniforms(&mut self, camera: &Camera) {
         self.common_uniforms
-            .insert("view".to_string(), Uniform::Mat4(*camera.view_matrix()));
-        let f64_dims = Vec2F::new(
-            self.screen.framebuffer.spec.dims.x as f64,
-            self.screen.framebuffer.spec.dims.y as f64,
-        );
-        self.common_uniforms.insert(
-            "projection".to_string(),
-            Uniform::Mat4(camera.projection_matrix(&f64_dims)),
-        );
+            .insert("view".to_string(), Uniform::Mat4(camera.view_matrix()));
         self.common_uniforms
-            .insert("beta".to_string(), Uniform::Float(camera.beta()));
-        self.common_uniforms
-            .insert("gamma".to_string(), Uniform::Float(camera.gamma()));
+            .insert("projection".to_string(), Uniform::Mat4(camera.projection_matrix()));
         self.common_uniforms
             .insert("light_ambient".to_string(), Uniform::Vec3(Vec3F::new(1.0, 1.0, 1.0)));
         self.common_uniforms

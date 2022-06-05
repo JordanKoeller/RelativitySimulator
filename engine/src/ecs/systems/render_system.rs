@@ -16,7 +16,7 @@ use crate::physics::TransformComponent;
 use crate::platform::Window;
 use crate::renderer::render_pipeline::*;
 use crate::renderer::{DrawCall, RenderCommand, RenderQueue, Renderer};
-use crate::utils::{CompoundStopwatch, Counter, Mat4F, MutRef, RunningEnum, RunningState, StopwatchLike, Timestep};
+use crate::utils::{CompoundStopwatch, Counter, Mat4F, MutRef, RunningEnum, RunningState, StopwatchLike};
 
 pub struct StartFrameSystem {
     pub window: MutRef<Window>,
@@ -28,22 +28,17 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
         Write<'a, Renderer>,
         Write<'a, StatelessEventChannel<WindowEvent>>,
         Write<'a, WindowEventDispatcher>,
-        Write<'a, Timestep>,
         Write<'a, RunningState>,
         ReadStorage<'a, Camera>,
-        Write<'a, DebugMetrics>,
     );
 
     fn run(
         &mut self,
         api: SystemUtilities<'a>,
-        (mut renderer, mut events, mut window_events, mut timestep, mut running, camera_storage, mut debugger): Self::SystemData,
+        (mut renderer, mut events, mut window_events, mut running, camera_storage): Self::SystemData,
     ) {
         let mut window = self.window.borrow_mut();
-        timestep.click();
         window.poll_events();
-        debugger.frame_time.stop();
-        debugger.frame_time.start();
         window_events.process_events(&mut events, &mut window);
         events.for_each(&self.receiver_id, |window_evt| match window_evt.code {
             Event::KeyPressed(KeyCode::Control) => {

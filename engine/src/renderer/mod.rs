@@ -11,4 +11,3 @@ pub use self::render_pipeline::*;
 pub use self::render_queue::*;
 pub use self::renderer::*;
 pub use self::renderer_config::*;
-pub const LIGHT_SPEED: f64 = 12.0;

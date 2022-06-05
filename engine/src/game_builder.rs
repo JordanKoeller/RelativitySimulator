@@ -49,6 +49,8 @@ impl RendererBuilder {
     }
 }
 
+pub enum GameLoopPhase {}
+
 pub struct GameBuilder<'a, 'b> {
     render_builder: RendererBuilder,
     shaders: Vec<ShaderBuilder>,
@@ -162,22 +164,29 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
 
         // Set up dispatcher with rendering systems.
         let window_ref = GetMutRef(self.window);
+
+        let start_system = Sys::new(StartFrameSystem {
+            window: MutRef::clone(&window_ref),
+            receiver_id: world_id,
+        });
+
+        let gui_renderer = GuiRenderer {
+            window: MutRef::clone(&window_ref),
+        };
+
+        let end_system = EndFrameSystem {
+            window: MutRef::clone(&window_ref),
+        };
+
         let dispatcher = self
             .dispatcher_builder
-            .with_thread_local(Sys::new(StartFrameSystem {
-                window: MutRef::clone(&window_ref),
-                receiver_id: world_id,
-            }))
-            .with_thread_local(Sys::<DebugMetricsSystem>::default())
+            .with(Sys::<DebugMetricsSystem>::default(), "debug", &[])
+            .with(EventProcessingSystem::default(), "events", &[])
+            .with_thread_local(start_system)
             .with_thread_local(RegisterDrawableSystem)
-            .with_thread_local(EventProcessingSystem::default())
             .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))
-            .with_thread_local(GuiRenderer {
-                window: MutRef::clone(&window_ref),
-            })
-            .with_thread_local(EndFrameSystem {
-                window: MutRef::clone(&window_ref),
-            })
+            .with_thread_local(gui_renderer)
+            .with_thread_local(end_system)
             .build();
         GameLoop::new(self.world, dispatcher, window_ref)
     }
