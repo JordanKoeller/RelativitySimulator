@@ -11,7 +11,7 @@ use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
 use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent, Uniform};
-use crate::gui::{ControlPanel, ControlPanelBuilder, InputFloat, SystemDebugger, Widget};
+use crate::gui::{widgets::*, ControlPanel, ControlPanelBuilder, SystemDebugger};
 use crate::physics::TransformComponent;
 use crate::platform::Window;
 use crate::renderer::render_pipeline::*;
@@ -75,7 +75,7 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
             "specular_strength",
             Uniform::Float(panel.get_float("specular_strength")),
         );
-        renderer.submit_env_uniform("normal_strength", Uniform::Float(panel.get_float("normal_strength")));
+        renderer.submit_env_uniform("specular_power", Uniform::Float(panel.get_float("specular_power")));
     }
 
     fn setup(&mut self, world: WorldProxy) {
@@ -87,13 +87,13 @@ impl<'a> SystemDebugger<'a> for StartFrameSystem {
     fn create_panel(&self) -> ControlPanelBuilder {
         ControlPanelBuilder::default()
             .with_title("Render Parameters")
-            .push_line("ambient_strength", InputFloat::new("Ambient Strength", 0.1))
-            .push_line("diffuse_strength", InputFloat::new("Diffuse Strength", 0.5))
+            .push_line("ambient_strength", InputFloat::new("Ambient Strength", 0.2))
+            .push_line("diffuse_strength", InputFloat::new("Diffuse Strength", 0.4))
+            .push_line("specular_strength", InputFloat::new("Specular Strength", 0.8))
             .push_line(
-                "specular_strength",
-                InputFloat::new_with_limits("Specular Strength", 32f64, 4f64, 64f64),
+                "specular_power",
+                InputFloat::new_with_limits("Specular Power", 32f64, 4f64, 64f64),
             )
-            .push_line("normal_strength", InputFloat::new("Normals Strength", 1.0))
     }
 }
 
@@ -191,9 +191,9 @@ impl RenderPipelineSystem {
         renderer.init_frame(&mut self.window.borrow_mut());
     }
 
-    fn render<'a>(&mut self, system_data: &mut <Self as System<'a>>::SystemData) {
+    fn render<'a>(&mut self, system_data: &mut RenderSystemData<'a>) {
         system_data.renderer.render_scene(
-            system_data.render_queue.consume(),
+            system_data.render_queue.iter(),
             &system_data.material_s,
             &system_data.transform_s,
             &mut system_data.assets,

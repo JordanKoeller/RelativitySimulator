@@ -62,8 +62,8 @@ uniform vec3 light_diffuse;
 uniform vec3 light_specular;
 uniform float ambient_strength;
 uniform float diffuse_strength;
+uniform float specular_power;
 uniform float specular_strength;
-uniform float normal_strength;
 
 // Material Uniforms
 uniform sampler2D diffuse_texture;
@@ -76,10 +76,7 @@ uniform vec3 specular;
 void main()
 {
 
-    vec3 normal = vec3(0.0, 0.0, 1.0)
-      * (1.0 - normal_strength)
-      + normal_strength
-      * normalize(texture(normal_map_texture, uv).rgb * 2.0 - 1.0);
+    vec3 normal = normalize(texture(normal_map_texture, uv).rgb * 2.0 - 1.0);
 
     // ambient
     vec3 ambient_lighting = ambient_strength * light_ambient;
@@ -93,12 +90,13 @@ void main()
     vec3 view_direction = normalize(tangent_camera_position - tangent_frag_position);
     vec3 reflect_direction = reflect(-light_direction, normal);
     vec3 halfway_direction = normalize(light_direction + view_direction);  
-    float spec = pow(max(dot(normal, halfway_direction), 0.0), specular_strength);
+    float spec = pow(max(dot(normal, halfway_direction), 0.0), specular_power);
   	vec3 specular_lighting = spec * light_specular;
+    float spec_mag = texture(specular_texture, uv).x * specular_strength;
 
     vec3 ambient_contrib =  (ambient + texture(diffuse_texture, uv).xyz) * ambient_lighting;
     vec3 diffuse_contrib =  (diffuse + texture(diffuse_texture, uv).xyz) * diffuse_lighting;
-    vec3 specular_contrib = (specular + texture(specular_texture, uv).xyz) * specular_lighting;
+    vec3 specular_contrib = (specular + vec3(spec_mag, spec_mag, spec_mag)) * specular_lighting;
 
     FragColor = vec4(ambient_contrib + diffuse_contrib + specular_contrib, 1.0);
 }

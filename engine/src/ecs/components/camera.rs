@@ -33,7 +33,6 @@ impl Default for Camera {
 }
 
 impl Camera {
-
     pub fn new(position: Vec3F, facing: Vec3F) -> Self {
         let facing = facing.normalize();
         let euler_angles = cgmath::Euler::new(

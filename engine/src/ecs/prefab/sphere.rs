@@ -107,7 +107,7 @@ impl Sphere {
 
     fn build_from_polar(state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
         let mut mesh_builder = MeshBuilder::default()
-            .with_shading_strategy(ShadingStrategy::PerFace)
+            .with_shading_strategy(ShadingStrategy::PerVertex)
             .next();
         for i in 0..state.lod {
             for j in 0..state.lod {

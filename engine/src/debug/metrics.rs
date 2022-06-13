@@ -1,7 +1,7 @@
 use crate::specs::*;
 
 use crate::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
-use crate::gui::{ControlPanel, ControlPanelBuilder, LabeledText, SystemDebugger, Widget};
+use crate::gui::{widgets::*, ControlPanel, ControlPanelBuilder, SystemDebugger};
 use crate::utils::{Averager, CompoundStopwatch, Counter, StopwatchLike, Timestep};
 
 pub struct DebugMetrics {
@@ -9,6 +9,7 @@ pub struct DebugMetrics {
     pub draw_calls: Counter,
     pub frame_time: CompoundStopwatch,
     pub render_time: CompoundStopwatch,
+    pub poly_count: Counter,
 }
 
 impl Default for DebugMetrics {
@@ -18,6 +19,7 @@ impl Default for DebugMetrics {
             draw_calls: Counter::default(),
             frame_time: CompoundStopwatch::new(120u32),
             render_time: CompoundStopwatch::new(120u32),
+            poly_count: Counter::default(),
         }
     }
 }
@@ -56,6 +58,7 @@ impl<'a> MonoBehavior<'a> for DebugMetricsSystem {
         }
         panel.set_str("DrawCalls", format!("{}", debugger.draw_calls.get()));
         panel.set_str("TimestepValue", format!("{:.6} Avg", self.timestep_averager.get_avg()));
+        panel.set_str("PolyCount", format!("{} ", debugger.poly_count.get()));
         debugger.frame_time.start();
     }
 
@@ -72,6 +75,7 @@ impl<'a> SystemDebugger<'a> for DebugMetricsSystem {
             .push_line("FrameTime", LabeledText::new("NaN", "Frame Time (avg)"))
             .push_line("RenderTime", LabeledText::new("NaN", "Render Time"))
             .push_line("DrawCalls", LabeledText::new("NaN", "Draw Calls"))
+            .push_line("PolyCount", LabeledText::new("NaN", "Poly Count"))
             .push_line("TimestepValue", LabeledText::new("NaN", "Timestep Value"))
     }
 }

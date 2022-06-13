@@ -6,7 +6,7 @@ use crate::physics::TransformComponent;
 use crate::platform::Window;
 use crate::utils::MutRef;
 
-use super::{ControlPanels, Widget};
+use super::{widgets::Widget, ControlPanels};
 
 pub struct GuiRenderer {
     pub window: MutRef<Window>,

@@ -19,6 +19,10 @@ impl Counter {
         *self.value.write().unwrap() += 1u32;
     }
 
+    pub fn increment_by(&self, value: u32) {
+        *self.value.write().unwrap() += value;
+    }
+
     pub fn reset(&self) {
         *self.value.write().unwrap() = 0u32;
     }

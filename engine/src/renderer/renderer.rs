@@ -3,10 +3,11 @@ use either::Either;
 use std::clone::Clone;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use std::sync::RwLockReadGuard;
 
 use specs::prelude::*;
 
-use crate::datastructures::RegistryItem;
+use crate::datastructures::{AVLTree, AVLTreeIterator, RegistryItem};
 use crate::debug::*;
 use crate::graphics::{
     AssetLibrary, AttributeType, BufferConfig, BufferLayout, DataBuffer, DataBufferBuilder, IndexBuffer,
@@ -15,7 +16,7 @@ use crate::graphics::{
 };
 use crate::platform::Window;
 use crate::renderer::render_pipeline::*;
-use crate::renderer::{Framebuffer, RenderQueueConsumer, RendererConfig};
+use crate::renderer::{DrawCall, Framebuffer, RenderQueueConsumer, RendererConfig};
 
 use crate::ecs::Camera;
 
@@ -127,11 +128,6 @@ impl Renderer {
     }
 
     pub fn submit_config(&mut self, config: RendererConfig) {
-        self.submit_common_uniform(
-            "lorentzFlag",
-            Uniform::Int(config.relativity_mode()),
-            UniformLifecycle::Runtime,
-        );
         self.config = config;
     }
 
@@ -160,22 +156,27 @@ impl Renderer {
 
     pub fn render_scene<'a, 'b>(
         &mut self,
-        mut queue: RenderQueueConsumer<'b>,
+        render_queue: RwLockReadGuard<'b, AVLTree<DrawCall>>,
         materials: &ReadStorage<'a, MaterialComponent>,
         transforms: &ReadStorage<'a, TransformComponent>,
         assets: &mut Write<'a, AssetLibrary>,
         debug_metrics: &DebugMetrics,
     ) {
         debug_metrics.draw_calls.reset();
+        debug_metrics.poly_count.reset();
+
+        let mut queue = render_queue.iter();
         let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, assets);
         if let Some(pipeline) = pipeline_opt {
             let mut active_pipeline = pipeline.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]);
+            let mut poly_count = 0usize;
             loop {
                 let saturated = active_pipeline.intake_queue(&mut queue, materials, transforms);
                 let flushed = saturated.flush();
                 debug_metrics.draw_calls.increment();
-                if queue.consumed() {
+                if queue.empty() {
                     self.common_uniforms.clear();
+                    poly_count = flushed.state.poly_count;
                     break;
                 } else {
                     let proceeded = flushed.proceed(&mut queue);
@@ -187,6 +188,7 @@ impl Renderer {
                     };
                 }
             }
+            debug_metrics.poly_count.increment_by(poly_count as u32);
         }
         // unsafe {
         //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);

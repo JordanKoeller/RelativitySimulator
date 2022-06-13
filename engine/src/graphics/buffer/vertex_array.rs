@@ -89,4 +89,10 @@ impl VertexArray {
             );
         }
     }
+
+    pub fn poly_count(&self) -> usize {
+        // TODO: Once instancing is supported again I need to multiply this
+        // by the number of instances
+        self.index_buffer.len() / 3usize
+    }
 }

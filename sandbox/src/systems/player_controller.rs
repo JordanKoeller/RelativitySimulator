@@ -1,33 +1,28 @@
 use cgmath::prelude::*;
-use cgmath::{Deg, Euler, Rad};
 use specs::prelude::*;
 
 use engine::ecs::components::{Camera, EventReceiver, Player};
 use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatelessEventChannel, WindowEvent};
-use engine::gui::{ControlPanelBuilder, InputFloat, LabeledText, SystemDebugger};
-use engine::physics::{RigidBody, TransformComponent};
-use engine::utils::{Mat4F, QuatF, Vec3F};
+use engine::gui::{widgets::*, ControlPanelBuilder, SystemDebugger};
+use engine::utils::Vec3F;
 
 #[derive(SystemData)]
 pub struct PlayerControllerSystemData<'a> {
     player: ReadStorage<'a, Player>,
     camera: WriteStorage<'a, Camera>,
-    transform: WriteStorage<'a, TransformComponent>,
     event_receiver: ReadStorage<'a, EventReceiver>,
     event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
 }
 
 pub struct PlayerController {
     sensitivity_scalar: f64,
-    euler_angles: cgmath::Euler<cgmath::Rad<f64>>,
 }
 
 impl Default for PlayerController {
     fn default() -> Self {
         Self {
             sensitivity_scalar: 0.001f64,
-            euler_angles: cgmath::Euler::new(cgmath::Rad(0f64), cgmath::Rad(0f64), cgmath::Rad(0f64)),
         }
     }
 }
@@ -90,12 +85,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
             ]))
         };
         let camera = Camera::new(Vec3F::new(4f64, 4f64, 2f64), Vec3F::new(0f64, 0f64, 1f64));
-        world
-            .create_entity()
-            .with(Player)
-            .with(camera)
-            .with(receiver)
-            .build();
+        world.create_entity().with(Player).with(camera).with(receiver).build();
     }
 }
 

@@ -33,20 +33,22 @@ fn main() {
         );
     let mut sphere_builder = Sphere::default();
     for i in 0..5 {
-        builder = builder.with_prefab(
-            &mut sphere_builder,
-            SphereState::new(
-                3f64,
-                Vec3F::new(0f64 + (10 * i) as f64, 4f64 + (10 * i) as f64, 16f64 + (10 * i) as f64),
-                Color::new(1f64, 0.3f64, 0.3f64),
-                "resources/earth/2k_earth_daymap.jpg",
-                "resources/earth/2k_earth_daymap.jpg",
-                // "resources/earth/2k_earth_normal_map.png",
-                // "resources/earth/2k_earth_normal_map.png",
-                "resources/earth/2k_earth_normal_map.png",
-                80,
-            ),
-        );
+        for j in 0..5 {
+            for k in 0..5 {
+                builder = builder.with_prefab(
+                    &mut sphere_builder,
+                    SphereState::new(
+                        3f64,
+                        Vec3F::new(0f64 + (10 * i) as f64, 4f64 + (10 * j) as f64, 16f64 + (10 * k) as f64),
+                        Color::new(1f64, 0.3f64, 0.3f64),
+                        "resources/earth/2k_earth_daymap.jpg",
+                        "resources/earth/2k_earth_specular_map.png",
+                        "resources/earth/2k_earth_normal_map.png",
+                        64,
+                    ),
+                );
+            }
+        }
     }
     info!("Finished making the builder. About to send it off to engine::main");
     engine::main(builder);

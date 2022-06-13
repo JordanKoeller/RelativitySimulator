@@ -64,6 +64,7 @@ impl Window {
                 println!("======================================================================");
             }
             gl::Enable(gl::MULTISAMPLE);
+            gl::Enable(gl::CULL_FACE);
             glfw.window_hint(glfw::WindowHint::Samples(Some(4)));
             gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
             gl::Enable(gl::BLEND);

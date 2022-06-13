@@ -4,7 +4,7 @@ use specs::Read;
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use super::Widget;
+use super::widgets::Widget;
 use crate::datastructures::{GenericRegistry, Registry, RegistryItem};
 use crate::utils::{Vec2F, Vec3F};
 use std::any::TypeId;
