@@ -82,7 +82,7 @@ impl Cube {
             );
         }
 
-        builder.hydrate()
+        builder.next()
     }
 }
 

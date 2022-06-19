@@ -18,6 +18,7 @@ pub enum MeshPrimative {
 pub enum ShadingStrategy {
     PerVertex,
     PerFace,
+    Preset, // Indicates that the user set the normals, so they don't need to be computed.
 }
 
 pub trait MeshBuildStep {}
@@ -27,6 +28,9 @@ impl MeshBuildStep for NewBuilderStep {}
 
 pub struct AddingVerticesStep;
 impl MeshBuildStep for AddingVerticesStep {}
+
+pub struct SettingVerticesStep;
+impl MeshBuildStep for SettingVerticesStep {}
 
 pub struct HydratedBuilderStep;
 impl MeshBuildStep for HydratedBuilderStep {}
@@ -39,11 +43,21 @@ pub struct Vertex {
     pub normal: Vec3F,
     pub tangent: Vec3F,
     pub bitangent: Vec3F,
+    base_index: Option<usize>,
 }
 
 impl HasPosition for Vertex {
     fn position(&self) -> &Vec3F {
         &self.position
+    }
+}
+
+impl Vertex {
+    fn with_base_index(&self, index: usize) -> Self {
+        Self {
+            base_index: Some(index),
+            ..self.clone()
+        }
     }
 }
 
@@ -81,24 +95,7 @@ impl Default for MeshBufferBuilder<NewBuilderStep> {
     }
 }
 
-impl<T: MeshBuildStep> MeshBufferBuilder<T> {
-    fn consume<N: MeshBuildStep>(self) -> MeshBufferBuilder<N> {
-        MeshBufferBuilder::<N> {
-            vertices: self.vertices,
-            primative_type: self.primative_type,
-            storage_type: self.storage_type,
-            shading_strategy: self.shading_strategy,
-            index_buffer: self.index_buffer,
-            layout: self.layout,
-            attribute_divisor: self.attribute_divisor,
-            _marker: std::marker::PhantomData::<N>::default(),
-        }
-    }
 
-    pub fn num_vertices(&self) -> usize {
-        self.vertices.len()
-    }
-}
 
 impl MeshBufferBuilder<NewBuilderStep> {
     pub fn with_storage_type(mut self, storage_type: BufferStorageLevel) -> Self {
@@ -114,6 +111,11 @@ impl MeshBufferBuilder<NewBuilderStep> {
     pub fn with_shading_strategy(mut self, strategy: ShadingStrategy) -> Self {
         self.shading_strategy = strategy;
         self
+    }
+
+    pub fn with_index_buffer(mut self, indices: Vec<u32>) -> MeshBufferBuilder<SettingVerticesStep> {
+        self.index_buffer = indices;
+        self.consume::<SettingVerticesStep>()
     }
 
     pub fn next(self) -> MeshBufferBuilder<AddingVerticesStep> {
@@ -132,6 +134,7 @@ impl MeshBufferBuilder<AddingVerticesStep> {
             normal: Vec3F::zero(),
             tangent: Vec3F::zero(),
             bitangent: Vec3F::zero(),
+            base_index: None,
         };
         let i = self.vertices.len();
         self.vertices.push(vertex);
@@ -146,6 +149,7 @@ impl MeshBufferBuilder<AddingVerticesStep> {
             normal: Vec3F::zero(),
             tangent: Vec3F::zero(),
             bitangent: Vec3F::zero(),
+            base_index: None,
         };
         let i = self.vertices.len();
         self.vertices.push(vertex);
@@ -160,70 +164,19 @@ impl MeshBufferBuilder<AddingVerticesStep> {
         builder
     }
 
-    pub fn hydrate(self) -> MeshBufferBuilder<HydratedBuilderStep> {
-        let mut builder = self.consume::<HydratedBuilderStep>();
-        for i in 0..builder.vertices.len() {
-            builder.index_buffer.push(i as u32);
-        }
-        for e in 0..builder.vertices.len() / 3 {
-            let i = e * 3;
-            // Triangles wind in a counter-clockwise order.
-            let (normal_vec, tangent_vec, bitangent_vec) = {
-                let a = &builder.vertices[i];
-                let b = &builder.vertices[i + 1];
-                let c = &builder.vertices[i + 2];
-                let edge1 = b.position - a.position;
-                let edge2 = c.position - a.position;
-                let duv1 = b.uv - a.uv;
-                let duv2 = c.uv - a.uv;
-                let normal = edge1.cross(edge2).normalize();
-                let f = 1.0f64 / (duv1.x * duv2.y - duv2.x * duv1.y);
-                let tangent = Vec3F::new(
-                    f * (duv2.y * edge1.x - duv1.y * edge2.x),
-                    f * (duv2.y * edge1.y - duv1.y * edge2.y),
-                    f * (duv2.y * edge1.z - duv1.y * edge2.z),
-                );
-                let bitangent = Vec3F::new(
-                    f * (-duv2.x * edge1.x + duv1.x * edge2.x),
-                    f * (-duv2.x * edge1.y + duv1.x * edge2.y),
-                    f * (-duv2.x * edge1.z + duv1.x * edge2.z),
-                );
-                (normal, tangent, bitangent)
-            };
-            if builder.vertices[i].normal.magnitude2() < 1e-6f64 {
-                builder.vertices[i].normal = normal_vec;
-                builder.vertices[i + 1].normal = normal_vec;
-                builder.vertices[i + 2].normal = normal_vec;
-            }
-            builder.vertices[i].tangent = tangent_vec;
-            builder.vertices[i].bitangent = bitangent_vec;
-            builder.vertices[i + 1].tangent = tangent_vec;
-            builder.vertices[i + 1].bitangent = bitangent_vec;
-            builder.vertices[i + 2].tangent = tangent_vec;
-            builder.vertices[i + 2].bitangent = bitangent_vec;
-        }
-        if &builder.shading_strategy == &ShadingStrategy::PerVertex {
-            let kd_tree = KdTree::new(builder.vertices.clone(), 8);
-            for i in 0..builder.vertices.len() {
-                let faces = kd_tree.query_near(&builder.vertices[i].position(), 0.0001);
-                builder.vertices[i].normal = (faces
-                    .iter()
-                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
-                    / (faces.len() as f64))
-                    .normalize();
-                builder.vertices[i].tangent = (faces
-                    .iter()
-                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
-                    / (faces.len() as f64))
-                    .normalize();
-                builder.vertices[i].bitangent = (faces
-                    .iter()
-                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
-                    / (faces.len() as f64))
-                    .normalize();
-            }
-        }
-        builder
+    pub fn next(self) -> MeshBufferBuilder<HydratedBuilderStep> {
+        self.hydrate()
+    }
+}
+
+impl MeshBufferBuilder<SettingVerticesStep> {
+
+    pub fn set(&mut self, index: usize) -> &mut Vertex {
+        &mut self.vertices[index]
+    }
+
+    pub fn get(&self, index: usize) -> &Vertex {
+        &self.vertices[index]
     }
 }
 
@@ -266,3 +219,132 @@ impl Into<VertexArrayBuilder> for MeshBufferBuilder<HydratedBuilderStep> {
             )
     }
 }
+
+impl<T: MeshBuildStep> MeshBufferBuilder<T> {
+    fn consume<N: MeshBuildStep>(self) -> MeshBufferBuilder<N> {
+        MeshBufferBuilder::<N> {
+            vertices: self.vertices,
+            primative_type: self.primative_type,
+            storage_type: self.storage_type,
+            shading_strategy: self.shading_strategy,
+            index_buffer: self.index_buffer,
+            layout: self.layout,
+            attribute_divisor: self.attribute_divisor,
+            _marker: std::marker::PhantomData::<N>::default(),
+        }
+    }
+
+    pub fn num_vertices(&self) -> usize {
+        self.vertices.len()
+    }
+
+    fn hydrate(mut self) -> MeshBufferBuilder<HydratedBuilderStep> {
+        if self.index_buffer.is_empty() {
+            self.index_buffer = (0..self.num_vertices() as u32).collect()
+        }
+        // Compute per-face
+        // TODO: If the index-buffer is not built from 2 lines above,
+        // I need to expand out to a flat array to get accurate per-face values.
+        // Otherwise I'll only have the NTB of the last face the vertex is involved in.
+        for i in 0..self.index_buffer.len() / 3 {
+            let ii = i * 3;
+            let (normal, tangent, bitangent) = self.compute_face_basis(ii);
+            for vert_i in ii..ii+3 {
+                if self.shading_strategy != ShadingStrategy::Preset {
+                    self.vertices[vert_i].normal = normal;
+                }
+                // TODO: Use gram-schmidt to renormalize if the normal is Preset, since
+                // the tangent/bitangent probably are not orthogonal to the normal that was
+                // manually set. I'll need to think of how to do this intelligently.
+                self.vertices[vert_i].tangent = tangent;
+                self.vertices[vert_i].bitangent = bitangent;
+            }
+        }
+        if self.shading_strategy == ShadingStrategy::PerVertex {
+            let flattened_vertices: Vec<Vertex> = self.index_buffer.iter().map(|&i| self.vertices[i as usize].with_base_index(i as usize)).collect();
+            let kd_tree = KdTree::new(flattened_vertices, 8);
+            for i in 0..self.index_buffer.len() {
+                let faces = kd_tree.query_near(&self.vertices[i].position, 0.0001);
+                self.vertices[i].normal = (faces
+                    .iter()
+                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
+                    / (faces.len() as f64))
+                    .normalize();
+                    self.vertices[i].tangent = (faces
+                    .iter()
+                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
+                    / (faces.len() as f64))
+                    .normalize();
+                    self.vertices[i].bitangent = (faces
+                    .iter()
+                    .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
+                    / (faces.len() as f64))
+                    .normalize();
+            }
+        }
+        self.consume()
+    }
+
+
+    fn compute_face_basis(&self, i: usize) -> (Vec3F, Vec3F, Vec3F) {
+        let a = &self.vertices[i];
+        let b = &self.vertices[i + 1];
+        let c = &self.vertices[i + 2];
+        let edge1 = b.position - a.position;
+        let edge2 = c.position - a.position;
+        let duv1 = b.uv - a.uv;
+        let duv2 = c.uv - a.uv;
+        let normal = edge1.cross(edge2).normalize();
+        let f = 1.0f64 / (duv1.x * duv2.y - duv2.x * duv1.y);
+        let tangent = Vec3F::new(
+            f * (duv2.y * edge1.x - duv1.y * edge2.x),
+            f * (duv2.y * edge1.y - duv1.y * edge2.y),
+            f * (duv2.y * edge1.z - duv1.y * edge2.z),
+        );
+        let bitangent = Vec3F::new(
+            f * (-duv2.x * edge1.x + duv1.x * edge2.x),
+            f * (-duv2.x * edge1.y + duv1.x * edge2.y),
+            f * (-duv2.x * edge1.z + duv1.x * edge2.z),
+        );
+        (normal, tangent, bitangent)
+    }
+}
+
+
+/*
+            let i = e * 3;
+            // Triangles wind in a counter-clockwise order.
+            let (normal_vec, tangent_vec, bitangent_vec) = {
+                let a = &builder.vertices[i];
+                let b = &builder.vertices[i + 1];
+                let c = &builder.vertices[i + 2];
+                let edge1 = b.position - a.position;
+                let edge2 = c.position - a.position;
+                let duv1 = b.uv - a.uv;
+                let duv2 = c.uv - a.uv;
+                let normal = edge1.cross(edge2).normalize();
+                let f = 1.0f64 / (duv1.x * duv2.y - duv2.x * duv1.y);
+                let tangent = Vec3F::new(
+                    f * (duv2.y * edge1.x - duv1.y * edge2.x),
+                    f * (duv2.y * edge1.y - duv1.y * edge2.y),
+                    f * (duv2.y * edge1.z - duv1.y * edge2.z),
+                );
+                let bitangent = Vec3F::new(
+                    f * (-duv2.x * edge1.x + duv1.x * edge2.x),
+                    f * (-duv2.x * edge1.y + duv1.x * edge2.y),
+                    f * (-duv2.x * edge1.z + duv1.x * edge2.z),
+                );
+                (normal, tangent, bitangent)
+            };
+            if builder.vertices[i].normal.magnitude2() < 1e-6f64 {
+                builder.vertices[i].normal = normal_vec;
+                builder.vertices[i + 1].normal = normal_vec;
+                builder.vertices[i + 2].normal = normal_vec;
+            }
+            builder.vertices[i].tangent = tangent_vec;
+            builder.vertices[i].bitangent = bitangent_vec;
+            builder.vertices[i + 1].tangent = tangent_vec;
+            builder.vertices[i + 1].bitangent = bitangent_vec;
+            builder.vertices[i + 2].tangent = tangent_vec;
+            builder.vertices[i + 2].bitangent = bitangent_vec;
+*/

@@ -18,7 +18,7 @@ impl ModelLoader {
     pub fn new(path: &str) -> Self {
         Self {
             path: path.to_string(),
-            shading_strategy: ShadingStrategy::PerFace,
+            shading_strategy: ShadingStrategy::Preset,
         }
     }
 }
@@ -90,7 +90,7 @@ impl ModelBuilder {
                 );
             }
         }
-        let hydrated_builder = mesh_builder.hydrate();
+        let hydrated_builder = mesh_builder.next();
         (hydrated_builder.into(), mesh.material_id.clone())
     }
 

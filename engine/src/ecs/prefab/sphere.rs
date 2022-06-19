@@ -119,7 +119,7 @@ impl Sphere {
                 mesh_builder.push_vertex_flat(tr.0.x, tr.0.y, tr.0.z, tr.1.x, tr.1.y);
             }
         }
-        mesh_builder.hydrate()
+        mesh_builder.next()
     }
 
     fn build_from_cube(&self, state: &<Self as PrefabBuilder>::PrefabState) -> MeshBufferBuilder<HydratedBuilderStep> {
@@ -191,7 +191,7 @@ impl Sphere {
             vert.position = direction_vector;
             mesh_builder.vertices[i] = vert;
         }
-        let mesh_builder = mesh_builder.hydrate();
+        let mesh_builder = mesh_builder.next();
         mesh_builder
         // mesh_builder.hydrate_mock()
     }
