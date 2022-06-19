@@ -63,34 +63,19 @@ impl ModelBuilder {
         mesh: &tobj::Mesh,
         shading_strategy: ShadingStrategy,
     ) -> (VertexArrayBuilder, Option<usize>) {
-        let mut mesh_builder = MeshBuilder::default().with_shading_strategy(shading_strategy).next();
-        for t_index in mesh.indices.iter() {
-            let i = (t_index * 3) as usize;
-            let uv = (t_index * 2) as usize;
-            let v_i = if !mesh.texcoords.is_empty() {
-                mesh_builder.push_vertex_flat(
-                    mesh.positions[i] as f64,
-                    mesh.positions[i + 1] as f64,
-                    mesh.positions[i + 2] as f64,
-                    mesh.texcoords[uv] as f64,
-                    1.0f64 - mesh.texcoords[uv + 1] as f64,
-                )
-            } else {
-                mesh_builder.push_vertex(
-                    mesh.positions[i] as f64,
-                    mesh.positions[i + 1] as f64,
-                    mesh.positions[i + 2] as f64,
-                )
-            };
+        let mut mesh_builder = MeshBuilder::default().with_shading_strategy(shading_strategy).with_index_buffer(mesh.indices.clone());
+        for &i in mesh.indices.iter() {
+            let p_i = (i * 3) as usize;
+            let uv_i = (i * 2) as usize;
+            mesh_builder.set(i as usize).position = Vec3F::new(mesh.positions[p_i] as f64, mesh.positions[p_i + 1] as f64, mesh.positions[p_i + 2] as f64);
             if !mesh.normals.is_empty() {
-                mesh_builder.vertices[v_i].normal = Vec3F::new(
-                    mesh.normals[i] as f64,
-                    mesh.normals[i + 1] as f64,
-                    mesh.normals[i + 2] as f64,
-                );
+                mesh_builder.set(i as usize).normal = Vec3F::new(mesh.normals[p_i] as f64, mesh.normals[p_i + 1] as f64, mesh.normals[p_i + 2] as f64);
+            }
+            if !mesh.texcoords.is_empty() {
+                mesh_builder.set(i as usize).uv = Vec2F::new(mesh.texcoords[uv_i] as f64, 1.0f64 - mesh.texcoords[uv_i + 1] as f64);
             }
         }
-        let hydrated_builder = mesh_builder.next();
+        let hydrated_builder = mesh_builder.hydrate();
         (hydrated_builder.into(), mesh.material_id.clone())
     }
 

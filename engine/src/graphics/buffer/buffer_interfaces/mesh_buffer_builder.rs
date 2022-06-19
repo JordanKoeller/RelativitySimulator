@@ -35,7 +35,7 @@ impl MeshBuildStep for SettingVerticesStep {}
 pub struct HydratedBuilderStep;
 impl MeshBuildStep for HydratedBuilderStep {}
 
-#[derive(Clone)]
+#[derive(Clone,)]
 pub struct Vertex {
     pub position: Vec3F,
     pub uv: Vec2F,
@@ -52,14 +52,19 @@ impl HasPosition for Vertex {
     }
 }
 
-impl Vertex {
-    fn with_base_index(&self, index: usize) -> Self {
+impl Default for Vertex {
+    fn default() -> Self { 
         Self {
-            base_index: Some(index),
-            ..self.clone()
+            position: Vec3F::zero(),
+            normal: Vec3F::zero(),
+            tangent: Vec3F::zero(),
+            bitangent: Vec3F::zero(),
+            uv: Vec2F::zero(),
+            base_index: None,
         }
     }
 }
+
 
 pub struct MeshBufferBuilder<T: MeshBuildStep> {
     pub vertices: Vec<Vertex>,
@@ -115,6 +120,8 @@ impl MeshBufferBuilder<NewBuilderStep> {
 
     pub fn with_index_buffer(mut self, indices: Vec<u32>) -> MeshBufferBuilder<SettingVerticesStep> {
         self.index_buffer = indices;
+        let max_ind_value = self.index_buffer.iter().fold(0u32, |acc, &i| i.max(acc));
+        self.vertices = (0..max_ind_value + 1).map(|_| Vertex::default()).collect();
         self.consume::<SettingVerticesStep>()
     }
 
@@ -154,14 +161,6 @@ impl MeshBufferBuilder<AddingVerticesStep> {
         let i = self.vertices.len();
         self.vertices.push(vertex);
         i
-    }
-
-    pub fn hydrate_mock(self) -> MeshBufferBuilder<HydratedBuilderStep> {
-        let mut builder = self.consume::<HydratedBuilderStep>();
-        for i in 0..builder.vertices.len() {
-            builder.index_buffer.push(i as u32);
-        }
-        builder
     }
 
     pub fn next(self) -> MeshBufferBuilder<HydratedBuilderStep> {
@@ -235,21 +234,24 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
     }
 
     pub fn num_vertices(&self) -> usize {
-        self.vertices.len()
+        self.index_buffer.len()
     }
 
-    fn hydrate(mut self) -> MeshBufferBuilder<HydratedBuilderStep> {
+    pub fn hydrate(mut self) -> MeshBufferBuilder<HydratedBuilderStep> {
         if self.index_buffer.is_empty() {
-            self.index_buffer = (0..self.num_vertices() as u32).collect()
+            self.index_buffer = (0..self.vertices.len() as u32).collect()
         }
         // Compute per-face
         // TODO: If the index-buffer is not built from 2 lines above,
         // I need to expand out to a flat array to get accurate per-face values.
         // Otherwise I'll only have the NTB of the last face the vertex is involved in.
         for i in 0..self.index_buffer.len() / 3 {
-            let ii = i * 3;
-            let (normal, tangent, bitangent) = self.compute_face_basis(ii);
-            for vert_i in ii..ii+3 {
+            let ii = i as usize * 3;
+            let a_i = self.index_buffer[ii] as usize;
+            let b_i = self.index_buffer[ii + 1] as usize;
+            let c_i = self.index_buffer[ii + 2] as usize;
+            let (normal, tangent, bitangent) = self.compute_face_basis(a_i, b_i, c_i);
+            for &vert_i in &[a_i, b_i, c_i] {
                 if self.shading_strategy != ShadingStrategy::Preset {
                     self.vertices[vert_i].normal = normal;
                 }
@@ -261,21 +263,22 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
             }
         }
         if self.shading_strategy == ShadingStrategy::PerVertex {
-            let flattened_vertices: Vec<Vertex> = self.index_buffer.iter().map(|&i| self.vertices[i as usize].with_base_index(i as usize)).collect();
+            let flattened_vertices: Vec<Vertex> = self.index_buffer.iter().map(|&i| self.vertices[i as usize].clone()).collect();
             let kd_tree = KdTree::new(flattened_vertices, 8);
             for i in 0..self.index_buffer.len() {
-                let faces = kd_tree.query_near(&self.vertices[i].position, 0.0001);
-                self.vertices[i].normal = (faces
+                let v_i = self.index_buffer[i] as usize;
+                let faces = kd_tree.query_near(&self.vertices[v_i].position, 0.0001);
+                self.vertices[v_i].normal = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
                     / (faces.len() as f64))
                     .normalize();
-                    self.vertices[i].tangent = (faces
+                    self.vertices[v_i].tangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
                     / (faces.len() as f64))
                     .normalize();
-                    self.vertices[i].bitangent = (faces
+                    self.vertices[v_i].bitangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
                     / (faces.len() as f64))
@@ -286,10 +289,10 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
     }
 
 
-    fn compute_face_basis(&self, i: usize) -> (Vec3F, Vec3F, Vec3F) {
-        let a = &self.vertices[i];
-        let b = &self.vertices[i + 1];
-        let c = &self.vertices[i + 2];
+    fn compute_face_basis(&self, a_i: usize, b_i: usize, c_i: usize) -> (Vec3F, Vec3F, Vec3F) {
+        let a = &self.vertices[a_i];
+        let b = &self.vertices[b_i];
+        let c = &self.vertices[c_i];
         let edge1 = b.position - a.position;
         let edge2 = c.position - a.position;
         let duv1 = b.uv - a.uv;
