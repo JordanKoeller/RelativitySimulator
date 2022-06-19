@@ -18,7 +18,7 @@ pub struct TextureBuilder {
     width: Option<u32>,
     height: Option<u32>,
     format: GLenum,
-    texture_id: RwAssetRef<(u32, gl::types::GLenum)>,
+    texture_id: RwAssetRef<(u32, gl::types::GLenum, String)>,
     is_cubemap: bool,
 }
 
@@ -29,7 +29,7 @@ impl Default for TextureBuilder {
             width: None,
             height: None,
             format: gl::RGB,
-            texture_id: RwAssetRef::new((std::u32::MAX, gl::TEXTURE_2D)),
+            texture_id: RwAssetRef::new((std::u32::MAX, gl::TEXTURE_2D, "".to_string())),
             is_cubemap: false,
         }
     }
@@ -93,7 +93,7 @@ impl TextureBuilder {
                 texture_helpers::load_file(full_path.to_str().expect("Could not construct path for"), false)
             });
             let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
-            self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP));
+            self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP, dirpath.clone()));
             Texture::new(self.texture_id, tb)
         } else {
             let pixel_size = match self.format {
@@ -110,7 +110,8 @@ impl TextureBuilder {
                 encoding: self.format,
             });
             let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
-            self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP));
+            self.texture_id
+                .set((texture_id, gl::TEXTURE_CUBE_MAP, "program".to_string()));
             Texture::new(self.texture_id, tb)
         }
     }
@@ -124,8 +125,8 @@ impl TextureBuilder {
                 &file_buffer.height,
                 &file_buffer.encoding,
             );
-            self.texture_id.set((texture_id, gl::TEXTURE_2D));
-            log::info!("Created texture from file {}", filename);
+            self.texture_id.set((texture_id, gl::TEXTURE_2D, filename.to_string()));
+            println!("Created texture from file {} to id {}", filename, texture_id);
             Texture::new(self.texture_id, file_buffer)
         } else {
             let pixel_size = match self.format {
@@ -144,7 +145,7 @@ impl TextureBuilder {
             };
             let texture_id =
                 texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding);
-            self.texture_id.set((texture_id, gl::TEXTURE_2D));
+            self.texture_id.set((texture_id, gl::TEXTURE_2D, "program".to_string()));
             Texture::new(self.texture_id, buffer)
         }
     }

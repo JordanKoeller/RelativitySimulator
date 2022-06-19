@@ -58,10 +58,6 @@ impl PrefabBuilder for Sphere {
             MeshComponent::new(vai, api.assets().get_shader_id("default_texture").unwrap())
         });
         let mut material = MaterialComponent::default();
-        material.ambient_texture(api.assets().get_or_create_texture(
-            "earth_texture",
-            TextureBuilder::default().with_file(&state.texture_file),
-        ));
         material.diffuse_texture(api.assets().get_or_create_texture(
             "earth_texture",
             TextureBuilder::default().with_file(&state.texture_file),
@@ -187,13 +183,13 @@ impl Sphere {
             }
         }
         for i in 0..mesh_builder.num_vertices() {
-            let mut vert = mesh_builder.vertices()[i].clone();
+            let mut vert = mesh_builder.vertices[i].clone();
             let direction_vector = vert.position.normalize();
             let theta = (-direction_vector.y).acos() / std::f64::consts::PI;
             let phi = direction_vector.z.atan2(direction_vector.x) / std::f64::consts::PI / 2f64;
             vert.uv = Vec2F::new(1f64 - phi, theta);
             vert.position = direction_vector;
-            mesh_builder.vertices()[i] = vert;
+            mesh_builder.vertices[i] = vert;
         }
         let mesh_builder = mesh_builder.hydrate();
         mesh_builder

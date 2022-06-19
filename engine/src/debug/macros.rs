@@ -24,7 +24,7 @@ pub fn _print_if_stepping(msg: String) {
 #[allow(unused_macros)]
 macro_rules! step_debug {
     ($literal:expr) => {
-        #[cfg(feature = "debug")]
+        // #[cfg(feature = "debug")]
         _print_if_stepping($literal);
     };
 }

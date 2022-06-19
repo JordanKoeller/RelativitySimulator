@@ -169,14 +169,14 @@ impl Renderer {
         let pipeline_opt = RenderPipeline::<'_, ReadyToDrawStep>::new(&mut queue, assets);
         if let Some(pipeline) = pipeline_opt {
             let mut active_pipeline = pipeline.bind_global_uniforms(&[&self.config_uniforms, &self.common_uniforms]);
-            let mut poly_count = 0usize;
+            let mut poly_count = 0u32;
             loop {
                 let saturated = active_pipeline.intake_queue(&mut queue, materials, transforms);
                 let flushed = saturated.flush();
                 debug_metrics.draw_calls.increment();
                 if queue.empty() {
                     self.common_uniforms.clear();
-                    poly_count = flushed.state.poly_count;
+                    poly_count = flushed.state.poly_count as u32;
                     break;
                 } else {
                     let proceeded = flushed.proceed(&mut queue);
@@ -188,7 +188,7 @@ impl Renderer {
                     };
                 }
             }
-            debug_metrics.poly_count.increment_by(poly_count as u32);
+            debug_metrics.poly_count.increment_by(poly_count);
         }
         // unsafe {
         //     gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);

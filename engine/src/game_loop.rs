@@ -48,6 +48,7 @@ impl<'a, 'b> GameLoop<'a, 'b> {
         let ret = match running_state {
             RunningEnum::Running => {
                 self.dispatcher.dispatch(&self.world);
+                gl_check_error!("FRAME MESSAGE");
                 window_open
             }
             RunningEnum::Stopped => false,

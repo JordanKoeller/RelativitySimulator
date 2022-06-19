@@ -141,6 +141,7 @@ impl<'a> RenderPipeline<'a, FlushedDrawCallStep> {
                     _marker: std::marker::PhantomData::default(),
                     state: self.state,
                 };
+                ret.state.unbind_textures();
                 Either::Right(ret)
             } else {
                 self.state.bind_shader(draw_call.mesh_component.shader_id.clone());

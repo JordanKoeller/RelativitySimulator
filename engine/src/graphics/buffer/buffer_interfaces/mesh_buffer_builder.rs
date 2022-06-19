@@ -14,7 +14,7 @@ pub enum MeshPrimative {
     QUAD,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub enum ShadingStrategy {
     PerVertex,
     PerFace,
@@ -48,7 +48,7 @@ impl HasPosition for Vertex {
 }
 
 pub struct MeshBufferBuilder<T: MeshBuildStep> {
-    vertices: Vec<Vertex>,
+    pub vertices: Vec<Vertex>,
     primative_type: MeshPrimative,
     storage_type: BufferStorageLevel,
     shading_strategy: ShadingStrategy,
@@ -95,10 +95,6 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
         }
     }
 
-    pub fn vertices(&mut self) -> &mut Vec<Vertex> {
-        &mut self.vertices
-    }
-
     pub fn num_vertices(&self) -> usize {
         self.vertices.len()
     }
@@ -128,7 +124,7 @@ impl MeshBufferBuilder<NewBuilderStep> {
 pub type MeshBuilder = MeshBufferBuilder<NewBuilderStep>;
 
 impl MeshBufferBuilder<AddingVerticesStep> {
-    pub fn push_vertex(&mut self, x: f64, y: f64, z: f64) {
+    pub fn push_vertex(&mut self, x: f64, y: f64, z: f64) -> usize {
         let vertex = Vertex {
             position: Vec3F::new(x, y, z),
             uv: Vec2F::zero(),
@@ -137,10 +133,12 @@ impl MeshBufferBuilder<AddingVerticesStep> {
             tangent: Vec3F::zero(),
             bitangent: Vec3F::zero(),
         };
+        let i = self.vertices.len();
         self.vertices.push(vertex);
+        i
     }
 
-    pub fn push_vertex_flat(&mut self, x: f64, y: f64, z: f64, u: f64, v: f64) {
+    pub fn push_vertex_flat(&mut self, x: f64, y: f64, z: f64, u: f64, v: f64) -> usize {
         let vertex = Vertex {
             position: Vec3F::new(x, y, z),
             uv: Vec2F::new(u, v),
@@ -149,7 +147,9 @@ impl MeshBufferBuilder<AddingVerticesStep> {
             tangent: Vec3F::zero(),
             bitangent: Vec3F::zero(),
         };
+        let i = self.vertices.len();
         self.vertices.push(vertex);
+        i
     }
 
     pub fn hydrate_mock(self) -> MeshBufferBuilder<HydratedBuilderStep> {
@@ -190,13 +190,15 @@ impl MeshBufferBuilder<AddingVerticesStep> {
                 );
                 (normal, tangent, bitangent)
             };
-            builder.vertices[i].normal = normal_vec;
+            if builder.vertices[i].normal.magnitude2() < 1e-6f64 {
+                builder.vertices[i].normal = normal_vec;
+                builder.vertices[i + 1].normal = normal_vec;
+                builder.vertices[i + 2].normal = normal_vec;
+            }
             builder.vertices[i].tangent = tangent_vec;
             builder.vertices[i].bitangent = bitangent_vec;
-            builder.vertices[i + 1].normal = normal_vec;
             builder.vertices[i + 1].tangent = tangent_vec;
             builder.vertices[i + 1].bitangent = bitangent_vec;
-            builder.vertices[i + 2].normal = normal_vec;
             builder.vertices[i + 2].tangent = tangent_vec;
             builder.vertices[i + 2].bitangent = bitangent_vec;
         }

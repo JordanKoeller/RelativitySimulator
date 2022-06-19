@@ -8,7 +8,7 @@ mod systems;
 
 use engine::ecs::{MotionSystem, Sys};
 use engine::info;
-use engine::prefab::{SkyboxBuilder, SkyboxPrefab, Sphere, SphereState};
+use engine::prefab::{ModelBuilder, ModelLoader, SkyboxBuilder, SkyboxPrefab, Sphere, SphereState};
 use engine::utils::{Color, Vec3F};
 
 use crate::prefabs::{Cube, CubeState};
@@ -26,15 +26,20 @@ fn main() {
             &mut Cube::default(),
             CubeState::new(
                 1.0f64,
-                Vec3F::new(4f64, 4f64, 4f64),
+                Vec3F::new(8f64, 9f64, 10f64),
                 "resources/debug/brickwall.jpg",
                 "resources/debug/bricks_tangent.png",
             ),
+        )
+        .with_prefab(
+            &mut ModelBuilder::default(),
+            ModelLoader::new("resources/debug/backpack/backpack.obj"),
         );
+
     let mut sphere_builder = Sphere::default();
-    for i in 0..5 {
-        for j in 0..5 {
-            for k in 0..5 {
+    for i in 0..3 {
+        for j in 0..3 {
+            for k in 0..3 {
                 builder = builder.with_prefab(
                     &mut sphere_builder,
                     SphereState::new(

@@ -32,7 +32,7 @@ impl Window {
         let mut glfw = glfw::init(glfw::LOG_ERRORS).unwrap();
         glfw.window_hint(glfw::WindowHint::ContextVersion(4, 1));
         glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
-        #[cfg(feature = "debug")]
+        // #[cfg(feature = "debug")]
         glfw.window_hint(glfw::WindowHint::OpenGlDebugContext(true)); // comment this line in a release build!
 
         #[cfg(target_os = "macos")]
@@ -76,6 +76,7 @@ impl Window {
             // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
         }
 
+        // #[cfg(feature = "debug")]
         print_limits();
 
         let mut im_ctx = ImContext::create();

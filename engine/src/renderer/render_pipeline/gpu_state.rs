@@ -68,7 +68,14 @@ impl<'a> GPUState<'a> {
     }
 
     pub fn clear_textures(&mut self) {
+        self.unbind_textures();
         self.textures.refresh();
+    }
+
+    pub fn unbind_textures(&self) {
+        for texture_slot in self.textures.bound_slots() {
+            self.shader_immut().unbind_texture_slot(*texture_slot);
+        }
     }
 
     fn shader_element_type(&self) -> gl::types::GLenum {

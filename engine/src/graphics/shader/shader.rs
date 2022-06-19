@@ -49,6 +49,14 @@ impl Shader {
         texture.bind(slot);
         let unif = Uniform::Int(slot as i32);
         self.set_uniform(name, &unif);
+        // println!("Setting uniform={} slot={} id={} filename={}", name, slot, texture.id(), texture.name());
+    }
+
+    pub fn unbind_texture_slot(&self, slot: u32) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + slot);
+            gl::BindTexture(gl::TEXTURE_2D, 0u32);
+        }
     }
 
     pub fn element_type(&self) -> &gl::types::GLenum {

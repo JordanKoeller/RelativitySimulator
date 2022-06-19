@@ -121,6 +121,12 @@ impl TextureBinder {
         self.generation += 1;
     }
 
+    pub fn bound_slots(&self) -> impl Iterator<Item = &u32> {
+        self.slots
+            .iter()
+            .filter_map(|node_opt| node_opt.as_ref().map(|node| &node.value))
+    }
+
     fn move_to_back(&mut self, node_to_move: usize) {
         let (moving_prev, moving_id, moving_next) = {
             let moving_node = self.slots[node_to_move].as_ref().unwrap();

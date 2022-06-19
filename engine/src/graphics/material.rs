@@ -102,7 +102,7 @@ impl MaterialComponent {
                     let slot = textures.get_slot(tex.id()).0;
                     shader.set_texture(slot, unif_name, tex);
                     if debug {
-                        println!("{} TEXTURE => {:?}", unif_name, slot);
+                        println!("{} TEXTURE => {:?}, {}", unif_name, slot, tex.name());
                     }
                 }
                 Uniform::CubeMap(tex) => {

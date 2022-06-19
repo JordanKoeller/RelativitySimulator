@@ -1130,9 +1130,12 @@ dependencies = [
 
 [[package]]
 name = "tobj"
-version = "2.0.4"
+version = "3.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2468f55be8e59cf7219f1685cf1af4eb00ef2314823a7941a41c8d69538f881b"
+checksum = "33477e8d090573560f104bb924ce29e92442a064404b21be6ea59a05c95e0e66"
+dependencies = [
+ "ahash",
+]
 
 [[package]]
 name = "tuple_utils"

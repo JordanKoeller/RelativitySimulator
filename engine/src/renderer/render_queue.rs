@@ -65,7 +65,7 @@ pub struct RenderQueue {
 
 impl RenderQueue {
     pub fn push(&self, cmd: DrawCall) {
-        self.queue.write().map(|mut tree| tree.push(cmd));
+        let _ = self.queue.write().map(|mut tree| tree.push(cmd));
     }
 
     pub fn len(&self) -> usize {

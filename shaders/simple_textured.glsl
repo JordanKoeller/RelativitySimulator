@@ -68,7 +68,7 @@ uniform float specular_strength;
 // Material Uniforms
 uniform sampler2D diffuse_texture;
 uniform sampler2D specular_texture;
-uniform sampler2D normal_map_texture;
+uniform sampler2D normal_texture;
 uniform vec3 ambient;
 uniform vec3 diffuse;
 uniform vec3 specular;
@@ -76,7 +76,7 @@ uniform vec3 specular;
 void main()
 {
 
-    vec3 normal = normalize(texture(normal_map_texture, uv).rgb * 2.0 - 1.0);
+    vec3 normal = normalize(texture(normal_texture, uv).rgb * 2.0 - 1.0);
 
     // ambient
     vec3 ambient_lighting = ambient_strength * light_ambient;
@@ -94,9 +94,10 @@ void main()
   	vec3 specular_lighting = spec * light_specular;
     float spec_mag = texture(specular_texture, uv).x * specular_strength;
 
-    vec3 ambient_contrib =  (ambient + texture(diffuse_texture, uv).xyz) * ambient_lighting;
-    vec3 diffuse_contrib =  (diffuse + texture(diffuse_texture, uv).xyz) * diffuse_lighting;
+    vec3 ambient_contrib =  (ambient  + texture(diffuse_texture, uv).xyz) * ambient_lighting;
+    vec3 diffuse_contrib =  (diffuse  + texture(diffuse_texture, uv).xyz) * diffuse_lighting;
     vec3 specular_contrib = (specular + vec3(spec_mag, spec_mag, spec_mag)) * specular_lighting;
 
+    // FragColor = vec4(normal, 1.0); // vec4(ambient_contrib + diffuse_contrib + specular_contrib, 1.0);
     FragColor = vec4(ambient_contrib + diffuse_contrib + specular_contrib, 1.0);
 }
