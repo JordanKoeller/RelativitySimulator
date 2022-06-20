@@ -7,7 +7,7 @@ use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
 
 use crate::debug::{gl_debug_output, print_limits};
-use crate::utils::Vec2F;
+use crate::utils::{Vec2F, Vec2I};
 
 pub type InputEvent = std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>;
 pub type GLFW = glfw::Glfw;
@@ -125,6 +125,11 @@ impl Window {
         Vec2F::new(x as f64, y as f64)
     }
 
+    pub fn set_dims(&mut self, dims: Vec2I) {
+        self.window.set_size(dims.x, dims.y);
+        // let (x, y) = self.window.get_size();
+    }
+
     pub fn poll_events(&mut self) {
         self.glfw_token.poll_events();
     }
@@ -135,14 +140,13 @@ impl Window {
 
     pub fn clear_intrinsic_canvas(&mut self) {
         unsafe {
-            gl::ClearColor(0.1, 0.2, 0.3, 1.0);
+            gl::ClearColor(0.7, 0.2, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
-
     pub fn clear_framebuffer(&mut self) {
         unsafe {
-            gl::ClearColor(0.7, 0.2, 0.3, 1.0);
+            gl::ClearColor(0.1, 0.2, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }

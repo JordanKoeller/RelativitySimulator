@@ -64,6 +64,7 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
             },
             _ => {}
         });
+        renderer.process_events(&mut events);
         renderer.init_frame(&mut window);
         for camera in (&camera_storage).join() {
             renderer.start_scene(&camera);

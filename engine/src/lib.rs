@@ -56,7 +56,7 @@ pub use log::info;
 
 // settings
 pub const SCR_WIDTH: u32 = 1600;
-pub const SCR_HEIGHT: u32 = 1200;
+pub const SCR_HEIGHT: u32 = 900;
 
 pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
     env_logger::init();

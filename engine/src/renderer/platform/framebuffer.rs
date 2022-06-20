@@ -28,11 +28,11 @@ impl Framebuffer {
             depth_attachment: 0,
             id: RwAssetRef::new(0),
         };
-        ret.invalidate();
+        ret.initialize();
         ret
     }
 
-    pub fn dims(w: i32, h: i32) -> Framebuffer {
+    pub fn from_dims(w: i32, h: i32) -> Framebuffer {
         let spec = FramebufferSpec {
             dims: Vec2I::new(w, h),
             samples: 1,
@@ -55,6 +55,13 @@ impl Framebuffer {
         }
     }
 
+    pub fn unbind_texture_slot(&self, slot: u32) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0 + slot);
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+    }
+
     pub fn unbind(&self) {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
@@ -65,26 +72,14 @@ impl Framebuffer {
         *self.id.get()
     }
 
-    pub fn resize(&mut self, dim: Vec2I) {
-        if dim.x == 0 || dim.y == 0 || dim.x > MAX_FRAMEBUFFER_SIZE || dim.y > MAX_FRAMEBUFFER_SIZE {
-            println!("Invalid Framebuffer size. Silently ignoring resize call.");
-            return;
-        }
-        self.spec.dims = dim;
-        self.invalidate();
-    }
-
-    fn invalidate(&mut self) {
+    fn initialize(&mut self) {
         let mut id = self.id();
         unsafe {
-            if self.id() != 0 {
-                gl::DeleteFramebuffers(1, &mut id);
-                gl::DeleteTextures(1, &mut self.color_attachment);
-                gl::DeleteTextures(1, &mut self.depth_attachment);
-            }
+            // Create Framebuffer
             gl::CreateFramebuffers(1, &mut id);
             gl::BindFramebuffer(gl::FRAMEBUFFER, id);
 
+            // Color texture buffer
             gl::CreateTextures(gl::TEXTURE_2D, 1, &mut self.color_attachment);
             gl::BindTexture(gl::TEXTURE_2D, self.color_attachment);
             gl::TexImage2D(
@@ -100,7 +95,7 @@ impl Framebuffer {
             );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-
+            gl::BindTexture(gl::TEXTURE_2D, 0);
             gl::FramebufferTexture2D(
                 gl::FRAMEBUFFER,
                 gl::COLOR_ATTACHMENT0,
@@ -108,6 +103,8 @@ impl Framebuffer {
                 self.color_attachment,
                 0,
             );
+
+            // Time to do a depth buffer
             gl::CreateTextures(gl::TEXTURE_2D, 1, &mut self.depth_attachment);
             gl::BindTexture(gl::TEXTURE_2D, self.depth_attachment);
             gl::TexStorage2D(
@@ -126,9 +123,31 @@ impl Framebuffer {
             );
 
             // TOOD: Assert complete
-            gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            gl::BindFramebuffer(gl::FRAMEBUFFER, id);
+            let framebuffer_status = gl::CheckFramebufferStatus(gl::FRAMEBUFFER);
+            if framebuffer_status != gl::FRAMEBUFFER_COMPLETE {
+                println!("Frame buffer is not ready! {}", framebuffer_status);
+            }
         }
 
         self.id.set(id);
+    }
+}
+
+impl Drop for Framebuffer {
+    fn drop(&mut self) {
+        let mut id = self.id();
+        if self.id() != 0 {
+            unsafe {
+                gl::BindFramebuffer(gl::FRAMEBUFFER, id);
+                gl::DeleteFramebuffers(1, &mut id);
+                gl::BindTexture(gl::TEXTURE_2D, self.color_attachment);
+                gl::DeleteTextures(1, &mut self.color_attachment);
+                gl::BindTexture(gl::TEXTURE_2D, self.depth_attachment);
+                gl::DeleteTextures(1, &mut self.depth_attachment);
+            }
+            self.color_attachment = 0;
+            self.depth_attachment = 0;
+        }
     }
 }

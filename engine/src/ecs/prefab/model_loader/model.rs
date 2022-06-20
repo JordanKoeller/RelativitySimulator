@@ -63,16 +63,27 @@ impl ModelBuilder {
         mesh: &tobj::Mesh,
         shading_strategy: ShadingStrategy,
     ) -> (VertexArrayBuilder, Option<usize>) {
-        let mut mesh_builder = MeshBuilder::default().with_shading_strategy(shading_strategy).with_index_buffer(mesh.indices.clone());
+        let mut mesh_builder = MeshBuilder::default()
+            .with_shading_strategy(shading_strategy)
+            .with_index_buffer(mesh.indices.clone());
         for &i in mesh.indices.iter() {
             let p_i = (i * 3) as usize;
             let uv_i = (i * 2) as usize;
-            mesh_builder.set(i as usize).position = Vec3F::new(mesh.positions[p_i] as f64, mesh.positions[p_i + 1] as f64, mesh.positions[p_i + 2] as f64);
+            mesh_builder.set(i as usize).position = Vec3F::new(
+                mesh.positions[p_i] as f64,
+                mesh.positions[p_i + 1] as f64,
+                mesh.positions[p_i + 2] as f64,
+            );
             if !mesh.normals.is_empty() {
-                mesh_builder.set(i as usize).normal = Vec3F::new(mesh.normals[p_i] as f64, mesh.normals[p_i + 1] as f64, mesh.normals[p_i + 2] as f64);
+                mesh_builder.set(i as usize).normal = Vec3F::new(
+                    mesh.normals[p_i] as f64,
+                    mesh.normals[p_i + 1] as f64,
+                    mesh.normals[p_i + 2] as f64,
+                );
             }
             if !mesh.texcoords.is_empty() {
-                mesh_builder.set(i as usize).uv = Vec2F::new(mesh.texcoords[uv_i] as f64, 1.0f64 - mesh.texcoords[uv_i + 1] as f64);
+                mesh_builder.set(i as usize).uv =
+                    Vec2F::new(mesh.texcoords[uv_i] as f64, 1.0f64 - mesh.texcoords[uv_i + 1] as f64);
             }
         }
         let hydrated_builder = mesh_builder.hydrate();

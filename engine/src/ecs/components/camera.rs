@@ -14,7 +14,6 @@ pub struct Camera {
     position: Vec3F,
     euler_angles: cgmath::Euler<cgmath::Rad<f64>>,
     fovy: cgmath::Rad<f64>,
-    aspect_ratio: f64,
     near_distance: f64,
     far_distance: f64,
 }
@@ -25,7 +24,6 @@ impl Default for Camera {
             position: Vec3F::new(0f64, 0f64, 0f64),
             euler_angles: cgmath::Euler::new(cgmath::Rad(0f64), cgmath::Rad(0f64), cgmath::Rad(0f64)),
             fovy: cgmath::Deg(45f64).into(),
-            aspect_ratio: 16f64 / 9f64,
             near_distance: 0.1f64,
             far_distance: 1000f64,
         }
@@ -47,8 +45,8 @@ impl Camera {
     }
 
     // Camera matrices
-    pub fn projection_matrix(&self) -> Mat4F {
-        cgmath::perspective(self.fovy, self.aspect_ratio, self.near_distance, self.far_distance)
+    pub fn projection_matrix(&self, aspect_ratio: f64) -> Mat4F {
+        cgmath::perspective(self.fovy, aspect_ratio, self.near_distance, self.far_distance)
     }
 
     pub fn view_matrix(&self) -> Mat4F {

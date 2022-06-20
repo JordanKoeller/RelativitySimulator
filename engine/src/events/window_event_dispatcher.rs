@@ -2,7 +2,7 @@ extern crate glfw;
 
 use gl;
 
-use crate::utils::Vec2F;
+use crate::utils::{Vec2F, Vec2I};
 
 use super::{Event, EventChannel, EventPayload, KeyCode, MouseButton, StatelessEventChannel};
 
@@ -60,6 +60,10 @@ impl WindowEventDispatcher {
                 glfw::WindowEvent::FramebufferSize(width, height) => {
                     // make sure the viewport matches the new window dimensions; note that width and
                     // height will be significantly larger than specified on retina displays.
+                    channel.publish(WindowEvent::payload(
+                        Event::WindowResized,
+                        EventPayload::WindowSize(Vec2F::new(width as f64, height as f64)),
+                    ));
                     unsafe { gl::Viewport(0, 0, width, height) }
                 }
                 glfw::WindowEvent::CursorPos(xpos, ypos) => {

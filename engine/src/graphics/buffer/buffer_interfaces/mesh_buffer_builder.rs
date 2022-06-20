@@ -35,7 +35,7 @@ impl MeshBuildStep for SettingVerticesStep {}
 pub struct HydratedBuilderStep;
 impl MeshBuildStep for HydratedBuilderStep {}
 
-#[derive(Clone,)]
+#[derive(Clone)]
 pub struct Vertex {
     pub position: Vec3F,
     pub uv: Vec2F,
@@ -53,7 +53,7 @@ impl HasPosition for Vertex {
 }
 
 impl Default for Vertex {
-    fn default() -> Self { 
+    fn default() -> Self {
         Self {
             position: Vec3F::zero(),
             normal: Vec3F::zero(),
@@ -64,7 +64,6 @@ impl Default for Vertex {
         }
     }
 }
-
 
 pub struct MeshBufferBuilder<T: MeshBuildStep> {
     pub vertices: Vec<Vertex>,
@@ -99,8 +98,6 @@ impl Default for MeshBufferBuilder<NewBuilderStep> {
         }
     }
 }
-
-
 
 impl MeshBufferBuilder<NewBuilderStep> {
     pub fn with_storage_type(mut self, storage_type: BufferStorageLevel) -> Self {
@@ -169,7 +166,6 @@ impl MeshBufferBuilder<AddingVerticesStep> {
 }
 
 impl MeshBufferBuilder<SettingVerticesStep> {
-
     pub fn set(&mut self, index: usize) -> &mut Vertex {
         &mut self.vertices[index]
     }
@@ -263,7 +259,11 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
             }
         }
         if self.shading_strategy == ShadingStrategy::PerVertex {
-            let flattened_vertices: Vec<Vertex> = self.index_buffer.iter().map(|&i| self.vertices[i as usize].clone()).collect();
+            let flattened_vertices: Vec<Vertex> = self
+                .index_buffer
+                .iter()
+                .map(|&i| self.vertices[i as usize].clone())
+                .collect();
             let kd_tree = KdTree::new(flattened_vertices, 8);
             for i in 0..self.index_buffer.len() {
                 let v_i = self.index_buffer[i] as usize;
@@ -273,12 +273,12 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].normal)
                     / (faces.len() as f64))
                     .normalize();
-                    self.vertices[v_i].tangent = (faces
+                self.vertices[v_i].tangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].tangent)
                     / (faces.len() as f64))
                     .normalize();
-                    self.vertices[v_i].bitangent = (faces
+                self.vertices[v_i].bitangent = (faces
                     .iter()
                     .fold(Vec3F::zero(), |acc, &face_i| acc + kd_tree.data()[face_i].bitangent)
                     / (faces.len() as f64))
@@ -287,7 +287,6 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
         }
         self.consume()
     }
-
 
     fn compute_face_basis(&self, a_i: usize, b_i: usize, c_i: usize) -> (Vec3F, Vec3F, Vec3F) {
         let a = &self.vertices[a_i];
@@ -312,7 +311,6 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
         (normal, tangent, bitangent)
     }
 }
-
 
 /*
             let i = e * 3;

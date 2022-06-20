@@ -37,9 +37,10 @@ fn main() {
         );
 
     let mut sphere_builder = Sphere::default();
-    for i in 0..3 {
-        for j in 0..3 {
-            for k in 0..3 {
+    let (x, y, z) = (5, 5, 5);
+    for i in 0..x {
+        for j in 0..y {
+            for k in 0..z {
                 builder = builder.with_prefab(
                     &mut sphere_builder,
                     SphereState::new(

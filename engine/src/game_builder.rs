@@ -181,7 +181,6 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         let dispatcher = self
             .dispatcher_builder
             .with(Sys::<DebugMetricsSystem>::default(), "debug", &[])
-            .with(EventProcessingSystem::default(), "events", &[])
             .with_thread_local(start_system)
             .with_thread_local(RegisterDrawableSystem)
             .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))
