@@ -139,12 +139,13 @@ impl<'a, T> BufferView<'a, T> {
             );
             panic!("");
         }
-        let delta_max = buffer_ref.data.len();
+        let delta_max = std::usize::MIN;
+        let delta_min = std::usize::MAX;
         Self {
             stride: stride / FLOAT_SIZE,
             buffer_ref,
-            delta_max: delta_max,
-            delta_min: 0,
+            delta_max,
+            delta_min,
             phantom: std::marker::PhantomData,
         }
     }
@@ -157,8 +158,8 @@ impl<'a, T> BufferView<'a, T> {
     pub fn set(&mut self, index: usize) -> &mut T {
         let min = self.stride * index;
         let max = self.stride * (index + 1);
-        self.delta_min = 0;
-        self.delta_max = self.buffer_ref.data.len();
+        self.delta_min = self.delta_min.min(min);
+        self.delta_max = self.delta_max.max(max);
         unsafe { unsafe_cast_mut(&mut self.buffer_ref.data[min]) }
     }
 
