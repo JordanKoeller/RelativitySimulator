@@ -16,7 +16,7 @@ use crate::graphics::{
 };
 use crate::platform::{Screen, Window};
 use crate::renderer::render_pipeline::*;
-use crate::renderer::{DrawCall, Framebuffer, RenderQueueConsumer, RendererConfig, PolygonMode};
+use crate::renderer::{DrawCall, Framebuffer, PolygonMode, RenderQueueConsumer, RendererConfig};
 
 use crate::ecs::Camera;
 

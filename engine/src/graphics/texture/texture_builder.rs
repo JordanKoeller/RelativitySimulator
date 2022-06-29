@@ -151,8 +151,13 @@ impl TextureBuilder {
                 height: self.height.unwrap(),
                 encoding: self.format,
             };
-            let texture_id =
-                texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding, &self.color_space);
+            let texture_id = texture_helpers::create_2d_buffer(
+                &buffer.data,
+                &buffer.width,
+                &buffer.height,
+                &buffer.encoding,
+                &self.color_space,
+            );
             self.texture_id.set((texture_id, gl::TEXTURE_2D, "program".to_string()));
             Texture::new(self.texture_id, buffer)
         }

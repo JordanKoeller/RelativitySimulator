@@ -1,7 +1,7 @@
 use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
 use crate::graphics::{
-    AttributeType, BufferConfig, BufferLayout, DataBufferBuilder, IndexBufferBuilder, MaterialComponent, MeshComponent,
-    ShaderBuilder, TextureBuilder, Uniform, VertexArrayBuilder, ColorSpace, Assets
+    Assets, AttributeType, BufferConfig, BufferLayout, ColorSpace, DataBufferBuilder, IndexBufferBuilder,
+    MaterialComponent, MeshComponent, ShaderBuilder, TextureBuilder, Uniform, VertexArrayBuilder,
 };
 use crate::physics::TransformComponent;
 use specs::{Builder, Entity};
@@ -29,25 +29,24 @@ impl PrefabBuilder for SkyboxBuilder {
     fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity {
         let mesh = self.cache.get_or(|| {
             let shader_id = api.assets().get_shader("skybox").unwrap();
-            let vai = api.get_or_create("cubemap_mesh", ||
+            let vai = api.get_or_create("cubemap_mesh", || {
                 VertexArrayBuilder::default()
-                .with_index_buffer(IndexBufferBuilder::default().with_data(SKYBOX_INDICES.to_vec()))
-                .with_vertex_buffer(
-                    DataBufferBuilder::default()
-                        .with_data(SKYBOX_VERTICES.to_vec())
-                        .with_layout(BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]))
-                        .with_config(BufferConfig::static_vbo()),
-                )
-            );
+                    .with_index_buffer(IndexBufferBuilder::default().with_data(SKYBOX_INDICES.to_vec()))
+                    .with_vertex_buffer(
+                        DataBufferBuilder::default()
+                            .with_data(SKYBOX_VERTICES.to_vec())
+                            .with_layout(BufferLayout::new(vec![AttributeType::Float3, AttributeType::Float2]))
+                            .with_config(BufferConfig::static_vbo()),
+                    )
+            });
             MeshComponent::new(vai, shader_id)
         });
-        let texture_id = api.assets().get_or_create(
-            &state.texture_filename,
-            || TextureBuilder::default()
+        let texture_id = api.assets().get_or_create(&state.texture_filename, || {
+            TextureBuilder::default()
                 .with_color_space(ColorSpace::SRGB)
                 .with_file(&state.texture_filename)
-                .set_is_cubemap(true),
-        );
+                .set_is_cubemap(true)
+        });
         let mut material = MaterialComponent::default();
         material.unknown_uniform("skybox", Uniform::CubeMap(texture_id));
         let transform = TransformComponent::identity();

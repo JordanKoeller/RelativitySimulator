@@ -62,11 +62,15 @@ where
     }
 
     fn fetch(&self, registry_id: &KVB::K) -> Option<RwLockReadGuard<'_, KVB::V>> {
-        self.value_lookup.get(registry_id).map(|entry| entry.read().ok().unwrap())
+        self.value_lookup
+            .get(registry_id)
+            .map(|entry| entry.read().ok().unwrap())
     }
 
-    fn fetch_mut(&self, registry_id: &KVB::K) ->  Option<RwLockWriteGuard<'_, KVB::V>> {
-        self.value_lookup.get(registry_id).map(|entry| entry.write().ok().unwrap())
+    fn fetch_mut(&self, registry_id: &KVB::K) -> Option<RwLockWriteGuard<'_, KVB::V>> {
+        self.value_lookup
+            .get(registry_id)
+            .map(|entry| entry.write().ok().unwrap())
     }
 
     fn enqueue_builder<B: Into<KVB>>(&self, lookup_name: &str, builder: B) -> KVB::K {
@@ -87,7 +91,7 @@ where
     fn flush(&mut self) {
         while !self.inbox.is_empty() {
             let builder = self.inbox.pop().unwrap();
-            self.value_lookup.insert(builder.key(),RwLock::from(builder.build()));
+            self.value_lookup.insert(builder.key(), RwLock::from(builder.build()));
         }
     }
 }

@@ -26,7 +26,13 @@ pub fn load_file(path: &str, flipv: bool) -> super::TextureBuffer {
     }
 }
 
-pub fn create_2d_buffer(data: &Vec<u8>, width: &u32, height: &u32, format: &gl::types::GLenum, color_space: &gl::types::GLenum) -> u32 {
+pub fn create_2d_buffer(
+    data: &Vec<u8>,
+    width: &u32,
+    height: &u32,
+    format: &gl::types::GLenum,
+    color_space: &gl::types::GLenum,
+) -> u32 {
     let mut texture = 0;
     unsafe {
         gl::GenTextures(1, &mut texture);
@@ -53,7 +59,11 @@ pub fn create_2d_buffer(data: &Vec<u8>, width: &u32, height: &u32, format: &gl::
     texture
 }
 
-pub fn create_cubemap_buffer<'a>(faces: &mut impl Iterator<Item = TextureBuffer>, format: u32, color_space: u32) -> (u32, TextureBuffer) {
+pub fn create_cubemap_buffer<'a>(
+    faces: &mut impl Iterator<Item = TextureBuffer>,
+    format: u32,
+    color_space: u32,
+) -> (u32, TextureBuffer) {
     let mut texture_id = 0;
     let (mut w, mut h) = (0, 0);
     unsafe {

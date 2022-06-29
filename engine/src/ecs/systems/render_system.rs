@@ -1,5 +1,5 @@
-use std::time::{Duration, Instant};
 use std::sync::RwLockWriteGuard;
+use std::time::{Duration, Instant};
 
 use cgmath::prelude::*;
 use specs::prelude::SystemData;
@@ -11,7 +11,9 @@ use crate::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
-use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent, Uniform, Assets, VertexArray, VertexArrayBuilder};
+use crate::graphics::{
+    AssetLibrary, Assets, MaterialComponent, MeshComponent, Uniform, VertexArray, VertexArrayBuilder,
+};
 use crate::gui::{widgets::*, ControlPanel, ControlPanelBuilder, SystemDebugger};
 use crate::physics::TransformComponent;
 use crate::platform::Window;
@@ -97,10 +99,7 @@ impl<'a> SystemDebugger<'a> for StartFrameSystem {
                 "specular_power",
                 InputFloat::new_with_limits("Specular Power", 32f32, 4f32, 64f32),
             )
-            .push_line(
-                "gamma",
-                InputFloat::new_with_limits("Gamma", 1.8f32, 0.5f32, 3.0f32),
-            )
+            .push_line("gamma", InputFloat::new_with_limits("Gamma", 1.8f32, 0.5f32, 3.0f32))
     }
 }
 
@@ -123,24 +122,21 @@ pub struct RegisterDrawableSystem {
 
 impl Default for RegisterDrawableSystem {
     fn default() -> Self {
-        Self {
-            receiver_id: None,
-        }
+        Self { receiver_id: None }
     }
 }
 
 impl<'a> System<'a> for RegisterDrawableSystem {
-    type SystemData = (
-        Write<'a, AssetLibrary>,
-        WriteStorage<'a, MeshComponent>
-    );
+    type SystemData = (Write<'a, AssetLibrary>, WriteStorage<'a, MeshComponent>);
 
     fn run(&mut self, (mut assets, mut mesh_storage): Self::SystemData) {
         assets.flush_all();
         let mut modified = specs::hibitset::BitSet::new();
         for evt in mesh_storage.channel().read(self.receiver_id.as_mut().unwrap()) {
             match evt {
-                ComponentEvent::Modified(id) => {modified.add(*id);},
+                ComponentEvent::Modified(id) => {
+                    modified.add(*id);
+                }
                 _ => {}
             }
         }

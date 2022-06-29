@@ -1,4 +1,3 @@
-
 use specs::prelude::*;
 use specs::storage::BTreeStorage;
 use specs::Component;
@@ -11,8 +10,6 @@ pub struct EntityManager {
 
 impl EntityManager {
     pub fn from(bits: specs::hibitset::BitSet) -> Self {
-        Self {
-            entities: bits
-        }
+        Self { entities: bits }
     }
 }

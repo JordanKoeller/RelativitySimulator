@@ -3,8 +3,8 @@ use specs::prelude::*;
 
 use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
 use crate::graphics::{
-    HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShadingStrategy,
-    TextureBuilder, ColorSpace, AssetLibrary, Assets, VertexArrayBuilder,
+    AssetLibrary, Assets, ColorSpace, HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder,
+    MeshComponent, ShadingStrategy, TextureBuilder, VertexArrayBuilder,
 };
 use crate::physics::{RigidBody, TransformComponent};
 use crate::utils::{lerp, Color, QuatF, Vec2F, Vec3F};
@@ -51,26 +51,24 @@ impl PrefabBuilder for Sphere {
 
     fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity {
         let mesh = self.cache.get_or(|| {
-            let vai = api
-                .get_or_create(&format!("sphere_{}", state.lod), || {
-                    let vao: VertexArrayBuilder = Self::build_from_polar(&state).into();
-                    vao
-                });
+            let vai = api.get_or_create(&format!("sphere_{}", state.lod), || {
+                let vao: VertexArrayBuilder = Self::build_from_polar(&state).into();
+                vao
+            });
             MeshComponent::new(vai, api.get_shader("default_texture").unwrap())
         });
         let mut material = MaterialComponent::default();
-        material.diffuse_texture(api.assets().get_or_create(
-            "earth_texture",
-            || TextureBuilder::default().with_color_space(ColorSpace::SRGB).with_file(&state.texture_file),
-        ));
-        material.specular_texture(api.assets().get_or_create(
-            "earth_specular",
-            || TextureBuilder::default().with_file(&state.specular_file),
-        ));
-        material.normal_texture(
-            api.assets()
-                .get_or_create("earth_normal", || TextureBuilder::default().with_file(&state.normal_file)),
-        );
+        material.diffuse_texture(api.assets().get_or_create("earth_texture", || {
+            TextureBuilder::default()
+                .with_color_space(ColorSpace::SRGB)
+                .with_file(&state.texture_file)
+        }));
+        material.specular_texture(api.assets().get_or_create("earth_specular", || {
+            TextureBuilder::default().with_file(&state.specular_file)
+        }));
+        material.normal_texture(api.assets().get_or_create("earth_normal", || {
+            TextureBuilder::default().with_file(&state.normal_file)
+        }));
         let mut transform = TransformComponent::identity();
         transform.push_scale(Vec3F::new(state.radius, state.radius, state.radius));
         transform.push_translation(state.origin);
@@ -85,12 +83,13 @@ impl PrefabBuilder for Sphere {
             .with(material)
             .with(transform)
             .with(mesh)
-            .with(rigid_body).build()
+            .with(rigid_body)
+            .build()
     }
 }
 
 impl Sphere {
-    fn get_unit_sphere_coords(i: u32, j: u32, lod: u32) -> (Vec3F, Vec2F,) {
+    fn get_unit_sphere_coords(i: u32, j: u32, lod: u32) -> (Vec3F, Vec2F) {
         let theta = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI * 2f32, i as f32);
         let psi = lerp(0f32, lod as f32, 0f32, std::f32::consts::PI, j as f32);
         let u = (j as f32) / (lod as f32);

@@ -3,8 +3,8 @@ use specs::prelude::*;
 
 use engine::ecs::{PrefabBuilder, SystemUtilities};
 use engine::graphics::{
-    HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShadingStrategy,
-    TextureBuilder, ColorSpace, Assets, VertexArrayBuilder
+    Assets, ColorSpace, HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent,
+    ShadingStrategy, TextureBuilder, VertexArrayBuilder,
 };
 use engine::physics::{RigidBody, TransformComponent};
 use engine::utils::{QuatF, Vec3F};
@@ -39,10 +39,14 @@ impl PrefabBuilder for Cube {
         let vai = api.get_else("cube", mesh_builder);
         let mesh = MeshComponent::new(vai, api.get_shader("default_texture").unwrap());
         let mut material = MaterialComponent::default();
-        material.diffuse_texture(api.get_else(
-            &state.texture_file,
-            TextureBuilder::default().with_color_space(ColorSpace::SRGB).with_file(&state.texture_file),
-        ));
+        material.diffuse_texture(
+            api.get_else(
+                &state.texture_file,
+                TextureBuilder::default()
+                    .with_color_space(ColorSpace::SRGB)
+                    .with_file(&state.texture_file),
+            ),
+        );
         material.specular_texture(api.get_else(
             &state.texture_file,
             TextureBuilder::default().with_file(&state.texture_file),

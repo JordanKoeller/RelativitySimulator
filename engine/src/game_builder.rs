@@ -6,10 +6,10 @@ use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
 use crate::ecs::systems::*;
-use crate::ecs::{PrefabBuilder, Sys, SystemUtilities, WorldProxy, EntityManager};
+use crate::ecs::{EntityManager, PrefabBuilder, Sys, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
-use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction, Assets};
+use crate::graphics::{AssetLibrary, Assets, ShaderBuilder, ShaderDepthFunction};
 use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::gui::{ControlPanel, ControlPanels, GuiRenderer};
 use crate::physics::TransformComponent;
@@ -195,24 +195,20 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         let world = WorldProxy::new(&mut self.world);
         let utils = world.utilities();
         let assets = utils.assets();
-        assets.get_or_create(
-            "default_texture",
-            || ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl"),
-        );
-        assets.get_or_create(
-            "debug_normals",
-            || ShaderBuilder::default().with_source_file("shaders/debug/normals.glsl"),
-        );
-        assets.get_or_create(
-            "instanced",
-            || ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl"),
-        );
-        assets.get_or_create(
-            "skybox",
-            || ShaderBuilder::default()
+        assets.get_or_create("default_texture", || {
+            ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl")
+        });
+        assets.get_or_create("debug_normals", || {
+            ShaderBuilder::default().with_source_file("shaders/debug/normals.glsl")
+        });
+        assets.get_or_create("instanced", || {
+            ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl")
+        });
+        assets.get_or_create("skybox", || {
+            ShaderBuilder::default()
                 .with_depth_function(ShaderDepthFunction::LEQUAL)
-                .with_source_file("shaders/skybox.glsl"),
-        );
+                .with_source_file("shaders/skybox.glsl")
+        });
     }
 }
 

@@ -3,7 +3,7 @@ use gl;
 use std::os::raw::c_void;
 use std::ptr;
 
-use super::{DataBuffer, IndexBuffer, BufferView, Bufferable, Vertex};
+use super::{BufferView, Bufferable, DataBuffer, IndexBuffer, Vertex};
 use crate::utils::RwAssetRef;
 
 #[derive(Debug, Clone)]

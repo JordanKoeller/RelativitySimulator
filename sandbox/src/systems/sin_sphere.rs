@@ -3,12 +3,12 @@ use specs::prelude::*;
 use specs::SystemData;
 use std::f32::consts::PI;
 
-use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy, PrefabBuilder};
-use engine::gui::{widgets::*, ControlPanelBuilder, SystemDebugger};
-use engine::utils::{Vec3F, Color, Vec2F};
+use engine::ecs::{MonoBehavior, PrefabBuilder, SystemUtilities, WorldProxy};
 use engine::graphics::MeshComponent;
-use engine::prefab::{Sphere, SphereState};
 use engine::graphics::Vertex;
+use engine::gui::{widgets::*, ControlPanelBuilder, SystemDebugger};
+use engine::prefab::{Sphere, SphereState};
+use engine::utils::{Color, Vec2F, Vec3F};
 
 #[derive(SystemData)]
 pub struct SinSphereSystemData<'a> {
@@ -37,7 +37,7 @@ impl<'a> MonoBehavior<'a> for SinSphere {
                 let rise = vec.normal.y;
                 let run = Vec2F::new(vec.normal.x, vec.normal.z).magnitude();
                 let angle = rise.atan2(run);
-                let height = 0.5f32 + amplitude * (freq*angle+phase).sin();
+                let height = 0.5f32 + amplitude * (freq * angle + phase).sin();
                 let delta_vec = vec.normal * height;
                 vec.position = vec.normal * 0.5 + delta_vec;
             }
@@ -66,8 +66,14 @@ impl<'a> SystemDebugger<'a> for SinSphere {
     fn create_panel(&self) -> ControlPanelBuilder {
         ControlPanelBuilder::default()
             .with_title("Sin Sphere")
-            .push_line("Amplitude", InputFloat::new_with_limits("Amplitude", 0.1f32, 0f32, 1f32))
-            .push_line("Frequency", InputFloat::new_with_limits("Frequency", PI / 2f32, 0f32, 50f32))
+            .push_line(
+                "Amplitude",
+                InputFloat::new_with_limits("Amplitude", 0.1f32, 0f32, 1f32),
+            )
+            .push_line(
+                "Frequency",
+                InputFloat::new_with_limits("Frequency", PI / 2f32, 0f32, 50f32),
+            )
             .push_line("Phase", InputFloat::new_with_limits("Phase", 0f32, 0f32, 50f32))
     }
 }

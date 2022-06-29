@@ -33,7 +33,7 @@ impl PolygonMode {
     pub fn rotate(self) -> Self {
         match self {
             PolygonMode::FILL => PolygonMode::LINE,
-            PolygonMode::LINE => PolygonMode::FILL
+            PolygonMode::LINE => PolygonMode::FILL,
         }
     }
 }
@@ -42,7 +42,7 @@ impl PolygonMode {
 pub struct RendererConfig {
     pub mode: RelativityMode,
     pub debug: bool,
-    pub polygon_mode: PolygonMode
+    pub polygon_mode: PolygonMode,
 }
 
 impl Default for RendererConfig {
@@ -50,7 +50,7 @@ impl Default for RendererConfig {
         RendererConfig {
             mode: RelativityMode::CLASSICAL,
             debug: false,
-            polygon_mode: PolygonMode::FILL
+            polygon_mode: PolygonMode::FILL,
         }
     }
 }

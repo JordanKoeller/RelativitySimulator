@@ -88,7 +88,6 @@ impl From<&Vec<(String, AttributeType)>> for BufferLayout {
 }
 
 pub trait Bufferable {
-
     fn into_buffer(&self, buffer: &mut [f32]);
 
     fn from_slice(buffer: &[f32]) -> Self;

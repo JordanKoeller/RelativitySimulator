@@ -1,14 +1,15 @@
-use crate::datastructures::{Registry, RegistryItem, GenericRegistry};
+use crate::datastructures::{GenericRegistry, Registry, RegistryItem};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use super::{
     Shader, ShaderBuilder, ShaderId, ShaderRegistry, TextureBuilder, TextureId, TextureRegistry, VertexArray,
-    VertexArrayBuilder, VertexArrayId, VertexArrayRegistry
+    VertexArrayBuilder, VertexArrayId, VertexArrayRegistry,
 };
 
-pub trait Assets<T> 
-where T: RegistryItem + 'static {
-
+pub trait Assets<T>
+where
+    T: RegistryItem + 'static,
+{
     // Only need to connect to the registry for the particular asset type
     // to the trait and then the 4 interface functions can be defined in the trait
 

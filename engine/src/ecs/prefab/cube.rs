@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
 use crate::graphics::{
-    AttributeType, BufferConfig, BufferLayout, DataBufferBuilder, IndexBufferBuilder, MaterialComponent, MeshComponent,
-    ShaderBuilder, TextureBuilder, VertexArrayBuilder, Assets,
+    Assets, AttributeType, BufferConfig, BufferLayout, DataBufferBuilder, IndexBufferBuilder, MaterialComponent,
+    MeshComponent, ShaderBuilder, TextureBuilder, VertexArrayBuilder,
 };
 use crate::physics::TransformComponent;
 use crate::physics::{Collision, CollisionSummary};
@@ -36,24 +36,23 @@ impl PrefabBuilder for Cube {
             let shader_id = api.get_shader("default_texture").unwrap();
             let vai = api.assets().get_or_create("cube", || {
                 VertexArrayBuilder::default()
-                .with_index_buffer(IndexBufferBuilder::default().with_data(TEXTURE_CUBE_INDICES.to_vec()))
-                .with_vertex_buffer(
-                    DataBufferBuilder::default()
-                        .with_data(TEXTURE_CUBE_VERTICES.to_vec())
-                        .with_layout(BufferLayout::new(vec![
-                            AttributeType::Float3,
-                            AttributeType::Float3,
-                            AttributeType::Float2,
-                        ]))
-                        .with_config(BufferConfig::static_vbo()),
-                )
+                    .with_index_buffer(IndexBufferBuilder::default().with_data(TEXTURE_CUBE_INDICES.to_vec()))
+                    .with_vertex_buffer(
+                        DataBufferBuilder::default()
+                            .with_data(TEXTURE_CUBE_VERTICES.to_vec())
+                            .with_layout(BufferLayout::new(vec![
+                                AttributeType::Float3,
+                                AttributeType::Float3,
+                                AttributeType::Float2,
+                            ]))
+                            .with_config(BufferConfig::static_vbo()),
+                    )
             });
             MeshComponent::new(vai, shader_id)
         });
-        let texture_id = api.assets().get_or_create(
-            &state.texture_filename,
-            || TextureBuilder::default().with_file(&state.texture_filename),
-        );
+        let texture_id = api.assets().get_or_create(&state.texture_filename, || {
+            TextureBuilder::default().with_file(&state.texture_filename)
+        });
         let mut material = MaterialComponent::default();
         // material.ambient(Vec3F::new(1f32, 1f32, 1f32));
         // material.specular(Vec3F::new(1f32, 1f32, 1f32));
