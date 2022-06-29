@@ -18,6 +18,7 @@ pub struct TextureBuilder {
     width: Option<u32>,
     height: Option<u32>,
     format: GLenum,
+    color_space: GLenum,
     texture_id: RwAssetRef<(u32, gl::types::GLenum, String)>,
     is_cubemap: bool,
 }
@@ -29,6 +30,7 @@ impl Default for TextureBuilder {
             width: None,
             height: None,
             format: gl::RGB,
+            color_space: gl::RGB,
             texture_id: RwAssetRef::new((std::u32::MAX, gl::TEXTURE_2D, "".to_string())),
             is_cubemap: false,
         }
@@ -80,6 +82,11 @@ impl TextureBuilder {
         self
     }
 
+    pub fn with_color_space(mut self, space: ColorSpace) -> Self {
+        self.color_space = space.get_gl_enum();
+        self
+    }
+
     pub fn set_is_cubemap(mut self, value: bool) -> Self {
         self.is_cubemap = value;
         self
@@ -92,7 +99,7 @@ impl TextureBuilder {
                 let full_path = dir.join(Path::new(file));
                 texture_helpers::load_file(full_path.to_str().expect("Could not construct path for"), false)
             });
-            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
+            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format, self.color_space);
             self.texture_id.set((texture_id, gl::TEXTURE_CUBE_MAP, dirpath.clone()));
             Texture::new(self.texture_id, tb)
         } else {
@@ -109,7 +116,7 @@ impl TextureBuilder {
                 height: self.height.unwrap(),
                 encoding: self.format,
             });
-            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format);
+            let (texture_id, tb) = texture_helpers::create_cubemap_buffer(&mut imgs, self.format, self.color_space);
             self.texture_id
                 .set((texture_id, gl::TEXTURE_CUBE_MAP, "program".to_string()));
             Texture::new(self.texture_id, tb)
@@ -124,6 +131,7 @@ impl TextureBuilder {
                 &file_buffer.width,
                 &file_buffer.height,
                 &file_buffer.encoding,
+                &self.color_space,
             );
             self.texture_id.set((texture_id, gl::TEXTURE_2D, filename.to_string()));
             println!("Created texture from file {} to id {}", filename, texture_id);
@@ -144,7 +152,7 @@ impl TextureBuilder {
                 encoding: self.format,
             };
             let texture_id =
-                texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding);
+                texture_helpers::create_2d_buffer(&buffer.data, &buffer.width, &buffer.height, &buffer.encoding, &self.color_space);
             self.texture_id.set((texture_id, gl::TEXTURE_2D, "program".to_string()));
             Texture::new(self.texture_id, buffer)
         }
@@ -165,6 +173,21 @@ impl PixelSpec {
             PixelSpec::RG => gl::RG,
             PixelSpec::RGB => gl::RGB,
             PixelSpec::RGBA => gl::RGBA,
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub enum ColorSpace {
+    SRGB,
+    RGB,
+}
+
+impl ColorSpace {
+    pub fn get_gl_enum(self) -> gl::types::GLenum {
+        match self {
+            ColorSpace::SRGB => gl::SRGB,
+            ColorSpace::RGB => gl::RGB,
         }
     }
 }

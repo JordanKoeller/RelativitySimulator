@@ -5,7 +5,10 @@ use gl;
 
 use super::BufferConfig;
 use super::BufferLayout;
-use super::{buff_ptr, buff_sz};
+use super::Bufferable;
+use super::{buff_ptr, buff_sz, unsafe_cast, unsafe_cast_mut};
+
+const FLOAT_SIZE: usize = 4usize;
 
 #[derive(Clone, Debug)]
 pub struct DataBuffer {
@@ -13,7 +16,7 @@ pub struct DataBuffer {
     pub layout: BufferLayout,
     data: Vec<f32>,
     config: BufferConfig,
-    // bound: bool,
+    delta_range: Option<(usize, usize)>, // bound: bool,
 }
 
 impl DataBuffer {
@@ -24,6 +27,7 @@ impl DataBuffer {
             data,
             layout,
             config,
+            delta_range: None,
         }
     }
 
@@ -70,16 +74,18 @@ impl DataBuffer {
         }
     }
 
-    pub fn set_sub_buffer(&self, start: usize, end: usize) {
+    pub fn sync_gpu(&mut self) {
         self.bind();
-        unsafe {
-            let slice_ref = self.data.get_unchecked(start..end);
-            gl::BufferSubData(
-                self.config.buffer_type.to_gl_enum(),
-                (size_of::<f32>() * start) as isize,
-                (size_of::<f32>() * (end - start)) as isize,
-                &slice_ref[0] as *const f32 as *const c_void,
-            )
+        if let Some((start, end)) = self.delta_range {
+            unsafe {
+                let slice_ref = self.data.get_unchecked(start..end);
+                gl::BufferSubData(
+                    self.config.buffer_type.to_gl_enum(),
+                    (size_of::<f32>() * start) as isize,
+                    (size_of::<f32>() * (end - start)) as isize,
+                    &slice_ref[0] as *const f32 as *const c_void,
+                )
+            }
         }
     }
 
@@ -102,6 +108,72 @@ impl DataBuffer {
         unsafe {
             gl::DeleteBuffers(1, &self.id);
             self.id = u32::MAX;
+        }
+    }
+
+    pub fn as_view<T>(&mut self) -> BufferView<'_, T> {
+        BufferView::from(self)
+    }
+}
+
+pub struct BufferView<'a, T> {
+    stride: usize,
+    buffer_ref: &'a mut DataBuffer,
+    delta_min: usize,
+    delta_max: usize,
+    phantom: std::marker::PhantomData<T>,
+}
+
+impl<'a, T> BufferView<'a, T> {
+    fn from(buffer_ref: &'a mut DataBuffer) -> Self {
+        let stride = size_of::<T>();
+        if stride as u32 != buffer_ref.layout.stride() {
+            println!(
+                "Cannot create view into DataBuffer because view type of {} does not have the proper stride",
+                std::any::type_name::<T>()
+            );
+            println!(
+                "Buffer has stride {}, but passed in has stride {}",
+                buffer_ref.layout.stride(),
+                stride
+            );
+            panic!("");
+        }
+        let delta_max = buffer_ref.data.len();
+        Self {
+            stride: stride / FLOAT_SIZE,
+            buffer_ref,
+            delta_max: delta_max,
+            delta_min: 0,
+            phantom: std::marker::PhantomData,
+        }
+    }
+
+    pub fn get(&self, index: usize) -> &T {
+        let offset = self.stride * index;
+        unsafe { unsafe_cast(&self.buffer_ref.data[offset]) }
+    }
+
+    pub fn set(&mut self, index: usize) -> &mut T {
+        let min = self.stride * index;
+        let max = self.stride * (index + 1);
+        self.delta_min = 0;
+        self.delta_max = self.buffer_ref.data.len();
+        unsafe { unsafe_cast_mut(&mut self.buffer_ref.data[min]) }
+    }
+
+    pub fn len(&self) -> usize {
+        self.buffer_ref.data.len() / self.stride
+    }
+}
+
+impl<'a, T> Drop for BufferView<'a, T> {
+    fn drop(&mut self) {
+        let old_range_opt = self.buffer_ref.delta_range.clone();
+        if let Some((old_min, old_max)) = old_range_opt {
+            self.buffer_ref.delta_range = Some((old_min.min(self.delta_min), old_max.max(self.delta_max)));
+        } else {
+            self.buffer_ref.delta_range = Some((self.delta_min, self.delta_max));
         }
     }
 }

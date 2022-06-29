@@ -62,13 +62,13 @@ impl WindowEventDispatcher {
                     // height will be significantly larger than specified on retina displays.
                     channel.publish(WindowEvent::payload(
                         Event::WindowResized,
-                        EventPayload::WindowSize(Vec2F::new(width as f64, height as f64)),
+                        EventPayload::WindowSize(Vec2F::new(width as f32, height as f32)),
                     ));
                     unsafe { gl::Viewport(0, 0, width, height) }
                 }
                 glfw::WindowEvent::CursorPos(xpos, ypos) => {
                     if !window.cursor {
-                        let new_pos = Vec2F::new(xpos as f64, ypos as f64);
+                        let new_pos = Vec2F::new(xpos as f32, ypos as f32);
                         if let Some(last_pos) = self.last_mouse_pos {
                             let offset = Vec2F::new(new_pos.x - last_pos.x, last_pos.y - new_pos.y);
                             let evt = WindowEvent::payload(Event::MouseMoved, EventPayload::MouseMove(offset));
@@ -77,7 +77,7 @@ impl WindowEventDispatcher {
                         }
                         self.last_mouse_pos = Some(new_pos);
                     } else {
-                        let new_pos = Vec2F::new(xpos as f64, ypos as f64);
+                        let new_pos = Vec2F::new(xpos as f32, ypos as f32);
                         self.last_mouse_pos = Some(new_pos);
                     }
                 }

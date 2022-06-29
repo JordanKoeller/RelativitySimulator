@@ -68,28 +68,27 @@ pub struct ParticleBuilder;
 impl PrefabBuilder for ParticleBuilder {
     type PrefabState = ParticlePrefab;
 
-    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
+    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity {
         if !state.assert_complete() {
             panic!("Failed to build particle!");
-        } else {
-            let mut builder = api
-                .entity_builder()
-                .with(Particle::new(state.lifetime.unwrap()))
-                .with(TransformComponent::new(
-                    state.position.unwrap(),
-                    Vec3F::zero(),
-                    QuatF::zero(),
-                ))
-                .with(RigidBody::new(
-                    state.velocity.unwrap(),
-                    -Vec3F::unit_y(),
-                    QuatF::zero(),
-                    QuatF::zero(),
-                ));
-            if state.gravity.is_some() {
-                builder = builder.with(Gravity);
-            }
-            builder.build();
         }
+        let mut builder = api
+            .entity_builder()
+            .with(Particle::new(state.lifetime.unwrap()))
+            .with(TransformComponent::new(
+                state.position.unwrap(),
+                Vec3F::zero(),
+                QuatF::zero(),
+            ))
+            .with(RigidBody::new(
+                state.velocity.unwrap(),
+                -Vec3F::unit_y(),
+                QuatF::zero(),
+                QuatF::zero(),
+            ));
+        if state.gravity.is_some() {
+            builder = builder.with(Gravity);
+        }
+        builder.build()
     }
 }

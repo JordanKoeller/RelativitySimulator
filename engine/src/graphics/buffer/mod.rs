@@ -19,6 +19,5 @@ pub use self::index_buffer::*;
 pub use self::vertex_array::*;
 pub use self::vertex_array_builder::*;
 pub use self::vertex_array_id::*;
-
 use crate::datastructures::GenericRegistry;
 pub type VertexArrayRegistry = GenericRegistry<VertexArrayBuilder>;

@@ -35,8 +35,8 @@ impl Screen {
     pub fn new(x_dim: i32, y_dim: i32) -> Self {
         let verts = vec![
             // Positions  // uv
-            -1f64, 1f64, 0f64, 1f64, -1f64, -1f64, 0f64, 0f64, 1f64, -1f64, 1f64, 0f64, -1f64, 1f64, 0f64, 1f64, 1f64,
-            -1f64, 1f64, 0f64, 1f64, 1f64, 1f64, 1f64,
+            -1f32, 1f32, 0f32, 1f32, -1f32, -1f32, 0f32, 0f32, 1f32, -1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 1f32, 1f32,
+            -1f32, 1f32, 0f32, 1f32, 1f32, 1f32, 1f32,
         ];
         let inds = vec![0, 1, 2, 3, 4, 5];
         let screen_quad = VertexArrayBuilder::default()
@@ -79,9 +79,9 @@ impl Screen {
         self.framebuffer.unbind();
     }
 
-    pub fn aspect_ratio(&self) -> f64 {
+    pub fn aspect_ratio(&self) -> f32 {
         let dims = &self.framebuffer.spec.dims;
-        (dims.x as f64) / (dims.y as f64)
+        (dims.x as f32) / (dims.y as f32)
     }
 
     pub fn set_framebuffer(&mut self, fb: Framebuffer) {

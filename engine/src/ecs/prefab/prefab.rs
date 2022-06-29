@@ -13,7 +13,7 @@ trait ComponentWithStorage<'a>: Component<Storage = AntiStorage<'a>> + Sized {}
 
 pub trait PrefabBuilder {
     type PrefabState;
-    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState);
+    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity;
 }
 
 pub struct ComponentCache {
@@ -80,7 +80,7 @@ mod test {
     #[storage(NullStorage)]
     struct SomeOtherComponent {
         pub value1: u32,
-        pub value2: f64,
+        pub value2: f32,
     }
 
     // #[test]
@@ -102,7 +102,7 @@ mod test {
             let comp_1 = SomeComponent { value: 3u32 };
             let comp_2 = SomeOtherComponent {
                 value1: 4u32,
-                value2: 32f64,
+                value2: 32f32,
             };
             cache.cache(comp_1);
             cache.cache(comp_2);
@@ -115,6 +115,6 @@ mod test {
         let value_2 = value_2.unwrap();
         assert_eq!(value_1.value, 3u32);
         assert_eq!(value_2.value1, 4u32);
-        assert_eq!(value_2.value2, 32f64);
+        assert_eq!(value_2.value2, 32f32);
     }
 }

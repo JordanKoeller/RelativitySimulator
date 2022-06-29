@@ -7,16 +7,6 @@ use std::slice::SliceIndex;
 /// Some pre-defined Buffer types
 /////////////////
 
-// Float Buffer
-// pub type FloatBuffer = BufferLayout<f64>;
-// impl BufferLayout<f64> {
-//   pub fn new() -> Self {
-//     BufferLayout::create(vec![AttributeType::Float])
-//   }
-// }
-
-//
-
 #[allow(dead_code)]
 #[derive(Clone, Eq, PartialEq, Copy, Debug)]
 pub enum AttributeType {
@@ -86,9 +76,6 @@ impl BufferLayout {
                     })
                     .collect();
                 v
-                // let v = summation.clone();
-                // summation += x.width();
-                // (i, v * size_of::<f64>() as u32, x)
             })
             .collect()
     }
@@ -98,6 +85,15 @@ impl From<&Vec<(String, AttributeType)>> for BufferLayout {
     fn from(atts: &Vec<(String, AttributeType)>) -> Self {
         Self(atts.iter().map(|x| x.1).collect())
     }
+}
+
+pub trait Bufferable {
+
+    fn into_buffer(&self, buffer: &mut [f32]);
+
+    fn from_slice(buffer: &[f32]) -> Self;
+
+    fn num_elems() -> usize;
 }
 
 //////////////////////////////////

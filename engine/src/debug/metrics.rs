@@ -41,18 +41,18 @@ impl<'a> MonoBehavior<'a> for DebugMetricsSystem {
 
     fn run(&mut self, api: SystemUtilities<'a>, (mut debugger, timestep): Self::SystemData) {
         debugger.frame_time.stop();
-        self.timestep_averager.push_value(timestep.dt_f64() * 1000f64);
+        self.timestep_averager.push_value(timestep.dt_f32() * 1000f32);
         let mut panel = self.get_write_panel(&api);
         if let Some((_instant, avg)) = debugger.frame_time.get() {
-            panel.set_str("FrameTime", format!("{:#?}", avg.as_micros() as f64 / 1000f64));
+            panel.set_str("FrameTime", format!("{:#?}", avg.as_micros() as f32 / 1000f32));
         }
         if let Some((instant, avg)) = debugger.render_time.get() {
             panel.set_str(
                 "RenderTime",
                 format!(
                     "{:.3} ({:.3} Avg)",
-                    instant.as_micros() as f64 / 1000f64,
-                    avg.as_micros() as f64 / 1000f64
+                    instant.as_micros() as f32 / 1000f32,
+                    avg.as_micros() as f32 / 1000f32
                 ),
             );
         }

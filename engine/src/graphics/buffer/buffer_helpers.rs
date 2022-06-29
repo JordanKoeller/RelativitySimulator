@@ -35,3 +35,13 @@ pub unsafe fn cast_slice_mut<F, T>(data: &mut [F]) -> &mut [T] {
     }
     // let sz_ratio = old_sz / new_sz;
 }
+
+
+pub unsafe fn unsafe_cast<F, T>(data: &F) -> &T {
+    let raw_ptr = data as *const F as *const c_void as *const T;
+    &*raw_ptr
+} 
+pub unsafe fn unsafe_cast_mut<F, T>(data: &mut F) -> &mut T {
+    let raw_ptr = data as *mut F as *mut c_void as *mut T;
+    &mut *raw_ptr
+}

@@ -3,7 +3,7 @@ use gl;
 use std::os::raw::c_void;
 use std::ptr;
 
-use super::{DataBuffer, IndexBuffer};
+use super::{DataBuffer, IndexBuffer, BufferView, Bufferable, Vertex};
 use crate::utils::RwAssetRef;
 
 #[derive(Debug, Clone)]
@@ -94,5 +94,17 @@ impl VertexArray {
         // TODO: Once instancing is supported again I need to multiply this
         // by the number of instances
         self.index_buffer.len() / 3usize
+    }
+
+    pub fn update_dynamic_buffers(&mut self) {
+        self.vertex_buffer.sync_gpu();
+    }
+
+    pub fn as_view<T: Bufferable>(&mut self) -> BufferView<'_, T> {
+        self.vertex_buffer.as_view::<T>()
+    }
+
+    pub fn vertices_view(&mut self) -> BufferView<'_, Vertex> {
+        self.vertex_buffer.as_view::<Vertex>()
     }
 }

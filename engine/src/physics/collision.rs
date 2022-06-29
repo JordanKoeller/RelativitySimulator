@@ -12,19 +12,19 @@ use crate::utils::Vec3F;
 pub type CollisionQueue = BinaryHeap<CollisionSummary>;
 
 pub trait Collision: Component {
-    fn sphere_collision(&self, sphere: (&Vec3F, &f64), velocity: &Vec3F) -> Option<CollisionSummary>;
+    fn sphere_collision(&self, sphere: (&Vec3F, &f32), velocity: &Vec3F) -> Option<CollisionSummary>;
 
-    fn distance_to(&self, pt: &Vec3F) -> f64;
+    fn distance_to(&self, pt: &Vec3F) -> f32;
 
     // Some helper functions for traits
-    fn between(&self, left: &f64, right: &f64, center: &f64) -> bool {
+    fn between(&self, left: &f32, right: &f32, center: &f32) -> bool {
         // println!("{} {} {}", left, center, right);
         left <= center && center <= right
     }
 
-    fn approx_between(&self, left: &f64, right: &f64, center: &f64) -> bool {
+    fn approx_between(&self, left: &f32, right: &f32, center: &f32) -> bool {
         // println!("{} {} {}", left, center, right);
-        let tolerance = 1e-8f64;
+        let tolerance = 1e-8f32;
         left - tolerance <= *center && *center <= right + tolerance
     }
 
@@ -36,7 +36,7 @@ pub trait Collision: Component {
         surface_normal: &Vec3F,
     ) -> Option<CollisionSummary> {
         let v_dot_n = velocity.dot(*surface_normal);
-        if v_dot_n.abs() < 1e-8f64 {
+        if v_dot_n.abs() < 1e-8f32 {
             None
         } else {
             let t = (surface_pt - query_pt).dot(*surface_normal) / v_dot_n;
@@ -52,7 +52,7 @@ pub trait Collision: Component {
 
 #[derive(Debug, Clone, Copy)]
 pub struct CollisionSummary {
-    pub time: f64,
+    pub time: f32,
     pub position: Vec3F,
     pub surface_normal: Vec3F,
 }
@@ -86,5 +86,5 @@ impl PartialOrd for CollisionSummary {
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct CanCollide {
-    pub radius: f64,
+    pub radius: f32,
 }

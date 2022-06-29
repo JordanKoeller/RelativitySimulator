@@ -27,15 +27,15 @@ impl MaterialComponent {
         self.upsert_uniform("specular".to_string(), Uniform::Vec3(v));
     }
     #[allow(dead_code)]
-    pub fn shininess(&mut self, v: f64) {
+    pub fn shininess(&mut self, v: f32) {
         self.upsert_uniform("shininess".to_string(), Uniform::Float(v));
     }
     #[allow(dead_code)]
-    pub fn dissolve(&mut self, v: f64) {
+    pub fn dissolve(&mut self, v: f32) {
         self.upsert_uniform("dissolve".to_string(), Uniform::Float(v));
     }
     #[allow(dead_code)]
-    pub fn optical_density(&mut self, v: f64) {
+    pub fn optical_density(&mut self, v: f32) {
         self.upsert_uniform("optical_density".to_string(), Uniform::Float(v));
     }
     #[allow(dead_code)]

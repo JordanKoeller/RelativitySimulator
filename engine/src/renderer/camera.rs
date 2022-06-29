@@ -22,11 +22,11 @@ impl<'a> Camera<'a> {
 
 
   pub fn projection_matrix(&self, dims: &Vec2F) -> Mat4F {
-    cgmath::perspective(cgmath::Deg(45f64), dims.x / dims.y, 0.1, 10000.0)
+    cgmath::perspective(cgmath::Deg(45f32), dims.x / dims.y, 0.1, 10000.0)
   }
 
   pub fn view_matrix(&self) -> Mat4F {
-    let pt_pos = cgmath::Point3::<f64>::new(self.position.x, self.position.y, self.position.z);
+    let pt_pos = cgmath::Point3::<f32>::new(self.position.x, self.position.y, self.position.z);
     Mat4F::look_at(pt_pos, pt_pos + self.rotation.front(), self.rotation.up())
   }
 

@@ -3,7 +3,7 @@ use super::{BufferConfig, BufferLayout, DataBuffer};
 #[derive(Default)]
 pub struct DataBufferBuilder {
     layout: Option<BufferLayout>,
-    data: Vec<f64>,
+    data: Vec<f32>,
     config: Option<BufferConfig>,
 }
 
@@ -18,14 +18,14 @@ impl DataBufferBuilder {
         self
     }
 
-    pub fn with_data(mut self, data: Vec<f64>) -> Self {
+    pub fn with_data(mut self, data: Vec<f32>) -> Self {
         self.data = data;
         self
     }
 
     pub fn build(self) -> DataBuffer {
         let buf = DataBuffer::new(
-            self.data.iter().map(|e| *e as f32).collect(),
+            self.data,
             self.layout.unwrap(),
             self.config.unwrap(),
             std::u32::MAX,

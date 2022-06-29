@@ -4,8 +4,7 @@ use specs::{Component, NullStorage, VecStorage};
 use super::{ShaderId, VertexArrayId};
 use crate::utils::Vec3F;
 
-#[derive(Debug, Clone, Component, Eq, PartialEq)]
-#[storage(VecStorage)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct MeshComponent {
     pub vertex_array_id: VertexArrayId,
     pub shader_id: ShaderId,
@@ -18,4 +17,8 @@ impl MeshComponent {
             shader_id,
         }
     }
+}
+
+impl Component for MeshComponent {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }

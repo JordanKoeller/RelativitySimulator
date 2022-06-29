@@ -12,12 +12,12 @@ pub struct AxisAlignedCubeCollision {
 
 impl AxisAlignedCubeCollision {
     pub fn from_transform(transform: &TransformComponent) -> Self {
-        let c1 = Vec3F::new(-0.5f64, -0.5f64, -0.5f64);
-        let c2 = Vec3F::new(0.5f64, 0.5f64, 0.5f64);
+        let c1 = Vec3F::new(-0.5f32, -0.5f32, -0.5f32);
+        let c2 = Vec3F::new(0.5f32, 0.5f32, 0.5f32);
         let matrix = transform.matrix();
         let p1 = matrix * swizzle_up(&c1);
         let p2 = matrix * swizzle_up(&c2);
-        let center = (p1 + p2) / 2f64;
+        let center = (p1 + p2) / 2f32;
         let dims = p2 - p1;
         Self {
             center: swizzle_down(&center),
@@ -33,16 +33,16 @@ impl AxisAlignedCubeCollision {
 }
 
 impl Collision for AxisAlignedCubeCollision {
-    fn distance_to(&self, _pt: &Vec3F) -> f64 {
-        0f64
+    fn distance_to(&self, _pt: &Vec3F) -> f32 {
+        0f32
     }
 
-    fn sphere_collision(&self, sphere: (&Vec3F, &f64), velocity: &Vec3F) -> Option<CollisionSummary> {
-        let new_dims = self.dims + Vec3F::new(1f64, 1f64, 1f64) * *sphere.1 * 2f64;
+    fn sphere_collision(&self, sphere: (&Vec3F, &f32), velocity: &Vec3F) -> Option<CollisionSummary> {
+        let new_dims = self.dims + Vec3F::new(1f32, 1f32, 1f32) * *sphere.1 * 2f32;
         let c = sphere.0;
 
-        let lows = self.center - new_dims / 2f64;
-        let highs = self.center + new_dims / 2f64;
+        let lows = self.center - new_dims / 2f32;
+        let highs = self.center + new_dims / 2f32;
 
         let checks = [
             (&lows, &-Vec3F::unit_x()),
@@ -55,7 +55,7 @@ impl Collision for AxisAlignedCubeCollision {
 
         checks.iter().fold(None, |acc, elem| {
             if let Some(summary) = self.get_collision(elem.0, &c, velocity, elem.1) {
-                if summary.time >= 0f64 && self.within_box(&summary.position, &lows, &highs) {
+                if summary.time >= 0f32 && self.within_box(&summary.position, &lows, &highs) {
                     if let Some(prev_best) = acc {
                         if summary.time < prev_best.time {
                             Some(summary)

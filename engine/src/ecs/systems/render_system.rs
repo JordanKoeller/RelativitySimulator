@@ -1,4 +1,5 @@
 use std::time::{Duration, Instant};
+use std::sync::RwLockWriteGuard;
 
 use cgmath::prelude::*;
 use specs::prelude::SystemData;
@@ -10,7 +11,7 @@ use crate::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use crate::events::{
     Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
-use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent, Uniform};
+use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent, Uniform, Assets, VertexArray, VertexArrayBuilder};
 use crate::gui::{widgets::*, ControlPanel, ControlPanelBuilder, SystemDebugger};
 use crate::physics::TransformComponent;
 use crate::platform::Window;
@@ -77,6 +78,7 @@ impl<'a> MonoBehavior<'a> for StartFrameSystem {
             Uniform::Float(panel.get_float("specular_strength")),
         );
         renderer.submit_env_uniform("specular_power", Uniform::Float(panel.get_float("specular_power")));
+        renderer.submit_env_uniform("gamma", Uniform::Float(panel.get_float("gamma")));
     }
 
     fn setup(&mut self, world: WorldProxy) {
@@ -93,7 +95,11 @@ impl<'a> SystemDebugger<'a> for StartFrameSystem {
             .push_line("specular_strength", InputFloat::new("Specular Strength", 0.8))
             .push_line(
                 "specular_power",
-                InputFloat::new_with_limits("Specular Power", 32f64, 4f64, 64f64),
+                InputFloat::new_with_limits("Specular Power", 32f32, 4f32, 64f32),
+            )
+            .push_line(
+                "gamma",
+                InputFloat::new_with_limits("Gamma", 1.8f32, 0.5f32, 3.0f32),
             )
     }
 }
@@ -111,17 +117,50 @@ impl<'a> System<'a> for EndFrameSystem {
     }
 }
 
-pub struct RegisterDrawableSystem;
+pub struct RegisterDrawableSystem {
+    receiver_id: Option<ReaderId<ComponentEvent>>,
+}
+
+impl Default for RegisterDrawableSystem {
+    fn default() -> Self {
+        Self {
+            receiver_id: None,
+        }
+    }
+}
 
 impl<'a> System<'a> for RegisterDrawableSystem {
-    type SystemData = Write<'a, AssetLibrary>;
+    type SystemData = (
+        Write<'a, AssetLibrary>,
+        WriteStorage<'a, MeshComponent>
+    );
 
-    fn run(&mut self, mut assets: Self::SystemData) {
+    fn run(&mut self, (mut assets, mut mesh_storage): Self::SystemData) {
         assets.flush_all();
+        let mut modified = specs::hibitset::BitSet::new();
+        for evt in mesh_storage.channel().read(self.receiver_id.as_mut().unwrap()) {
+            match evt {
+                ComponentEvent::Modified(id) => {modified.add(*id);},
+                _ => {}
+            }
+        }
+        for (mesh, _) in (&mut mesh_storage, &modified).join() {
+            self.update_buffer_for(mesh, &mut assets);
+        }
     }
 
     fn setup(&mut self, world: &mut World) {
         world.register::<MeshComponent>();
+        self.receiver_id = Some(world.system_data::<WriteStorage<'_, MeshComponent>>().register_reader());
+    }
+}
+
+impl RegisterDrawableSystem {
+    fn update_buffer_for<'a>(&self, mesh: &mut MeshComponent, assets: &mut Write<'a, AssetLibrary>) {
+        let asset = <AssetLibrary as Assets<VertexArrayBuilder>>::get_asset_mut(assets, &mut mesh.vertex_array_id);
+        if let Some(mut vao_mut) = asset {
+            vao_mut.update_dynamic_buffers()
+        }
     }
 }
 

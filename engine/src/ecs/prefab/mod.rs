@@ -5,7 +5,9 @@ mod prefab;
 mod skybox;
 mod sphere;
 mod sprite;
+mod entity_manager;
 
+pub use self::entity_manager::*;
 pub use self::cube::*;
 pub use self::model_loader::*;
 pub use self::particle::*;

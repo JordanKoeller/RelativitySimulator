@@ -26,8 +26,14 @@ out vec4 FragColor;
 in vec3 uvw;
 
 uniform samplerCube skybox;
+uniform float gamma;
+
+
+vec3 gamma_correct(vec3 rgb) {
+    return pow(rgb, vec3(1.0/gamma));
+}
 
 void main()
 {
-  FragColor = texture(skybox, uvw);
+  FragColor = vec4(gamma_correct(texture(skybox, uvw).xyz), 1.0);
 }

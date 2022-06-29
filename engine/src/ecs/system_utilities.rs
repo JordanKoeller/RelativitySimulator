@@ -48,6 +48,14 @@ impl<'a> SystemUtilities<'a> {
     }
 }
 
+impl<'a> std::ops::Deref for SystemUtilities<'a> {
+    type Target = AssetLibrary;
+
+    fn deref(&self) -> &AssetLibrary {
+        &self.asset_library
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::testing::{TestingEcs, TestingEcsBuilder};

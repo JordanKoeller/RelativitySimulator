@@ -4,20 +4,20 @@ use specs::prelude::*;
 use engine::ecs::{PrefabBuilder, SystemUtilities};
 use engine::graphics::{
     HydratedBuilderStep, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShadingStrategy,
-    TextureBuilder,
+    TextureBuilder, ColorSpace, Assets, VertexArrayBuilder
 };
 use engine::physics::{RigidBody, TransformComponent};
 use engine::utils::{QuatF, Vec3F};
 
 pub struct CubeState {
-    scale: f64,
+    scale: f32,
     origin: Vec3F,
     texture_file: String,
     normal_file: String,
 }
 
 impl CubeState {
-    pub fn new(scale: f64, origin: Vec3F, texture_file: &str, normal_file: &str) -> Self {
+    pub fn new(scale: f32, origin: Vec3F, texture_file: &str, normal_file: &str) -> Self {
         Self {
             scale,
             origin,
@@ -33,20 +33,21 @@ pub struct Cube;
 impl PrefabBuilder for Cube {
     type PrefabState = CubeState;
 
-    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) {
+    fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity {
         let mesh_builder = self.build_cube_mesh();
-        let vai = api.assets().get_or_create_vertex_array("cube", mesh_builder.into());
-        let mesh = MeshComponent::new(vai, api.assets().get_shader_id("default_texture").unwrap());
+        let mesh_builder: VertexArrayBuilder = mesh_builder.into();
+        let vai = api.get_else("cube", mesh_builder);
+        let mesh = MeshComponent::new(vai, api.get_shader("default_texture").unwrap());
         let mut material = MaterialComponent::default();
-        material.diffuse_texture(api.assets().get_or_create_texture(
+        material.diffuse_texture(api.get_else(
+            &state.texture_file,
+            TextureBuilder::default().with_color_space(ColorSpace::SRGB).with_file(&state.texture_file),
+        ));
+        material.specular_texture(api.get_else(
             &state.texture_file,
             TextureBuilder::default().with_file(&state.texture_file),
         ));
-        material.specular_texture(api.assets().get_or_create_texture(
-            &state.texture_file,
-            TextureBuilder::default().with_file(&state.texture_file),
-        ));
-        material.normal_texture(api.assets().get_or_create_texture(
+        material.normal_texture(api.get_else(
             &state.normal_file,
             TextureBuilder::default().with_file(&state.normal_file),
         ));
@@ -54,14 +55,14 @@ impl PrefabBuilder for Cube {
         transform.push_scale(Vec3F::new(state.scale, state.scale, state.scale));
         transform.push_translation(state.origin);
         let mut rigid_body = RigidBody::new_stationary();
-        let rotation = QuatF::from_angle_y(cgmath::Deg(0.5f64)) * QuatF::from_angle_x(cgmath::Deg(0.5f64));
+        let rotation = QuatF::from_angle_y(cgmath::Deg(0.5f32)) * QuatF::from_angle_x(cgmath::Deg(0.5f32));
         rigid_body.angular_velocity = rotation;
         api.entity_builder()
             .with(material)
             .with(transform)
             .with(mesh)
             .with(rigid_body)
-            .build();
+            .build()
     }
 }
 
@@ -86,7 +87,7 @@ impl Cube {
     }
 }
 
-pub static CUBE_VERTICES: [f64; 180] = [
+pub static CUBE_VERTICES: [f32; 180] = [
     // positions          // normals           // texture coords
     //FRONT
     -0.5, -0.5, -0.5, 0.0, 0.0, // Bottom-left

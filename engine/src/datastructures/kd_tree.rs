@@ -69,15 +69,15 @@ impl<T: HasPosition> SpatialIndex<T> for KdTree<T> {
     fn count(&self) -> usize {
         self.data.len()
     }
-    fn query_near(&self, position: &Vec3F, radius: f64) -> Vec<usize> {
+    fn query_near(&self, position: &Vec3F, radius: f32) -> Vec<usize> {
         let mut ret = Vec::new();
-        let r32 = radius as f64;
+        let r32 = radius as f32;
         self.kd_reduce(position, &r32, |&i| ret.push(i));
         ret
     }
-    fn query_near_count(&self, position: &Vec3F, radius: f64) -> usize {
+    fn query_near_count(&self, position: &Vec3F, radius: f32) -> usize {
         let mut ret = 0usize;
-        let r32 = radius as f64;
+        let r32 = radius as f32;
         self.kd_reduce(position, &r32, |_| ret = ret + 1);
         ret
     }
@@ -88,7 +88,7 @@ impl<T: HasPosition> SpatialIndex<T> for KdTree<T> {
 }
 
 impl<T: HasPosition> KdTree<T> {
-    fn partition(&mut self, start_i: usize, end_i: usize, d: usize) -> f64 {
+    fn partition(&mut self, start_i: usize, end_i: usize, d: usize) -> f32 {
         // Todo: Optimize this another time. I'm just going to heapsort
         let mut heap = BinaryHeap::new();
         let k = (start_i + end_i) / 2;
@@ -106,11 +106,11 @@ impl<T: HasPosition> KdTree<T> {
         ret
     }
 
-    fn within(&self, left: &f64, right: &f64, value: &f64) -> bool {
+    fn within(&self, left: &f32, right: &f32, value: &f32) -> bool {
         left <= value && value <= right
     }
 
-    fn kd_reduce<R: FnMut(&usize) -> ()>(&self, position: &Vec3F, radius: &f64, mut reducer: R) {
+    fn kd_reduce<R: FnMut(&usize) -> ()>(&self, position: &Vec3F, radius: &f32, mut reducer: R) {
         let mut nodes = vec![0];
         let r2 = radius * radius;
         while nodes.len() > 0 {
@@ -144,7 +144,7 @@ impl<T: HasPosition> KdTree<T> {
 struct KdTreeNode {
     pub start_index: usize,
     pub end_index: usize,
-    pub partition_value: f64,
+    pub partition_value: f32,
     pub dimension: usize,
 }
 
@@ -153,7 +153,7 @@ impl KdTreeNode {
         Self {
             start_index: s,
             end_index: e,
-            partition_value: 0f64,
+            partition_value: 0f32,
             dimension,
         }
     }
@@ -166,7 +166,7 @@ struct SortIndexArrayElem<'a, T: HasPosition> {
 }
 
 impl<'a, T: HasPosition> SortIndexArrayElem<'a, T> {
-    fn value(&self) -> &f64 {
+    fn value(&self) -> &f32 {
         &self.data[self.index].position()[self.dimension]
     }
 
@@ -246,7 +246,7 @@ mod test {
         assert_eq!(count, 1);
         let count = tree.query_near_count(&Vec3F::new(4.0, 4.0, 4.0), 1.00001);
         assert_eq!(count, 7);
-        let count = tree.query_near_count(&Vec3F::new(4.0, 4.0, 4.0), 3f64.sqrt() + 0.0001);
+        let count = tree.query_near_count(&Vec3F::new(4.0, 4.0, 4.0), 3f32.sqrt() + 0.0001);
         assert_eq!(count, 27);
     }
 
@@ -254,7 +254,7 @@ mod test {
     fn test_can_query_indices() {
         let verts = generate_voxel_points(9); // 729
         let tree = KdTree::new(verts, 8);
-        let indices = tree.query_near(&Vec3F::new(4.0, 4.0, 4.0), 3f64.sqrt() + 0.0001);
+        let indices = tree.query_near(&Vec3F::new(4.0, 4.0, 4.0), 3f32.sqrt() + 0.0001);
         indices.iter().for_each(|pt| {
             let pos = tree.data()[*pt].position();
             assert_eq!(pos.x == 3.0 || pos.x == 4.0 || pos.x == 5.0, true);
@@ -268,7 +268,7 @@ mod test {
         for i in 0..dims {
             for j in 0..dims {
                 for k in 0..dims {
-                    verts.push(TesterPoint(Vec3F::new(i as f64, j as f64, k as f64)));
+                    verts.push(TesterPoint(Vec3F::new(i as f32, j as f32, k as f32)));
                 }
             }
         }

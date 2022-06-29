@@ -16,13 +16,13 @@ pub struct PlayerControllerSystemData<'a> {
 }
 
 pub struct PlayerController {
-    sensitivity_scalar: f64,
+    sensitivity_scalar: f32,
 }
 
 impl Default for PlayerController {
     fn default() -> Self {
         Self {
-            sensitivity_scalar: 0.001f64,
+            sensitivity_scalar: 0.001f32,
         }
     }
 }
@@ -38,19 +38,19 @@ impl<'a> MonoBehavior<'a> for PlayerController {
         for (_p, camera, events) in (&s.player, &mut s.camera, &s.event_receiver).join() {
             let mut delta = Vec3F::zero();
             s.event_channel.for_each(&events.0, |evt| match evt.code {
-                Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::A) => delta -= camera.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::S) => delta -= camera.front().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::D) => delta += camera.right().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::LeftShift) => delta -= Vec3F::unit_y().normalize_to(0.04f64),
-                Event::KeyDown(KeyCode::Space) => delta += Vec3F::unit_y().normalize_to(0.04f64),
+                Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::A) => delta -= camera.right().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::S) => delta -= camera.front().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::D) => delta += camera.right().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::LeftShift) => delta -= Vec3F::unit_y().normalize_to(0.04f32),
+                Event::KeyDown(KeyCode::Space) => delta += Vec3F::unit_y().normalize_to(0.04f32),
                 Event::MouseMoved => {
                     if let Some(payload) = &evt.payload {
                         match payload {
                             EventPayload::MouseMove(vec) => {
                                 let dx = -cgmath::Rad(-vec.x * self.sensitivity_scalar);
                                 let dy = cgmath::Rad(vec.y * self.sensitivity_scalar);
-                                let euler_angles = cgmath::Euler::new(dy, dx, cgmath::Rad(0f64));
+                                let euler_angles = cgmath::Euler::new(dy, dx, cgmath::Rad(0f32));
                                 camera.push_rotation(euler_angles);
                             }
                             _ => panic!("Received a payload of {:?} on MouseMoved event!", payload),
@@ -84,7 +84,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
                 WindowEvent::new(Event::MouseMoved),
             ]))
         };
-        let camera = Camera::new(Vec3F::new(4f64, 4f64, 2f64), Vec3F::new(0f64, 0f64, 1f64));
+        let camera = Camera::new(Vec3F::new(4f32, 4f32, 2f32), Vec3F::new(0f32, 0f32, 1f32));
         world.create_entity().with(Player).with(camera).with(receiver).build();
     }
 }

@@ -1,6 +1,11 @@
 use specs::Entity;
+use std::borrow::{Borrow, BorrowMut};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use crate::graphics::{AssetLibrary, MaterialComponent, MeshComponent, Shader, ShaderId, TextureBinder, VertexArrayId};
+use crate::graphics::{
+    AssetLibrary, Assets, MaterialComponent, MeshComponent, Shader, ShaderBuilder, ShaderId, TextureBinder,
+    VertexArray, VertexArrayBuilder, VertexArrayId,
+};
 use crate::renderer::RenderQueueConsumer;
 use crate::utils::Mat4F;
 
@@ -26,12 +31,13 @@ impl<'a> GPUState<'a> {
         ret
     }
 
-    pub fn shader(&mut self) -> &mut Shader {
-        self.assets.get_shader_mut(&self.active_shader).unwrap()
+    pub fn shader(&mut self) -> RwLockWriteGuard<'_, Shader> {
+        <AssetLibrary as Assets<ShaderBuilder>>::get_asset_mut(&self.assets, &mut self.active_shader).unwrap()
+        // self.assets.get_asset_mut(&mut self.active_shader).unwrap()
     }
 
-    pub fn shader_immut(&self) -> &Shader {
-        self.assets.get_shader(&self.active_shader).unwrap()
+    pub fn shader_immut(&self) -> RwLockReadGuard<'_, Shader> {
+        <AssetLibrary as Assets<ShaderBuilder>>::get_asset(&self.assets, &self.active_shader).unwrap()
     }
 
     pub fn bind_shader(&mut self, shader_id: ShaderId) {
@@ -46,12 +52,12 @@ impl<'a> GPUState<'a> {
 
     pub fn draw(&self) {
         let element_type = self.shader_element_type();
-        let vao_opt = self.assets.get_vertex_array(&self.active_mesh);
+        let vao_opt = <AssetLibrary as Assets<VertexArrayBuilder>>::get_asset(&self.assets, &self.active_mesh);
         vao_opt.map(|vao| vao.draw(&element_type));
     }
 
     pub fn increment_poly_counter(&mut self) {
-        self.assets.get_vertex_array(&self.active_mesh).map(|vao| {
+        <AssetLibrary as Assets<VertexArrayBuilder>>::get_asset(&self.assets, &self.active_mesh).map(|vao| {
             self.poly_count += vao.poly_count();
         });
     }
@@ -62,8 +68,9 @@ impl<'a> GPUState<'a> {
     // }
 
     pub fn bind_material(&mut self, mtl: &MaterialComponent) {
-        self.assets.get_shader(&self.active_shader).map(|shader| {
-            mtl.bind_to(shader, &mut self.textures, false);
+        let assets = &self.assets;
+        <AssetLibrary as Assets<ShaderBuilder>>::get_asset(assets, &self.active_shader).map(|shader| {
+            mtl.bind_to(shader.borrow(), &mut self.textures, false);
         });
     }
 

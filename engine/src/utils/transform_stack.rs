@@ -38,7 +38,7 @@ impl TransformStack {
         self.push(&translate(pos))
     }
 
-    pub fn push_scale(&mut self, s: f64) -> &Mat4F {
+    pub fn push_scale(&mut self, s: f32) -> &Mat4F {
         self.push(&scale(s))
     }
 
@@ -46,7 +46,7 @@ impl TransformStack {
         self.push(&nonunif_scale(f))
     }
 
-    pub fn push_euler<A: Into<Rad<f64>>>(&mut self, angle: A, axis: Vec3F) -> &Mat4F {
+    pub fn push_euler<A: Into<Rad<f32>>>(&mut self, angle: A, axis: Vec3F) -> &Mat4F {
         let matrix = Mat4F::from_axis_angle(axis, angle);
         self.push(&matrix)
     }

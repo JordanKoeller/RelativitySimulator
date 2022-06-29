@@ -16,7 +16,7 @@ use crate::graphics::{
 };
 use crate::platform::{Screen, Window};
 use crate::renderer::render_pipeline::*;
-use crate::renderer::{DrawCall, Framebuffer, RenderQueueConsumer, RendererConfig};
+use crate::renderer::{DrawCall, Framebuffer, RenderQueueConsumer, RendererConfig, PolygonMode};
 
 use crate::ecs::Camera;
 
@@ -89,16 +89,22 @@ impl Renderer {
 
     pub fn init_frame(&mut self, window: &mut Window) {
         self.screen.bind_framebuffer();
+        if self.config.polygon_mode == PolygonMode::LINE {
+            unsafe {
+                gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+            }
+        }
         unsafe {
-            // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
             gl::Enable(gl::DEPTH_TEST);
         }
         window.clear_framebuffer();
     }
 
     pub fn end_frame(&mut self, window: &mut Window) {
+        unsafe {
+            gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+        }
         self.screen.unbind_framebuffer();
-
         window.clear_intrinsic_canvas();
         self.screen.draw_framebuffer_contents();
         window.swap_buffers();
@@ -191,6 +197,12 @@ impl Renderer {
                 let mut new_config = self.config.clone();
                 new_config.debug = !new_config.debug;
                 self.submit_config(new_config);
+            }
+            Event::KeyPressed(KeyCode::One) => {
+                let mut config = self.config.clone();
+                config.polygon_mode = config.polygon_mode.rotate();
+                println!("Setting polygon mode {:?}", config.polygon_mode);
+                self.submit_config(config);
             }
             _ => {}
         });

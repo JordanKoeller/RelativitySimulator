@@ -4,7 +4,7 @@ use crate::utils::*;
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub enum ImguiUiEvent {
-    FloatInput(usize, f64),
+    FloatInput(usize, f32),
     IntInput(usize, i32),
     BoolInput(usize, bool),
     Vec2Input(usize, Vec2F),

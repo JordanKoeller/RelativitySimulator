@@ -2,7 +2,7 @@ use crossbeam_queue::SegQueue;
 use specs::Builder;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use std::sync::RwLock;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub trait RegistryItem {
     type K: Eq + PartialEq + Hash + Clone + Sync + Send;
@@ -19,9 +19,9 @@ where
 {
     fn create() -> Self;
     fn get_registry_id(&self, lookup_name: &str) -> Option<KVB::K>;
-    fn fetch(&self, registry_id: &KVB::K) -> Option<&KVB::V>;
+    fn fetch(&self, registry_id: &KVB::K) -> Option<RwLockReadGuard<'_, KVB::V>>;
 
-    fn fetch_mut(&mut self, registry_id: &KVB::K) -> Option<&mut KVB::V>;
+    fn fetch_mut(&self, registry_id: &KVB::K) -> Option<RwLockWriteGuard<'_, KVB::V>>;
 
     // Schedules for building and insertion later, but gives back an ID now.
     // If the same lookup_name is enqueued twice before the lazy queue has been drained
@@ -38,7 +38,7 @@ where
     KVB: RegistryItem,
 {
     name_lookup: RwLock<HashMap<String, KVB::K>>,
-    value_lookup: HashMap<KVB::K, KVB::V>,
+    value_lookup: HashMap<KVB::K, RwLock<KVB::V>>,
     inbox: SegQueue<KVB>,
 }
 
@@ -61,12 +61,12 @@ where
             .and_then(|names| names.get(lookup_name).map(|k_ref| k_ref.clone()))
     }
 
-    fn fetch(&self, registry_id: &KVB::K) -> Option<&KVB::V> {
-        self.value_lookup.get(registry_id)
+    fn fetch(&self, registry_id: &KVB::K) -> Option<RwLockReadGuard<'_, KVB::V>> {
+        self.value_lookup.get(registry_id).map(|entry| entry.read().ok().unwrap())
     }
 
-    fn fetch_mut(&mut self, registry_id: &KVB::K) -> Option<&mut KVB::V> {
-        self.value_lookup.get_mut(registry_id)
+    fn fetch_mut(&self, registry_id: &KVB::K) ->  Option<RwLockWriteGuard<'_, KVB::V>> {
+        self.value_lookup.get(registry_id).map(|entry| entry.write().ok().unwrap())
     }
 
     fn enqueue_builder<B: Into<KVB>>(&self, lookup_name: &str, builder: B) -> KVB::K {
@@ -87,7 +87,7 @@ where
     fn flush(&mut self) {
         while !self.inbox.is_empty() {
             let builder = self.inbox.pop().unwrap();
-            self.value_lookup.insert(builder.key(), builder.build());
+            self.value_lookup.insert(builder.key(),RwLock::from(builder.build()));
         }
     }
 }

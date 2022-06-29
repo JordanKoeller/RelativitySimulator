@@ -6,10 +6,10 @@ use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
 use crate::ecs::systems::*;
-use crate::ecs::{PrefabBuilder, Sys, SystemUtilities, WorldProxy};
+use crate::ecs::{PrefabBuilder, Sys, SystemUtilities, WorldProxy, EntityManager};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
-use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction};
+use crate::graphics::{AssetLibrary, ShaderBuilder, ShaderDepthFunction, Assets};
 use crate::graphics::{MaterialComponent, MeshComponent};
 use crate::gui::{ControlPanel, ControlPanels, GuiRenderer};
 use crate::physics::TransformComponent;
@@ -25,7 +25,7 @@ struct RendererBuilder {
 impl RendererBuilder {
     pub fn empty() -> Self {
         RendererBuilder {
-            dims: Vec2F::new(0f64, 0f64),
+            dims: Vec2F::new(0f32, 0f32),
             receiver_id: 0,
         }
     }
@@ -40,6 +40,7 @@ impl RendererBuilder {
             WindowEvent::new(Event::WindowResized),
             WindowEvent::new(Event::KeyPressed(KeyCode::Tab)),
             WindowEvent::new(Event::KeyPressed(KeyCode::Q)),
+            WindowEvent::new(Event::KeyPressed(KeyCode::One)),
         ]);
         self
     }
@@ -149,7 +150,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         // Build the Renderer resource, bind it to the world
         let renderer = self
             .render_builder
-            .set_dims(self.window.get_dims_f64())
+            .set_dims(self.window.get_dims_f32())
             .bind_window_events(&mut window_channel)
             .build();
         self.world.insert(renderer);
@@ -182,7 +183,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
             .dispatcher_builder
             .with(Sys::<DebugMetricsSystem>::default(), "debug", &[])
             .with_thread_local(start_system)
-            .with_thread_local(RegisterDrawableSystem)
+            .with_thread_local(RegisterDrawableSystem::default())
             .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))
             .with_thread_local(gui_renderer)
             .with_thread_local(end_system)
@@ -194,21 +195,21 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         let world = WorldProxy::new(&mut self.world);
         let utils = world.utilities();
         let assets = utils.assets();
-        assets.get_or_create_shader(
+        assets.get_or_create(
             "default_texture",
-            ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl"),
+            || ShaderBuilder::default().with_source_file("shaders/simple_textured.glsl"),
         );
-        assets.get_or_create_shader(
+        assets.get_or_create(
             "debug_normals",
-            ShaderBuilder::default().with_source_file("shaders/debug/normals.glsl"),
+            || ShaderBuilder::default().with_source_file("shaders/debug/normals.glsl"),
         );
-        assets.get_or_create_shader(
+        assets.get_or_create(
             "instanced",
-            ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl"),
+            || ShaderBuilder::default().with_source_file("shaders/simple_instanced.glsl"),
         );
-        assets.get_or_create_shader(
+        assets.get_or_create(
             "skybox",
-            ShaderBuilder::default()
+            || ShaderBuilder::default()
                 .with_depth_function(ShaderDepthFunction::LEQUAL)
                 .with_source_file("shaders/skybox.glsl"),
         );
@@ -226,6 +227,7 @@ impl WorldBuilder {
         world.register::<MaterialComponent>();
         world.register::<TransformComponent>();
         world.register::<MeshComponent>();
+        world.register::<EntityManager>();
         world.insert(AssetLibrary::default());
         SystemUtilities::setup(&mut world);
         // SystemUtilities::setup(world);

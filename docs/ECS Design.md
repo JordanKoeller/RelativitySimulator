@@ -218,7 +218,7 @@ trait Registry<K, V> {
 1. Index Buffer
    1. `data: Vec<u32>`
 2. Data Buffer
-   1. `data: Vec<f64>`
+   1. `data: Vec<f32>`
    2. `layout: BufferLayout`
    3. Buffer Config
       1. `storage_type: DYNAMIC_DRAW, STATIC_DRAW, etc`

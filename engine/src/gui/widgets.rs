@@ -9,7 +9,7 @@ use specs::{Component, VecStorage};
 pub trait Widget {
     fn render<'ui>(&mut self, ui: &imgui::Ui<'ui>);
 
-    fn get_float(&self) -> f64 {
+    fn get_float(&self) -> f32 {
         panic!(
             "Widget::get_float not implemented for {}",
             std::any::type_name::<Self>()
@@ -33,7 +33,7 @@ pub trait Widget {
             std::any::type_name::<Self>()
         );
     }
-    fn set_float(&mut self, _value: f64) {
+    fn set_float(&mut self, _value: f32) {
         panic!(
             "Widget::set_float not implemented for {}",
             std::any::type_name::<Self>()
@@ -145,7 +145,7 @@ pub struct InputFloat {
     high_value: f32,
 }
 impl InputFloat {
-    pub fn new(label: &str, value: f64) -> Self {
+    pub fn new(label: &str, value: f32) -> Self {
         Self {
             value: value as f32,
             label: ImString::from(label.to_string()),
@@ -154,7 +154,7 @@ impl InputFloat {
         }
     }
 
-    pub fn new_with_limits(label: &str, value: f64, low_value: f64, high_value: f64) -> Self {
+    pub fn new_with_limits(label: &str, value: f32, low_value: f32, high_value: f32) -> Self {
         Self {
             value: value as f32,
             label: ImString::from(label.to_string()),
@@ -169,8 +169,8 @@ impl Widget for InputFloat {
         slider.build();
         // ui.input_float(&self.label, &mut self.value).build();
     }
-    fn get_float(&self) -> f64 {
-        self.value as f64
+    fn get_float(&self) -> f32 {
+        self.value as f32
     }
 }
 // OverlayLine::IntInput(label, value) => {
@@ -197,7 +197,7 @@ impl Widget for InputColor {
     }
 
     fn get_vec3(&self) -> Vec3F {
-        Vec3F::new(self.value[0] as f64, self.value[1] as f64, self.value[2] as f64)
+        Vec3F::new(self.value[0] as f32, self.value[1] as f32, self.value[2] as f32)
     }
 }
 

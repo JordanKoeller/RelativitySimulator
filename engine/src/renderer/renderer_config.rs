@@ -23,10 +23,26 @@ impl RelativityMode {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum PolygonMode {
+    FILL,
+    LINE,
+}
+
+impl PolygonMode {
+    pub fn rotate(self) -> Self {
+        match self {
+            PolygonMode::FILL => PolygonMode::LINE,
+            PolygonMode::LINE => PolygonMode::FILL
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct RendererConfig {
     pub mode: RelativityMode,
     pub debug: bool,
+    pub polygon_mode: PolygonMode
 }
 
 impl Default for RendererConfig {
@@ -34,6 +50,7 @@ impl Default for RendererConfig {
         RendererConfig {
             mode: RelativityMode::CLASSICAL,
             debug: false,
+            polygon_mode: PolygonMode::FILL
         }
     }
 }
@@ -43,6 +60,7 @@ impl RendererConfig {
         RendererConfig {
             mode: mode,
             debug: false,
+            polygon_mode: PolygonMode::FILL,
         }
     }
 

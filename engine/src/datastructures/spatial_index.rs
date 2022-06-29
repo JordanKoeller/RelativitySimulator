@@ -13,9 +13,9 @@ pub trait SpatialIndex<T: HasPosition> {
 
     fn count(&self) -> usize;
 
-    fn query_near(&self, position: &Vec3F, radius: f64) -> Vec<usize>;
+    fn query_near(&self, position: &Vec3F, radius: f32) -> Vec<usize>;
 
-    fn query_near_count(&self, position: &Vec3F, radius: f64) -> usize;
+    fn query_near_count(&self, position: &Vec3F, radius: f32) -> usize;
 
     fn data(&self) -> &Vec<T>;
 }

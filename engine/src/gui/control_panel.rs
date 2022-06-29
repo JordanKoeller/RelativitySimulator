@@ -15,7 +15,7 @@ pub struct ControlPanel {
 }
 
 impl ControlPanel {
-    pub fn get_float(&self, name: &str) -> f64 {
+    pub fn get_float(&self, name: &str) -> f32 {
         self.get_by_name(name).get_float()
     }
 
@@ -35,7 +35,7 @@ impl ControlPanel {
         self.get_by_name(name).get_string()
     }
 
-    pub fn set_float(&mut self, name: &str, value: f64) {
+    pub fn set_float(&mut self, name: &str, value: f32) {
         self.get_by_name_mut(name).set_float(value);
     }
 
@@ -55,7 +55,7 @@ impl ControlPanel {
         self.get_by_name_mut(name).set_string(value);
     }
 
-    pub fn render<'ui>(&mut self, ui: &imgui::Ui<'ui>, pos: &[f64; 2]) {
+    pub fn render<'ui>(&mut self, ui: &imgui::Ui<'ui>, pos: &[f32; 2]) {
         let pos_f32 = [pos[0] as f32, pos[1] as f32];
         imgui::Window::new(ui, &self.title)
             .opened(&mut true)

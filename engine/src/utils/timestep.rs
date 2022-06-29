@@ -25,7 +25,7 @@ impl Timestep {
         self.current_click_time - self.last_click_time
     }
 
-    pub fn dt_f64(&self) -> f64 {
-        self.dt().as_secs_f64()
+    pub fn dt_f32(&self) -> f32 {
+        self.dt().as_secs_f32()
     }
 }
