@@ -166,10 +166,10 @@ mod test {
         let mut registry = GenericRegistry::<TestKVB>::default();
         let k1 = registry.enqueue_builder("build1", TestKVB::default());
         let k3 = registry.enqueue_builder("build2", TestKVB::default());
-        assert_eq!(registry.fetch(&k1), None);
-        assert_eq!(registry.fetch(&k3), None);
+        assert_eq!(registry.fetch(&k1).is_none(), true);
+        assert_eq!(registry.fetch(&k3).is_none(), true);
         registry.flush();
-        assert_ne!(registry.fetch(&k1), None);
-        assert_ne!(registry.fetch(&k3), None);
+        assert_ne!(registry.fetch(&k1).is_none(), true);
+        assert_ne!(registry.fetch(&k3).is_none(), true);
     }
 }

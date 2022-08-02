@@ -5,7 +5,9 @@ mod mesh;
 mod shader;
 mod texture;
 mod uniform;
+mod instancing_table;
 
+pub use self::instancing_table::*;
 pub use self::asset_library::*;
 pub use self::buffer::*;
 pub use self::material::*;

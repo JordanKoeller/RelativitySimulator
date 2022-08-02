@@ -37,26 +37,26 @@ fn main() {
             ModelLoader::new("resources/debug/backpack/backpack.obj"),
         );
 
-    // let mut sphere_builder = Sphere::default();
-    // let (x, y, z) = (5, 5, 5);
-    // for i in 0..x {
-    //     for j in 0..y {
-    //         for k in 0..z {
-    //             builder = builder.with_prefab(
-    //                 &mut sphere_builder,
-    //                 SphereState::new(
-    //                     3f32,
-    //                     Vec3F::new(0f32 + (10 * i) as f32, 4f32 + (10 * j) as f32, 16f32 + (10 * k) as f32),
-    //                     Color::new(1f32, 0.3f32, 0.3f32),
-    //                     "resources/earth/2k_earth_daymap.jpg",
-    //                     "resources/earth/2k_earth_specular_map.png",
-    //                     "resources/earth/2k_earth_normal_map.png",
-    //                     64,
-    //                 ),
-    //             );
-    //         }
-    //     }
-    // }
+    let mut sphere_builder = Sphere::default();
+    let (x, y, z) = (5, 5, 5);
+    for i in 0..x {
+        for j in 0..y {
+            for k in 0..z {
+                builder = builder.with_prefab(
+                    &mut sphere_builder,
+                    SphereState::new(
+                        3f32,
+                        Vec3F::new(0f32 + (10 * i) as f32, 4f32 + (10 * j) as f32, 16f32 + (10 * k) as f32),
+                        Color::new(1f32, 0.3f32, 0.3f32),
+                        "resources/earth/2k_earth_daymap.jpg",
+                        "resources/earth/2k_earth_specular_map.png",
+                        "resources/earth/2k_earth_normal_map.png",
+                        64,
+                    ),
+                );
+            }
+        }
+    }
     info!("Finished making the builder. About to send it off to engine::main");
     engine::main(builder);
 }

@@ -116,70 +116,70 @@ pub trait EntityDelegate<'a> {
 // Entity manager system definition
 /////////////////////////////////////////////
 
-pub struct EntityManager<Delegate>
-where
-    for<'a> Delegate: EntityDelegate<'a> + Default,
-{
-    delegate: Delegate,
-    event_receiver_id: ReceiverID,
-}
+// pub struct EntityManager<Delegate>
+// where
+//     for<'a> Delegate: EntityDelegate<'a> + Default,
+// {
+//     delegate: Delegate,
+//     event_receiver_id: ReceiverID,
+// }
 
-impl<Delegate> EntityManager<Delegate>
-where
-    for<'a> Delegate: EntityDelegate<'a> + Default,
-{
-    fn new(delegate: Delegate) -> Self {
-        Self {
-            delegate,
-            event_receiver_id: usize::MAX,
-        }
-    }
-}
+// impl<Delegate> EntityManager<Delegate>
+// where
+//     for<'a> Delegate: EntityDelegate<'a> + Default,
+// {
+//     fn new(delegate: Delegate) -> Self {
+//         Self {
+//             delegate,
+//             event_receiver_id: usize::MAX,
+//         }
+//     }
+// }
 
-impl<Delegate> Default for EntityManager<Delegate>
-where
-    for<'a> Delegate: EntityDelegate<'a> + Default,
-{
-    fn default() -> Self {
-        Self {
-            delegate: Delegate::default(),
-            event_receiver_id: usize::MAX,
-        }
-    }
-}
+// impl<Delegate> Default for EntityManager<Delegate>
+// where
+//     for<'a> Delegate: EntityDelegate<'a> + Default,
+// {
+//     fn default() -> Self {
+//         Self {
+//             delegate: Delegate::default(),
+//             event_receiver_id: usize::MAX,
+//         }
+//     }
+// }
 
-impl<'a, Delegate> System<'a> for EntityManager<Delegate>
-where
-    for<'b> Delegate: EntityDelegate<'b> + Default,
-{
-    type SystemData = (
-        <Delegate as EntityDelegate<'a>>::EntityResources,
-        Entities<'a>,
-        Read<'a, LazyUpdate>,
-        Write<'a, StatefulEventChannel<EntityCrudEvent, <Delegate as EntityDelegate<'a>>::State>>,
-    );
+// impl<'a, Delegate> System<'a> for EntityManager<Delegate>
+// where
+//     for<'b> Delegate: EntityDelegate<'b> + Default,
+// {
+//     type SystemData = (
+//         <Delegate as EntityDelegate<'a>>::EntityResources,
+//         Entities<'a>,
+//         Read<'a, LazyUpdate>,
+//         Write<'a, StatefulEventChannel<EntityCrudEvent, <Delegate as EntityDelegate<'a>>::State>>,
+//     );
 
-    fn run(&mut self, (mut resource_storage, entities, updater, mut crud_events): Self::SystemData) {
-        crud_events.for_each(&self.event_receiver_id, |ep| {
-            match ep.0 {
-                EntityCrudEvent::NOOP => {}
-                EntityCrudEvent::Create => {
-                    self.delegate.create(&ep.1, &mut resource_storage, || {
-                        MyBuilder::LazyBuilder(updater.create_entity(&entities))
-                    });
-                }
-                EntityCrudEvent::Update(updating_entity) => {
-                    self.delegate.update(&ep.1, &mut resource_storage, &updating_entity);
-                }
-            };
-        });
-        crud_events.clear_events();
-    }
+//     fn run(&mut self, (mut resource_storage, entities, updater, mut crud_events): Self::SystemData) {
+//         crud_events.for_each(&self.event_receiver_id, |ep| {
+//             match ep.0 {
+//                 EntityCrudEvent::NOOP => {}
+//                 EntityCrudEvent::Create => {
+//                     self.delegate.create(&ep.1, &mut resource_storage, || {
+//                         MyBuilder::LazyBuilder(updater.create_entity(&entities))
+//                     });
+//                 }
+//                 EntityCrudEvent::Update(updating_entity) => {
+//                     self.delegate.update(&ep.1, &mut resource_storage, &updating_entity);
+//                 }
+//             };
+//         });
+//         crud_events.clear_events();
+//     }
 
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-        self.delegate.setup_delegate(world);
-        let mut channel = world.fetch_mut::<StatefulEventChannel<EntityCrudEvent, Delegate::State>>();
-        self.event_receiver_id = channel.register_with_subs(&[EntityCrudEvent::Create]);
-    }
-}
+//     fn setup(&mut self, world: &mut World) {
+//         Self::SystemData::setup(world);
+//         self.delegate.setup_delegate(world);
+//         let mut channel = world.fetch_mut::<StatefulEventChannel<EntityCrudEvent, Delegate::State>>();
+//         self.event_receiver_id = channel.register_with_subs(&[EntityCrudEvent::Create]);
+//     }
+// }
