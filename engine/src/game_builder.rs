@@ -160,6 +160,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
         self.world.insert(Timestep::default());
         self.world.insert(RunningState::default());
         self.world.insert(ControlPanels::default());
+        // self.world.insert(Actor::new());
 
         // Register some components
 

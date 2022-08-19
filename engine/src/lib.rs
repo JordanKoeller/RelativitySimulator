@@ -51,6 +51,8 @@ use crate::events::{Event, EventChannel, KeyCode, StatelessEventChannel, WindowE
 use crate::game_builder::GameBuilder;
 use crate::game_loop::GameLoop;
 use crate::utils::Vec3F;
+
+use std::thread;
 use specs::{World, WorldExt};
 
 pub use crate::ecs::prefab;
@@ -70,4 +72,5 @@ pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
 pub fn main(builder: GameBuilder) {
     let mut runtime = builder.build();
     runtime.run();
+
 }
