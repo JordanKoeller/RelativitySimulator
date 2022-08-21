@@ -1,7 +1,7 @@
 use specs::prelude::*;
 
 use engine::{
-  ecs::{MonoBehavior, PrefabBuilder, SystemUtilities, WorldProxy},
+  ecs::{components::Player, MonoBehavior, PrefabBuilder, SystemUtilities, WorldProxy},
   events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent},
   gui::{widgets::*, ControlPanelBuilder, SystemDebugger},
   net::{ConnectionId, ConnectionParameters, NetActor, NetActorHandle},
@@ -16,6 +16,7 @@ pub struct Party {
   key_event_id: Option<ReceiverID>,
   network: Option<NetActorHandle>,
   net_role: Option<NodeRole>,
+  duplex: Option<ConnectionId>,
 }
 
 impl<'a> MonoBehavior<'a> for Party {
@@ -23,21 +24,32 @@ impl<'a> MonoBehavior<'a> for Party {
     Write<'a, StatelessEventChannel<WindowEvent>>,
     ReadStorage<'a, ConnectionId>,
     WriteStorage<'a, TransformComponent>,
+    ReadStorage<'a, Player>,
   );
 
-  fn run(&mut self, api: SystemUtilities<'a>, (evts, connection_storage, mut transform_storage): Self::SystemData) {
+  fn run(
+    &mut self,
+    api: SystemUtilities<'a>,
+    (evts, connection_storage, mut transform_storage, p_storage): Self::SystemData,
+  ) {
     if self.net_role.is_none() {
       self.handle_choose_role(&evts, &api);
     }
     self.handle_new_connections(&api);
+    // Accept remote's TransformComponent and synchronize with local state
     if let Some(net) = self.network.as_mut() {
       while let Some(message) = net.read_message_raw() {
-        for (c_id, _transform) in (&connection_storage, &mut transform_storage).join() {
+        for (c_id, transform) in (&connection_storage, &mut transform_storage).join() {
           if c_id == message.connection_id() {
-            println!("Synchonrizing state!");
-            // Extract out the new transform component
-            // Update transform storage accordingly.
+            let data = message.get_as::<[f32; 10]>();
+            *transform = TransformComponent::from_buffer(data);
           }
+        }
+      }
+      // Send current player's state to remote
+      if let Some(c_id) = self.duplex {
+        for (transform, _p) in (&transform_storage, &p_storage).join() {
+          net.send_message(c_id, transform.matrix_buffer());
         }
       }
     }
@@ -89,14 +101,16 @@ impl Party {
     if let Some((role, net)) = self.net_role.as_ref().zip(self.network.as_mut()) {
       if let Some(new_connections) = net.get_new_connections(role.id()) {
         new_connections.iter().for_each(|cxn| {
+          self.duplex = Some(cxn.id());
           let mut builder = Cube::default();
-          let mut state = CubeState::new(
+          let state = CubeState::new(
             2.0,
             Vec3F::new(16f32, 12f32, 14f32),
             "resources/debug/brickwall.jpg",
             "resources/debug/bricks_tangent.png",
           );
-          builder.build(api, state);
+          let avatar = builder.build(api, state);
+          api.add_component(&avatar, cxn.id());
           {
             let mut panel = self.get_write_panel(&api);
             panel.set_str("Connection Status", "Connected!".to_string());

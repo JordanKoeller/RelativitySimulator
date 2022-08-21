@@ -29,6 +29,17 @@ impl TransformComponent {
     }
   }
 
+  pub fn from_buffer(data: [f32; 10]) -> Self {
+    let translation = Vec3F::from([data[0], data[1], data[2]]);
+    let scale = Vec3F::from([data[3], data[4], data[5]]);
+    let rotation = QuatF::new(data[6], data[7], data[8], data[9]);
+    Self {
+      translation,
+      rotation,
+      scale,
+    }
+  }
+
   pub fn matrix(&self) -> Mat4F {
     let rotation_3 = Mat3F::from(self.rotation);
     let mut rotation_4 = Mat4F::from(rotation_3);
@@ -63,6 +74,21 @@ impl TransformComponent {
 
   pub fn world_up(&self) -> Vec3F {
     Vec3F::unit_y()
+  }
+
+  pub fn matrix_buffer(&self) -> [f32; 10] {
+    [
+      self.translation.x,
+      self.translation.y,
+      self.translation.z,
+      self.scale.x,
+      self.scale.y,
+      self.scale.z,
+      self.rotation.s,
+      self.rotation.v.x,
+      self.rotation.v.y,
+      self.rotation.v.z,
+    ]
   }
 }
 

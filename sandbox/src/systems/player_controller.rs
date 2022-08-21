@@ -5,12 +5,14 @@ use engine::ecs::components::{Camera, EventReceiver, Player};
 use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatelessEventChannel, WindowEvent};
 use engine::gui::{widgets::*, ControlPanelBuilder, SystemDebugger};
+use engine::physics::TransformComponent;
 use engine::utils::Vec3F;
 
 #[derive(SystemData)]
 pub struct PlayerControllerSystemData<'a> {
   player: ReadStorage<'a, Player>,
   camera: WriteStorage<'a, Camera>,
+  transform: WriteStorage<'a, TransformComponent>,
   event_receiver: ReadStorage<'a, EventReceiver>,
   event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
 }
@@ -35,7 +37,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
       let panel = self.get_write_panel(&api);
       self.sensitivity_scalar = panel.get_float("Mouse Sensitivity");
     }
-    for (_p, camera, events) in (&s.player, &mut s.camera, &s.event_receiver).join() {
+    for (_p, camera, events, transform) in (&s.player, &mut s.camera, &s.event_receiver, &mut s.transform).join() {
       let mut delta = Vec3F::zero();
       s.event_channel.for_each(&events.0, |evt| match evt.code {
         Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f32),
@@ -63,6 +65,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
         ),
       });
       camera.push_translation(delta);
+      transform.translation = camera.position();
       let mut panel = self.get_write_panel(&api);
       panel.set_str("Player Position", to_string!(camera.position()));
       panel.set_str("Player Facing", to_string!(camera.front()));
@@ -85,7 +88,15 @@ impl<'a> MonoBehavior<'a> for PlayerController {
       ]))
     };
     let camera = Camera::new(Vec3F::new(4f32, 4f32, 2f32), Vec3F::new(0f32, 0f32, 1f32));
-    world.create_entity().with(Player).with(camera).with(receiver).build();
+    let mut transform = TransformComponent::identity();
+    transform.push_translation(camera.position());
+    world
+      .create_entity()
+      .with(Player)
+      .with(camera)
+      .with(receiver)
+      .with(transform)
+      .build();
   }
 }
 

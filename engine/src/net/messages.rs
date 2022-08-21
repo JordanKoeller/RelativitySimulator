@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use tokio::net::TcpStream;
 
 use super::{Connection, ConnectionId, ConnectionParameters};
@@ -15,6 +16,13 @@ impl Envelope {
 
   pub fn connection_id(&self) -> &ConnectionId {
     &self.connection_id
+  }
+
+  pub fn get_as<T>(&self) -> T
+  where
+    for<'a> T: Serialize + Deserialize<'a>,
+  {
+    serde_json::from_slice(&self.data).ok().unwrap()
   }
 }
 
