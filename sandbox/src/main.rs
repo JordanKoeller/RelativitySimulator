@@ -3,9 +3,9 @@ extern crate engine;
 extern crate cgmath;
 extern crate specs;
 
+mod components;
 mod prefabs;
 mod systems;
-mod components;
 
 use engine::ecs::{MotionSystem, Sys};
 use engine::info;
@@ -13,7 +13,7 @@ use engine::prefab::{ModelBuilder, ModelLoader, SkyboxBuilder, SkyboxPrefab, Sph
 use engine::utils::{Color, Vec3F};
 
 use crate::prefabs::{Cube, CubeState};
-use crate::systems::{PlayerController, SinSphere, Party};
+use crate::systems::{Party, PlayerController, SinSphere};
 
 fn main() {
     info!("App began!");

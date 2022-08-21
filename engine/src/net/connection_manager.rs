@@ -18,9 +18,12 @@ impl ConnectionManager {
     }
 
     pub fn set_channel_status(&self, id: usize, status: ConnectionStatus) {
-        self.channel_statuses.write().map(|mut statuses| {
-            statuses[id] = status;
-        }).ok();
+        self.channel_statuses
+            .write()
+            .map(|mut statuses| {
+                statuses[id] = status;
+            })
+            .ok();
     }
 
     pub fn get_channel_status(&self, id: usize) -> ConnectionStatus {
@@ -33,14 +36,18 @@ impl ConnectionManager {
     pub fn get_channel_id(&self) -> usize {
         self.channel_statuses
             .write()
-            .map(|mut statuses| statuses.push(ConnectionStatus::Initialized)).ok();
+            .map(|mut statuses| statuses.push(ConnectionStatus::Initialized))
+            .ok();
         self.counter.fetch_add(1usize, Ordering::SeqCst)
     }
 
     pub fn drop_channel(&self, channel: usize) {
         // TODO: once I have a LRU cache I can intelligently drop channels.
-        self.channel_statuses.write().map(|mut statuses| {
-            statuses[channel] = ConnectionStatus::Dropped;
-        }).ok();
+        self.channel_statuses
+            .write()
+            .map(|mut statuses| {
+                statuses[channel] = ConnectionStatus::Dropped;
+            })
+            .ok();
     }
 }

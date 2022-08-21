@@ -1,24 +1,17 @@
 use specs::prelude::*;
 
 use crate::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
+use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
 use crate::net::{NetActor, NetActorHandle};
-use crate::events::{WindowEvent, Event, ReceiverID, StatelessEventChannel, KeyCode, EventChannel};
 
 pub struct NetworkManager {
     network_handle: Option<NetActorHandle>,
 }
 
 impl<'a> MonoBehavior<'a> for NetworkManager {
-    type SystemData = (
-    );
+    type SystemData = ();
 
-    fn run(
-        &mut self,
-        api: SystemUtilities<'a>,
-        data: Self::SystemData,
-    ) {
-
-    }
+    fn run(&mut self, api: SystemUtilities<'a>, data: Self::SystemData) {}
 
     fn setup(&mut self, mut world: WorldProxy) {
         Self::SystemData::setup(&mut world);
@@ -30,8 +23,6 @@ impl<'a> MonoBehavior<'a> for NetworkManager {
 
 impl Default for NetworkManager {
     fn default() -> Self {
-        Self {
-            network_handle: None,
-        }
+        Self { network_handle: None }
     }
 }

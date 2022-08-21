@@ -14,7 +14,6 @@ impl EntityManager {
     }
 }
 
-
 impl std::ops::Deref for EntityManager {
     type Target = BitSet;
 
@@ -24,7 +23,6 @@ impl std::ops::Deref for EntityManager {
 }
 
 impl std::ops::DerefMut for EntityManager {
-
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.entities
     }

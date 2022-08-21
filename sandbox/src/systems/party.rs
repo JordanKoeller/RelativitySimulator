@@ -6,7 +6,7 @@ use engine::{
     gui::{widgets::*, ControlPanelBuilder, SystemDebugger},
     net::{ConnectionId, ConnectionParameters, NetActor, NetActorHandle},
     physics::TransformComponent,
-    utils::{Vec3F},
+    utils::Vec3F,
 };
 
 use crate::prefabs::{Cube, CubeState};

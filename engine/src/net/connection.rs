@@ -11,7 +11,7 @@ pub struct ConnectionId {
 impl ConnectionId {
     pub fn zero() -> Self {
         Self {
-            channel: 0, 
+            channel: 0,
             receiver: 0,
         }
     }
@@ -45,13 +45,12 @@ pub struct Connection {
 }
 
 impl Connection {
-
     pub fn new(parameters: ConnectionParameters, id: ConnectionId) -> Self {
         Self {
             uri: parameters.uri,
             port: parameters.port,
             connection_type: parameters.connection_type,
-            connection_id: id
+            connection_id: id,
         }
     }
 
@@ -79,7 +78,7 @@ impl ConnectionParameters {
         Self {
             uri: uri.to_string(),
             port,
-            connection_type: SocketType::TCPClient
+            connection_type: SocketType::TCPClient,
         }
     }
 
@@ -87,7 +86,7 @@ impl ConnectionParameters {
         Self {
             uri: uri.to_string(),
             port,
-            connection_type: SocketType::TCPServer
+            connection_type: SocketType::TCPServer,
         }
     }
 
@@ -95,7 +94,7 @@ impl ConnectionParameters {
         Self {
             uri: uri.to_string(),
             port,
-            connection_type: SocketType::UDP
+            connection_type: SocketType::UDP,
         }
     }
 
@@ -113,7 +112,7 @@ impl ConnectionParameters {
 pub enum SocketType {
     TCPClient,
     TCPServer,
-    UDP
+    UDP,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -123,5 +122,5 @@ pub enum ConnectionStatus {
     Pending,
     Stable,
     Dropped,
-    Uninitialized
+    Uninitialized,
 }

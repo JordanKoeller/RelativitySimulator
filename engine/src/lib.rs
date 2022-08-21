@@ -39,12 +39,12 @@ mod game_builder;
 pub mod game_loop;
 pub mod graphics;
 pub mod gui;
+pub mod net;
 pub mod physics;
 mod platform;
 pub mod renderer;
 pub mod testing;
 pub mod utils;
-pub mod net;
 // mod app;
 
 use crate::events::{Event, EventChannel, KeyCode, StatelessEventChannel, WindowEvent};
@@ -52,8 +52,8 @@ use crate::game_builder::GameBuilder;
 use crate::game_loop::GameLoop;
 use crate::utils::Vec3F;
 
-use std::thread;
 use specs::{World, WorldExt};
+use std::thread;
 
 pub use crate::ecs::prefab;
 
@@ -72,5 +72,4 @@ pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
 pub fn main(builder: GameBuilder) {
     let mut runtime = builder.build();
     runtime.run();
-
 }

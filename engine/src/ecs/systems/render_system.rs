@@ -213,14 +213,14 @@ impl RenderPipelineSystem {
         entities: &Entities<'a>,
         drawables: &ReadStorage<'a, MeshComponent>,
     ) {
-            for (entity, drawable) in (entities, drawables).join() {
-                let cmd = DrawCall {
-                    mesh_component: drawable.clone(),
-                    entity,
-                    cmd: RenderCommand::Draw,
-                };
-                render_queue.push(cmd);
-            }
+        for (entity, drawable) in (entities, drawables).join() {
+            let cmd = DrawCall {
+                mesh_component: drawable.clone(),
+                entity,
+                cmd: RenderCommand::Draw,
+            };
+            render_queue.push(cmd);
+        }
     }
 
     fn init_frame(&self, renderer: &mut Renderer) {
