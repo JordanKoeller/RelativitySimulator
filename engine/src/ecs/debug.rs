@@ -8,21 +8,21 @@ static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 pub struct Debugger(ReceiverID);
 impl Component for Debugger {
-    type Storage = VecStorage<Self>;
+  type Storage = VecStorage<Self>;
 }
 
 pub trait Debuggable {
-    type ValueType;
+  type ValueType;
 
-    // fn evt_id(&self) -> usize {
-    //   CALL_COUNT.fetch_add(1, Ordering::SeqCst)
-    // }
+  // fn evt_id(&self) -> usize {
+  //   CALL_COUNT.fetch_add(1, Ordering::SeqCst)
+  // }
 
-    fn accept_value(&mut self, event: &ImguiUiEvent);
+  fn accept_value(&mut self, event: &ImguiUiEvent);
 
-    fn emit_value(&self) -> Self::ValueType;
+  fn emit_value(&self) -> Self::ValueType;
 
-    fn get_events(&self) -> Vec<ImguiUiEvent>;
+  fn get_events(&self) -> Vec<ImguiUiEvent>;
 }
 
 // #[derive(SystemData)]

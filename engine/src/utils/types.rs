@@ -25,10 +25,10 @@ pub type SyncMutRef<T> = Arc<Mutex<T>>;
 
 #[allow(dead_code, non_snake_case)]
 pub fn GetMutRef<T>(v: T) -> MutRef<T> {
-    Rc::new(RefCell::new(v))
+  Rc::new(RefCell::new(v))
 }
 
 #[allow(dead_code, non_snake_case)]
 pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
-    Arc::new(Mutex::new(v))
+  Arc::new(Mutex::new(v))
 }

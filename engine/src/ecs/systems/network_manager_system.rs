@@ -5,24 +5,24 @@ use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChan
 use crate::net::{NetActor, NetActorHandle};
 
 pub struct NetworkManager {
-    network_handle: Option<NetActorHandle>,
+  network_handle: Option<NetActorHandle>,
 }
 
 impl<'a> MonoBehavior<'a> for NetworkManager {
-    type SystemData = ();
+  type SystemData = ();
 
-    fn run(&mut self, api: SystemUtilities<'a>, data: Self::SystemData) {}
+  fn run(&mut self, api: SystemUtilities<'a>, data: Self::SystemData) {}
 
-    fn setup(&mut self, mut world: WorldProxy) {
-        Self::SystemData::setup(&mut world);
-        let (network, network_handle) = NetActor::create();
-        network.execute();
-        self.network_handle = Some(network_handle);
-    }
+  fn setup(&mut self, mut world: WorldProxy) {
+    Self::SystemData::setup(&mut world);
+    let (network, network_handle) = NetActor::create();
+    network.execute();
+    self.network_handle = Some(network_handle);
+  }
 }
 
 impl Default for NetworkManager {
-    fn default() -> Self {
-        Self { network_handle: None }
-    }
+  fn default() -> Self {
+    Self { network_handle: None }
+  }
 }

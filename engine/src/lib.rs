@@ -64,12 +64,12 @@ pub const SCR_WIDTH: u32 = 1600;
 pub const SCR_HEIGHT: u32 = 900;
 
 pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
-    env_logger::init();
-    let window = platform::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
-    GameBuilder::new(window)
+  env_logger::init();
+  let window = platform::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
+  GameBuilder::new(window)
 }
 
 pub fn main(builder: GameBuilder) {
-    let mut runtime = builder.build();
-    runtime.run();
+  let mut runtime = builder.build();
+  runtime.run();
 }
