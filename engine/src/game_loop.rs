@@ -69,11 +69,13 @@ impl<'a, 'b> GameLoop<'a, 'b> {
     }
 
     fn maintain(&mut self) {
-        self.world.maintain();
-        let mut asset_library = self.world.write_resource::<AssetLibrary>();
-        asset_library.flush_all();
+        {
+            let mut asset_library = self.world.write_resource::<AssetLibrary>();
+            asset_library.flush_all();
+        }
         {
             self.world.write_resource::<Timestep>().click();
         }
+        self.world.maintain();
     }
 }

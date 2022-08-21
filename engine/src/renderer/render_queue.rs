@@ -75,6 +75,10 @@ impl RenderQueue {
     pub fn iter(&mut self) -> RwLockReadGuard<'_, AVLTree<DrawCall>> {
         self.queue.read().expect("Could not acquire Renderer AVLT ReadLock")
     }
+
+    pub fn drain(&mut self) {
+        self.queue.write().map(|mut tree| tree.drain()).ok();
+    }
 }
 
 pub struct RenderQueueConsumer<'a>(AVLTreeIterator<'a, DrawCall>);

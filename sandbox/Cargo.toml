@@ -9,3 +9,4 @@ edition = "2021"
 engine = { path = "../engine" }
 specs = { version = "*", features = ["specs-derive", "shred-derive"] }
 cgmath = "0.17.0"
+either = "1.6.1"

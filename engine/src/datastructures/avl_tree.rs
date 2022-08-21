@@ -138,6 +138,13 @@ where
     pub fn iter(&self) -> AVLTreeIterator<'_, T> {
         AVLTreeIterator::new(self)
     }
+
+    pub fn drain(&mut self) {
+        self.buffer = Vec::new();
+        self.root = MAX;
+        self.first_index = MAX;
+        self.last_index = MAX;
+    }
 }
 
 // Private helper functions API

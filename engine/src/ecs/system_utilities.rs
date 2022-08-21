@@ -32,6 +32,14 @@ impl<'a> SystemUtilities<'a> {
         self.lazy_update.create_entity(&self.entities)
     }
 
+    pub fn add_component<T: Component + Sync + Send>(&self, entity: &Entity, component: T) {
+        self.lazy_update.insert(*entity, component);
+    }
+
+    pub fn remove_component<T: Component + Sync + Send>(&self, entity: &Entity) {
+        self.lazy_update.remove::<T>(*entity);
+    }
+
     pub fn delete_entity(&self, entity: Entity) -> bool {
         match self.entities.delete(entity) {
             Result::Ok(_) => true,

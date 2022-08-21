@@ -25,7 +25,11 @@ where
     }
 
     fn get_else(&self, lookup_name: &str, builder: T) -> T::K {
-        self.registry().enqueue_builder(lookup_name, builder)
+        if let Some(key) = self.registry().get_registry_id(lookup_name) {
+            key
+        } else {
+            self.registry().enqueue_builder(lookup_name, builder)
+        }
     }
 
     fn get_asset_id(&self, lookup_name: &str) -> Option<T::K> {

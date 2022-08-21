@@ -1,6 +1,8 @@
+use specs::{Component, VecStorage};
+
 use crate::events::ReceiverID;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash,)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct ConnectionId {
     channel: usize, // Which TCP/UDP connection this message is for
     receiver: ReceiverID,
@@ -28,6 +30,10 @@ impl ConnectionId {
     pub fn receiver(&self) -> ReceiverID {
         self.receiver
     }
+}
+
+impl Component for ConnectionId {
+    type Storage = VecStorage<Self>;
 }
 
 #[derive(Debug, Clone)]

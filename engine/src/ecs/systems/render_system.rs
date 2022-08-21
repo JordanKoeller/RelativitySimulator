@@ -213,7 +213,6 @@ impl RenderPipelineSystem {
         entities: &Entities<'a>,
         drawables: &ReadStorage<'a, MeshComponent>,
     ) {
-        if render_queue.len() == 0 {
             for (entity, drawable) in (entities, drawables).join() {
                 let cmd = DrawCall {
                     mesh_component: drawable.clone(),
@@ -222,7 +221,6 @@ impl RenderPipelineSystem {
                 };
                 render_queue.push(cmd);
             }
-        }
     }
 
     fn init_frame(&self, renderer: &mut Renderer) {
@@ -237,5 +235,6 @@ impl RenderPipelineSystem {
             &mut system_data.assets,
             &system_data.debug_metrics,
         );
+        system_data.render_queue.drain();
     }
 }

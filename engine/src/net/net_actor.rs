@@ -5,6 +5,8 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
 
+use serde::{Deserialize, Serialize};
+
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{
     tcp::{OwnedReadHalf, OwnedWriteHalf},
@@ -72,19 +74,21 @@ impl NetActor {
     async fn handle_events(&mut self) -> Result<(), Error> {
         while let Some(message) = self.ingress_receiver.recv().await {
             match message {
-                ActorMessage::AcceptConnection { stream, host, new_client } => {
+                ActorMessage::AcceptConnection {
+                    stream,
+                    host,
+                    new_client,
+                } => {
                     let new_connection_id =
                         ConnectionId::new(host.receiver(), self.connection_manager.get_channel_id());
-                    let new_connection = Connection::new(
-                        new_client,
-                        new_connection_id
-                    );
+                    let new_connection = Connection::new(new_client, new_connection_id);
                     self.setup_duplex(stream, new_connection_id);
                     self.egress_send_connection
-                        .send(NewConnectionMessage::new(new_connection, host));
+                        .send(NewConnectionMessage::new_subconnection(new_connection, host));
                 }
-                ActorMessage::FinalizeConnection { stream, connection_id } => {
-                    self.setup_duplex(stream, connection_id);
+                ActorMessage::FinalizeConnection { stream, connection } => {
+                    self.setup_duplex(stream, connection.id());
+                    self.egress_send_connection.send(NewConnectionMessage::new(connection));
                 }
                 ActorMessage::HostConnection(connection) => {
                     self.connection_manager
@@ -197,7 +201,7 @@ impl NetActor {
         let tcp_stream = TcpStream::connect(connection.connection_string()).await?;
         ingress_sender.send(ActorMessage::FinalizeConnection {
             stream: tcp_stream,
-            connection_id: connection.id(),
+            connection: connection.clone(),
         });
         Ok(())
     }
@@ -230,11 +234,24 @@ impl NetActorHandle {
         &self.connections
     }
 
-    pub fn send_message(&self, connection_id: ConnectionId, data: Vec<u8>) {
+    pub fn send_message<T: Serialize + Deserialize<'static>>(&self, connection_id: ConnectionId, obj: T) {
+        let data = serde_json::to_vec(&obj).unwrap();
         self.send(ActorMessage::SendMessage(Envelope::new(data, connection_id)));
     }
-    pub fn read_message(&mut self) -> Option<Envelope> {
+
+    pub fn read_message_raw(&mut self) -> Option<Envelope> {
         self.egress_channel.try_recv().ok()
+    }
+
+    pub fn read_message<T>(&mut self) -> Option<T>
+    where
+        for<'a> T: Serialize + Deserialize<'a>,
+    {
+        self.egress_channel
+            .try_recv()
+            .ok()
+            .map(|envelope| serde_json::from_slice(&envelope.data).ok())
+            .flatten()
     }
 
     pub fn get_new_connections(&mut self, host_connection_id: &ConnectionId) -> Option<Vec<Connection>> {
@@ -272,11 +289,18 @@ impl NetActorHandle {
 
     fn process_new_connections(&mut self) {
         self.egress_recv_connection.try_iter().for_each(|new_connection| {
-            let (parent_id, connection) = new_connection.unpack();
-            if self.pending_new_connections.contains_key(&parent_id) {
-                self.pending_new_connections.get_mut(&parent_id).map(|v| v.push(connection));
+            let (parent_id_opt, connection) = new_connection.unpack();
+            let (k, v) = if let Some(parent_id) = parent_id_opt {
+                (parent_id, connection)
             } else {
-                self.pending_new_connections.insert(parent_id, vec![connection]);
+                (connection.id(), connection)
+            };
+            if self.pending_new_connections.contains_key(&k) {
+                self.pending_new_connections
+                    .get_mut(&k)
+                    .map(|connections| connections.push(v));
+            } else {
+                self.pending_new_connections.insert(k, vec![v]);
             }
         });
     }
@@ -324,7 +348,7 @@ mod test {
 
         thread::sleep_ms(500);
 
-        let response = handle.read_message();
+        let response = handle.read_message_raw();
 
         assert_eq!(response.is_some(), true);
 
@@ -371,7 +395,7 @@ mod test {
         // tx/rx
         handle.send_message(client_id, msg.clone());
         thread::sleep_ms(500);
-        let response = handle.read_message();
+        let response = handle.read_message_raw();
 
         // assert
         assert_eq!(response.is_some(), true);
