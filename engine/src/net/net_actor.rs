@@ -79,7 +79,7 @@ impl NetActor {
           host,
           new_client,
         } => {
-          let new_connection_id = ConnectionId::new(host.receiver(), self.connection_manager.get_channel_id());
+          let new_connection_id = ConnectionId::new(*host.receiver(), self.connection_manager.get_channel_id());
           let new_connection = Connection::new(new_client, new_connection_id);
           self.setup_duplex(stream, new_connection_id);
           self

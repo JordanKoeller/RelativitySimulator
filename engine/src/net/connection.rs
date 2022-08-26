@@ -27,8 +27,8 @@ impl ConnectionId {
     self.channel
   }
 
-  pub fn receiver(&self) -> ReceiverID {
-    self.receiver
+  pub fn receiver(&self) -> &ReceiverID {
+    &self.receiver
   }
 }
 

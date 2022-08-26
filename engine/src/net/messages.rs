@@ -84,3 +84,10 @@ impl NewConnectionMessage {
     (self.parent_connection_id, self.connection)
   }
 }
+
+
+pub enum NetEvent {
+  Connected,
+  Message(Envelope),
+  Disconnected,
+}
