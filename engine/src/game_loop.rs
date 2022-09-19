@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use crate::debug::*;
 use crate::ecs::systems::*;
-use crate::events::ReceiverID;
+use crate::events::ReceiverId;
 use crate::graphics::AssetLibrary;
 use crate::gui::GuiRenderer;
 use crate::platform::Window;

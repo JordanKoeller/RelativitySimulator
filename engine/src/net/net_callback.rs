@@ -1,3 +1,4 @@
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use specs::prelude::*;
 
 use crate::{
@@ -5,154 +6,91 @@ use crate::{
   events::{EventChannel, StatefulEventChannel},
 };
 
-use super::{Connection, ConnectionId, ConnectionStatus, Envelope, NetEvent};
+use super::{
+  Connection, ConnectionId, ConnectionStatus, DuplexConnectionId, Envelope, GenericConnectionId, HostConnectionId,
+  NetActorHandle, NetEvent,
+};
 
-// Methods to be implemented
-trait NetCallback<Args> {
-  /**
-   * Callback ran when a connection is made.
-   */
-  fn on_connect(&self, _args: &Args) {}
+#[derive(Default)]
+pub struct HostContext {
+  id: Option<HostConnectionId>,
+}
 
-  /**
-   * Callback that runs when a new message is found
-   */
-  fn on_message(&self, _message: &Envelope, _args: &Args) {}
+impl HostContext {
 
-  /**
-   * Callback ran when a connection is dropped
-   */
-  fn on_disconnect(&self, _args: &Args) {}
+  pub fn new(id: HostConnectionId) -> Self {
+    Self {
+      id: Some(id)
+    }
+  }
 
-  fn id(&self) -> Option<ConnectionId>;
+  pub fn set_id(&mut self, id: HostConnectionId) {
+    self.id = Some(id);
+  }
 
-  fn execute<'a>(&self, events: &Read<'a, StatefulEventChannel<ConnectionId, NetEvent>>, args: &Args) {
-    if let Some(id) = self.id() {
-      for (_, net_event) in events.read(&id.receiver()).into_iter() {
-        match net_event {
-          NetEvent::Connected => self.on_connect(args),
-          NetEvent::Message(message) => self.on_message(message, args),
-          NetEvent::Disconnected => self.on_disconnect(args),
+  pub fn on_connect<F>(&self, net_opt: &Option<NetActorHandle>, mut func: F)
+  where F: FnMut(DuplexConnectionId) -> () {
+    if let Some(id) = self.id {
+      if let Some(net) = net_opt {
+        for cx in net.get_connections(&id).into_iter() {
+          func(cx);
         }
       }
     }
   }
 }
 
+
 #[derive(Default)]
-pub struct ConnectionCallback<'a, M>
-where
-  M: MonoBehavior<'a>,
-{
-  handle_connect: Option<Box<dyn Fn(&(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> ()>>,
-  handle_message:
-    Option<Box<dyn Fn(&Envelope, &(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> ()>>,
-  handle_disconnect: Option<Box<dyn Fn(&(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> ()>>,
-  connection_id: Option<ConnectionId>,
-  phantom: std::marker::PhantomData<&'a M>,
+pub struct DuplexContext {
+  id: Option<DuplexConnectionId>,
 }
 
-impl<'a, M> NetCallback<(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)>
-  for ConnectionCallback<'a, M>
-where
-  M: MonoBehavior<'a>,
-{
-  fn on_connect(&self, args: &(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) {
-    if let Some(handler) = &self.handle_connect {
-      handler(args);
-    }
-  }
+impl DuplexContext {
 
-  fn on_message(
-    &self,
-    message: &Envelope,
-    args: &(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData),
-  ) {
-    if let Some(handler) = &self.handle_message {
-      handler(message, args);
-    }
-  }
-
-  fn on_disconnect(&self, args: &(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) {
-    if let Some(handler) = &self.handle_disconnect {
-      handler(args);
-    }
-  }
-
-  fn id(&self) -> Option<ConnectionId> {
-    self.connection_id
-  }
-}
-
-impl<'a, M> ConnectionCallback<'a, M>
-where
-  M: MonoBehavior<'a>,
-{
-  pub fn new(connection_id: ConnectionId) -> Self {
+  pub fn new(id: DuplexConnectionId) -> Self {
     Self {
-      handle_connect: None,
-      handle_disconnect: None,
-      handle_message: None,
-      phantom: std::marker::PhantomData::default(),
-      connection_id: Some(connection_id),
+      id: Some(id)
     }
   }
 
-  pub fn with_connect_handler<
-    F1: Fn(&(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> () + 'static,
-  >(
-    &mut self,
-    handle_connect: F1,
-  ) {
-      self.handle_connect = Some(Box::from(handle_connect));
+  pub fn set_id(&mut self, id: DuplexConnectionId) {
+    self.id = Some(id);
   }
 
-  pub fn with_message_handler<
-    F1: Fn(&Envelope, &(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> () + 'static,
-  >(
-    &mut self,
-    handle_message: F1,
-  )  {
-      self.handle_message = Some(Box::from(handle_message));
-  }
-
-  pub fn with_disconnect_handler<
-    F1: Fn(&(&SystemUtilities<'a>, &<M as MonoBehavior<'a>>::SystemData)) -> () + 'static,
-  >(
-    &mut self,
-    handle_disconnect: F1,
-  ) {
-    self.handle_disconnect = Some(Box::from(handle_disconnect));
-  }
-}
-
-#[cfg(test)]
-mod test {
-  use super::*;
-  use specs::prelude::*;
-  use crate::ecs::WorldProxy;
-
-  #[derive(Default)]
-  struct TestingSystem<'a> {
-    handler: ConnectionCallback<'a, Self>,
-    data: Vec<usize>,
-  }
-
-  impl<'a> MonoBehavior<'a> for TestingSystem<'a> {
-    type SystemData = Read<'a, StatefulEventChannel<ConnectionId, NetEvent>>;
-
-    fn run(&mut self, api: SystemUtilities<'a>, data: Self::SystemData) {
-      self.handler.execute(&data, &(&api, &data));
-    }
-
-    fn setup(&mut self, _world: WorldProxy) {
-      self.handler.with_connect_handler(|(_api, _data)| {
-      });
+  pub fn on_connect<F>(&self, net_opt: &Option<NetActorHandle>, mut func: F)
+  where F: FnMut(DuplexConnectionId) -> () {
+    if let Some(id) = self.id {
+      if let Some(net) = net_opt {
+        for msg in net.get_events(&id).into_iter() {
+          match msg {
+            NetEvent::Connected { .. } => func(id),
+            _ => {}
+          }
+        }
+      }
     }
   }
 
-  #[test]
-  fn test_callback() {
-    let _system = TestingSystem::default();
+  pub fn on_message<M, F>(&self, net_opt: &Option<NetActorHandle>, mut func: F)
+  where
+    M: Serialize + DeserializeOwned,
+    F: FnMut(M) -> (),
+  {
+    if let Some(id) = self.id {
+      if let Some(net) = net_opt {
+        for msg in net.get_messages(&id).into_iter() {
+          func(msg);
+        }
+      }
+    }
+  }
+
+  pub fn send<M: Serialize + DeserializeOwned>(&self, net_opt: &Option<NetActorHandle>, payload: M) {
+    if let Some(id) = self.id {
+      if let Some(net) = net_opt {
+        net.send(&id, payload);
+      }
+    }
   }
 }

@@ -9,7 +9,7 @@ use crate::debug::DebugMetrics;
 use crate::ecs::components::{Camera, Player};
 use crate::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use crate::events::{
-  Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
+  Event, EventChannel, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent, WindowEventDispatcher,
 };
 use crate::graphics::{
   AssetLibrary, Assets, MaterialComponent, MeshComponent, Uniform, VertexArray, VertexArrayBuilder,
@@ -23,7 +23,7 @@ use crate::utils::{CompoundStopwatch, Counter, Mat4F, MutRef, RunningEnum, Runni
 
 pub struct StartFrameSystem {
   pub window: MutRef<Window>,
-  pub receiver_id: ReceiverID,
+  pub receiver_id: ReceiverId,
 }
 
 impl<'a> MonoBehavior<'a> for StartFrameSystem {
@@ -174,13 +174,13 @@ pub struct RenderSystemData<'a> {
 
 pub struct RenderPipelineSystem {
   window: MutRef<Window>,
-  event_receiver_id: ReceiverID,
+  event_receiver_id: ReceiverId,
   draw_call_count: u32,
   render_time: Duration,
 }
 
 impl RenderPipelineSystem {
-  pub fn new(window: MutRef<Window>, id: ReceiverID) -> Self {
+  pub fn new(window: MutRef<Window>, id: ReceiverId) -> Self {
     Self {
       window,
       event_receiver_id: id,

@@ -5,9 +5,9 @@ use std::sync::RwLock;
 use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
-use crate::ecs::systems::*;
+use crate::ecs::{systems::*, GuidMap, GuidRegistrySystem, Guid};
 use crate::ecs::{EntityManager, PrefabBuilder, Sys, SystemUtilities, WorldProxy};
-use crate::events::{Event, EventChannel, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
+use crate::events::{Event, EventChannel, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
 use crate::graphics::{AssetLibrary, Assets, ShaderBuilder, ShaderDepthFunction};
 use crate::graphics::{MaterialComponent, MeshComponent};
@@ -19,7 +19,7 @@ use crate::utils::{GetMutRef, MutRef, RunningState, Timestep, Vec2F};
 
 struct RendererBuilder {
   dims: Vec2F,
-  receiver_id: ReceiverID,
+  receiver_id: ReceiverId,
 }
 
 impl RendererBuilder {
@@ -160,6 +160,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
     self.world.insert(Timestep::default());
     self.world.insert(RunningState::default());
     self.world.insert(ControlPanels::default());
+    self.world.insert(GuidMap::default());
     // self.world.insert(Actor::new());
 
     // Register some components
@@ -183,6 +184,7 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
     let dispatcher = self
       .dispatcher_builder
       .with(Sys::<DebugMetricsSystem>::default(), "debug", &[])
+      .with(GuidRegistrySystem::default(), "guid_registry", &[])
       .with_thread_local(start_system)
       .with_thread_local(RegisterDrawableSystem::default())
       .with_thread_local(RenderPipelineSystem::new(MutRef::clone(&window_ref), world_id))
@@ -225,6 +227,7 @@ impl WorldBuilder {
     world.register::<TransformComponent>();
     world.register::<MeshComponent>();
     world.register::<EntityManager>();
+    world.register::<Guid>();
     world.insert(AssetLibrary::default());
     SystemUtilities::setup(&mut world);
     // SystemUtilities::setup(world);

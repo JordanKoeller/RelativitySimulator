@@ -20,7 +20,7 @@ use crate::renderer::{DrawCall, Framebuffer, RenderQueueConsumer, RendererConfig
 
 use crate::ecs::Camera;
 
-use crate::events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
+use crate::events::{Event, EventChannel, EventPayload, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::physics::TransformComponent;
 
 type TransformStack = Vec<Mat4F>;

@@ -89,6 +89,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
     };
     let camera = Camera::new(Vec3F::new(4f32, 4f32, 2f32), Vec3F::new(0f32, 0f32, 1f32));
     let mut transform = TransformComponent::identity();
+    let guid = world.utilities().get_guid();
     transform.push_translation(camera.position());
     world
       .create_entity()
@@ -96,6 +97,7 @@ impl<'a> MonoBehavior<'a> for PlayerController {
       .with(camera)
       .with(receiver)
       .with(transform)
+      .with(guid)
       .build();
   }
 }

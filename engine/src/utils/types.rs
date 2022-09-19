@@ -5,9 +5,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
+use std::ops::{Deref, DerefMut};
 
 pub type Vec2F = cgmath::Vector2<f32>;
 pub type Vec2I = cgmath::Vector2<i32>;
+
 pub type Vec3F = cgmath::Vector3<f32>;
 pub type Vec4F = cgmath::Vector4<f32>;
 pub type Mat4F = cgmath::Matrix4<f32>;
@@ -32,3 +34,10 @@ pub fn GetMutRef<T>(v: T) -> MutRef<T> {
 pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
   Arc::new(Mutex::new(v))
 }
+
+
+/*
+The rest implements serialization on hidden types. These  should not be used outside of for serialize/deserialize!
+*/
+
+

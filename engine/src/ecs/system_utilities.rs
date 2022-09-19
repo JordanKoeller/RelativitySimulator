@@ -6,7 +6,7 @@ use specs::prelude::*;
 use specs::world::LazyBuilder;
 
 use crate::debug::Logger;
-use crate::ecs::PrefabBuilder;
+use crate::ecs::{Guid, GuidMap, PrefabBuilder};
 use crate::events::{EventChannel, StatefulEventChannel};
 use crate::graphics::AssetLibrary;
 use crate::gui::{ControlPanel, ControlPanels};
@@ -21,6 +21,7 @@ pub struct SystemUtilities<'a> {
   lazy_update: Read<'a, LazyUpdate>,
   asset_library: Read<'a, AssetLibrary>,
   control_panels: Read<'a, ControlPanels>,
+  guid: Read<'a, GuidMap>,
 }
 
 impl<'a> SystemUtilities<'a> {
@@ -53,6 +54,14 @@ impl<'a> SystemUtilities<'a> {
 
   pub fn control_panel(&self, id: TypeId) -> Option<&RwLock<ControlPanel>> {
     self.control_panels.get(&id)
+  }
+
+  pub fn lookup_guid(&self, id: &Guid) -> Option<&Entity> {
+    self.guid.get(id)
+  }
+
+  pub fn get_guid(&self) -> Guid {
+    Guid::new()
   }
 }
 

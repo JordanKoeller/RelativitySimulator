@@ -1,20 +1,20 @@
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpStream;
 
-use super::{Connection, ConnectionId, ConnectionParameters};
+use super::{Connection, GenericConnectionId, ConnectionParameters};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Envelope {
   pub data: Vec<u8>,
-  pub connection_id: ConnectionId,
+  pub connection_id: GenericConnectionId,
 }
 
 impl Envelope {
-  pub fn new(data: Vec<u8>, connection_id: ConnectionId) -> Self {
+  pub fn new(data: Vec<u8>, connection_id: GenericConnectionId) -> Self {
     Self { data, connection_id }
   }
 
-  pub fn connection_id(&self) -> &ConnectionId {
+  pub fn connection_id(&self) -> &GenericConnectionId {
     &self.connection_id
   }
 
@@ -26,46 +26,31 @@ impl Envelope {
   }
 }
 
-pub(crate) enum ActorMessage {
-  HostConnection(Connection), // Set up a server host for client to connect to.
-  AcceptConnection {
-    stream: TcpStream,
-    host: ConnectionId,
-    new_client: ConnectionParameters,
-  }, // Accept a client trying to connect as a server. Pass back server ConnectionId. Bool indicates if channel ID should be reused.
-  FinalizeConnection {
-    stream: TcpStream,
-    connection: Connection,
-  }, // The host accepted your connection. Set up Tx/Rx.
-  ConnectTo(Connection),        // Request a connection as a client to a server
-  SendMessage(Envelope),        // Message To Send, and connection Id
-  DropConnection(ConnectionId), // Drop connection with id
-  Shutdown,                     // Shutdown the networking actor
-}
+
 
 #[derive(Debug)]
 pub enum EgressMessage {
-  NewConnection(Connection, ConnectionId), // New connection descriptor and its host connection's Id.
+  NewConnection(Connection, GenericConnectionId), // New connection descriptor and its host connection's Id.
   RxMessage(Envelope),                     // Data accepted over the wire and the connection Id.
 }
 
 impl EgressMessage {
-  pub fn new_connection(connection: Connection, id: ConnectionId) -> Self {
+  pub fn new_connection(connection: Connection, id: GenericConnectionId) -> Self {
     Self::NewConnection(connection, id)
   }
 
-  pub fn new_rx_message(data: Vec<u8>, connection_id: ConnectionId) -> Self {
+  pub fn new_rx_message(data: Vec<u8>, connection_id: GenericConnectionId) -> Self {
     Self::RxMessage(Envelope::new(data, connection_id))
   }
 }
 
 pub struct NewConnectionMessage {
   connection: Connection,
-  parent_connection_id: Option<ConnectionId>,
+  parent_connection_id: Option<GenericConnectionId>,
 }
 
 impl NewConnectionMessage {
-  pub fn new_subconnection(connection: Connection, parent_connection_id: ConnectionId) -> Self {
+  pub fn new_subconnection(connection: Connection, parent_connection_id: GenericConnectionId) -> Self {
     Self {
       connection,
       parent_connection_id: Some(parent_connection_id),
@@ -80,14 +65,7 @@ impl NewConnectionMessage {
   }
 
   // Return parent connection's ID and the connection itself
-  pub fn unpack(self) -> (Option<ConnectionId>, Connection) {
+  pub fn unpack(self) -> (Option<GenericConnectionId>, Connection) {
     (self.parent_connection_id, self.connection)
   }
-}
-
-
-pub enum NetEvent {
-  Connected,
-  Message(Envelope),
-  Disconnected,
 }

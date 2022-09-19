@@ -1,4 +1,4 @@
-use crate::events::ReceiverID;
+use crate::events::ReceiverId;
 use crate::utils::*;
 
 #[derive(Clone, Debug)]

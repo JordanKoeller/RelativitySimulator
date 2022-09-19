@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 
-pub struct Debugger(ReceiverID);
+pub struct Debugger(ReceiverId);
 impl Component for Debugger {
   type Storage = VecStorage<Self>;
 }

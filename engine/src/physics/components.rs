@@ -1,10 +1,11 @@
 use crate::utils::*;
-use cgmath::prelude::*;
+use cgmath::{prelude::*, Euler, Basis3};
 use cgmath::{Deg, Rad, Rotation3};
 use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
+use serde::{Serialize, Deserialize};
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, Serialize, Deserialize)]
 #[storage(VecStorage)]
 pub struct TransformComponent {
   pub translation: Vec3F,
@@ -57,6 +58,11 @@ impl TransformComponent {
 
   pub fn push_rotation(&mut self, dtheta: &QuatF) {
     self.rotation = (dtheta * self.rotation).normalize();
+  }
+
+  pub fn set_facing(&mut self, facing: Vec3F) {
+    let facing_matrix = Basis3::look_at(facing, Vec3F::unit_y());
+    self.rotation = QuatF::from(facing_matrix);
   }
 
   pub fn front(&self) -> Vec3F {

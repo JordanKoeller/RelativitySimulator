@@ -20,7 +20,7 @@ use crate::renderer::{DrawCall, Framebuffer, PolygonMode, RenderQueueConsumer, R
 
 use crate::ecs::Camera;
 
-use crate::events::{Event, EventChannel, EventPayload, KeyCode, ReceiverID, StatelessEventChannel, WindowEvent};
+use crate::events::{Event, EventChannel, EventPayload, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::physics::TransformComponent;
 
 type TransformStack = Vec<Mat4F>;
@@ -34,7 +34,7 @@ pub struct Renderer {
 
   // Config
   config: RendererConfig,
-  receiver_id: ReceiverID,
+  receiver_id: ReceiverId,
   // Transform Stack
 }
 
@@ -52,7 +52,7 @@ impl Default for Renderer {
 
 impl Renderer {
   // Constructor
-  pub fn new(screen_dims: Vec2F, receiver_id: ReceiverID) -> Renderer {
+  pub fn new(screen_dims: Vec2F, receiver_id: ReceiverId) -> Renderer {
     Renderer {
       screen: Screen::new(screen_dims.x as i32, screen_dims.y as i32),
       config_uniforms: HashMap::new(),

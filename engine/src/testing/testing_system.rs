@@ -68,39 +68,3 @@ impl<'a, 'b> TestingEcsBuilder<'a, 'b> {
     }
   }
 }
-
-pub struct TestingSystem<'a, T, D, F>
-where
-  D: SystemData<'a>,
-  F: Fn(&mut T, D) -> ()
-{
-  pub state: T,
-  closure: F,
-  phantom: std::marker::PhantomData<&'a D>
-}
-
-impl<'a, T, D, F> System<'a> for TestingSystem<'a, T, D, F>
-where 
-  D: SystemData<'a>,
-  F: Fn(&mut T, D) -> (),
-{
-  type SystemData = D;
-
-  fn run(&mut self, data: Self::SystemData) {
-    (self.closure)(&mut self.state, data);
-  }
-}
-
-impl<'a, T, D, F> TestingSystem<'a, T, D, F>
-where 
-  D: SystemData<'a>,
-  F: Fn(&mut T, D) -> (),
-{
-  pub fn new(state: T, closure: F) -> Self {
-    Self {
-      state,
-      closure,
-      phantom: std::marker::PhantomData::default(),
-    }
-  }
-}

@@ -1,7 +1,7 @@
 use specs::prelude::*;
 
 use crate::ecs::{SystemUtilities, WorldProxy};
-use crate::events::ReceiverID;
+use crate::events::ReceiverId;
 
 pub trait MonoBehavior<'a> {
   type SystemData: specs::SystemData<'a>;
@@ -21,7 +21,7 @@ where
   for<'a> M: MonoBehavior<'a>,
 {
   mono_behavior: M,
-  receiver_id: Option<ReceiverID>,
+  receiver_id: Option<ReceiverId>,
 }
 
 impl<'a, M> System<'a> for Sys<M>

@@ -7,7 +7,7 @@ pub struct StatelessEventChannel<E>
 where
   E: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
 {
-  curr_id: ReceiverID,
+  curr_id: ReceiverId,
   subbed_events: HashMap<E, SubCount>,
   inboxes: Vec<HashSet<E>>,
   active_events: HashSet<E>,
@@ -31,13 +31,13 @@ impl<E> EventChannel<E, (), E> for StatelessEventChannel<E>
 where
   E: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
 {
-  fn register_reader(&mut self) -> ReceiverID {
+  fn register_reader(&mut self) -> ReceiverId {
     let ret = self.curr_id.clone();
     self.curr_id += 1;
     self.inboxes.push(HashSet::new());
     ret
   }
-  fn deregister_reader(&mut self, r: &ReceiverID) {
+  fn deregister_reader(&mut self, r: &ReceiverId) {
     if let Some(inbox) = self.inboxes.get(*r) {
       for evt in inbox.iter() {
         let mut flag = false;
@@ -56,7 +56,7 @@ where
     self.inboxes.remove(*r);
   }
 
-  fn subscribe_to(&mut self, receiver: &ReceiverID, event: E) {
+  fn subscribe_to(&mut self, receiver: &ReceiverId, event: E) {
     if self.subbed_events.contains_key(&event) {
       if let Some(sub_cnt) = self.subbed_events.get_mut(&event) {
         *sub_cnt += 1;
@@ -67,7 +67,7 @@ where
     }
     self.inboxes[*receiver].replace(event);
   }
-  fn unsubscribe(&mut self, receiver: &ReceiverID, event: &E) {
+  fn unsubscribe(&mut self, receiver: &ReceiverId, event: &E) {
     // Decrement count of subs on the subs list.
     let mut flag = false;
     let sub = self.subbed_events.get_mut(event);
@@ -86,14 +86,14 @@ where
     }
   }
 
-  fn read(&self, receiver: &ReceiverID) -> Vec<&E> {
+  fn read(&self, receiver: &ReceiverId) -> Vec<&E> {
     self.inboxes[*receiver]
       .iter()
       .filter_map(move |v| self.active_events.get(v))
       .collect()
   }
 
-  fn for_each<F: FnMut(&E) -> ()>(&self, receiver: &ReceiverID, func: F) {
+  fn for_each<F: FnMut(&E) -> ()>(&self, receiver: &ReceiverId, func: F) {
     self.inboxes[*receiver]
       .iter()
       .filter_map(|e| self.active_events.get(e))
@@ -116,7 +116,7 @@ where
   E: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
   P: Sized,
 {
-  curr_id: ReceiverID,
+  curr_id: ReceiverId,
   subbed_events: HashMap<E, SubCount>,
   inboxes: Vec<HashSet<E>>,
   active_events: HashMap<E, Vec<(E, P)>>,
@@ -142,14 +142,14 @@ where
   E: Sync + Send + std::hash::Hash + Eq + Clone + std::fmt::Debug + 'static,
   P: Sized,
 {
-  fn register_reader(&mut self) -> ReceiverID {
+  fn register_reader(&mut self) -> ReceiverId {
     let ret = self.curr_id.clone();
     self.curr_id += 1;
     self.inboxes.push(HashSet::new());
     ret
   }
 
-  fn deregister_reader(&mut self, r: &ReceiverID) {
+  fn deregister_reader(&mut self, r: &ReceiverId) {
     if let Some(inbox) = self.inboxes.get(*r) {
       for evt in inbox.iter() {
         let mut flag = false;
@@ -168,7 +168,7 @@ where
     self.inboxes.remove(*r);
   }
 
-  fn subscribe_to(&mut self, receiver: &ReceiverID, event: E) {
+  fn subscribe_to(&mut self, receiver: &ReceiverId, event: E) {
     if self.subbed_events.contains_key(&event) {
       if let Some(sub_cnt) = self.subbed_events.get_mut(&event) {
         *sub_cnt += 1;
@@ -179,7 +179,7 @@ where
     }
     self.inboxes[*receiver].replace(event);
   }
-  fn unsubscribe(&mut self, receiver: &ReceiverID, event: &E) {
+  fn unsubscribe(&mut self, receiver: &ReceiverId, event: &E) {
     // Decrement count of subs on the subs list.
     let mut flag = false;
     let sub = self.subbed_events.get_mut(event);
@@ -198,15 +198,19 @@ where
     }
   }
 
-  fn read(&self, receiver: &ReceiverID) -> Vec<&(E, P)> {
-    self.inboxes[*receiver]
-      .iter()
-      .filter_map(move |subbed_evt| self.active_events.get(subbed_evt))
-      .flatten()
-      .collect()
+  fn read(&self, receiver: &ReceiverId) -> Vec<&(E, P)> {
+    if self.inboxes.len() <= *receiver {
+      Vec::new()
+    } else {
+      self.inboxes[*receiver]
+        .iter()
+        .filter_map(move |subbed_evt| self.active_events.get(subbed_evt))
+        .flatten()
+        .collect()
+    }
   }
 
-  fn for_each<F: FnMut(&(E, P)) -> ()>(&self, receiver: &ReceiverID, func: F) {
+  fn for_each<F: FnMut(&(E, P)) -> ()>(&self, receiver: &ReceiverId, func: F) {
     self.inboxes[*receiver]
       .iter()
       .filter_map(move |subbed_evt| self.active_events.get(subbed_evt))

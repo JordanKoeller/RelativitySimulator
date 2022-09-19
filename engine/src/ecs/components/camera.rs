@@ -94,4 +94,12 @@ impl Camera {
   pub fn up(&self) -> Vec3F {
     self.right().cross(self.front()).normalize()
   }
+
+  pub fn facing_matrix(&self) -> [f32; 3] {
+    let facing = self.front();
+    return [
+      facing.x, facing.y, facing.z,
+    ]
+
+  }
 }
