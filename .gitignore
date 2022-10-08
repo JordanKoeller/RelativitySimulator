@@ -2,3 +2,5 @@
 **/*.rs.bk
 CMakeCache.txt
 .vscode
+.obsidian
+resources/
