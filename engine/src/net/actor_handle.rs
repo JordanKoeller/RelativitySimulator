@@ -85,10 +85,11 @@ impl NetActorHandle {
     self.send_to_actor(ActorMessage::SendMessage(Envelope::new(data, cx.clone().into())));
   }
 
-  pub fn broadcast<M: Serialize + DeserializeOwned>(&self, _cx: &HostConnectionId, _message: M) {
-    panic!("Not implemented!");
-    // let data = serde_json::to_vec(&message).unwrap();
-    // self.send_to_actor(ActorMessage::SendMessage(Envelope::new(data, cx.clone().into())));
+  pub fn broadcast<M: Serialize + DeserializeOwned + Clone>(&self, host: &HostConnectionId, message: M) {
+    for client in self.connections.get_clients_of(host).iter() {
+      let serial_msg = serde_json::to_vec(&message).unwrap();
+      self.send_raw(client, serial_msg);
+    }
   }
 
   pub fn get_connections(&self, cx: &HostConnectionId) -> Vec<DuplexConnectionId> {
@@ -98,6 +99,10 @@ impl NetActorHandle {
   pub fn get_events<T: ConnectionId>(&self, cx: &T) -> Vec<NetEvent> {
     let id = GenericConnectionId::new(*cx.receiver(), *cx.channel(), *cx.socket_type());
     self.events.get(&id).unwrap_or(&Vec::new()).clone()
+  }
+
+  pub fn get_clients_of(&self, host: &HostConnectionId) -> Vec<DuplexConnectionId> {
+    self.connections.get_clients_of(host)
   }
 
   pub fn get_messages<'a, M: Serialize + DeserializeOwned>(&'a self, cx: &DuplexConnectionId) -> Vec<M> {
@@ -162,10 +167,6 @@ impl NetActorHandle {
     }
   }
 
-  // pub fn drop_duplex(&mut self, cx: DuplexConnectionId);
-  // pub fn close_listener(&mut self, cx: HostConnectionId);
-  // pub fn drop_broadcast(&mut self, cx: HostConnectionId);
-
   pub fn shutdown(&self) {
     self.ingress_channel.send(ActorMessage::Shutdown).ok();
   }
@@ -184,6 +185,10 @@ mod test {
   use super::super::NetActor;
   use super::*;
 
+  fn sleep_ms(time: u32) {
+    thread::sleep(std::time::Duration::from_millis(time as u64));
+  }
+
   #[test]
   fn can_make_netactor() {
     let (_actor, _handle) = NetActor::create();
@@ -195,7 +200,7 @@ mod test {
 
     actor.execute();
 
-    thread::sleep_ms(3000);
+    sleep_ms(3000);
 
     handle.shutdown();
   }
@@ -206,15 +211,15 @@ mod test {
 
     actor.execute();
 
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     let host_id = handle.new_host(ConnectionParameters::new("localhost", 8080), 0);
 
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     let client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
 
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     let msg = vec![42, 42, 42, 42];
 
@@ -225,7 +230,7 @@ mod test {
 
     handle.send(&host_client[0], msg);
 
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     handle.process_events();
     let response = handle.get_messages_raw(&client_id);
@@ -237,19 +242,19 @@ mod test {
 
   #[test]
   fn can_get_connection_satus() {
-    let (actor, mut handle) = NetActor::create();
+    let (actor, handle) = NetActor::create();
 
     actor.execute();
     let host_id = handle.new_host(ConnectionParameters::new("localhost", 8080), 0);
     assert_eq!(handle.get_connection_status(&host_id), ConnectionStatus::Pending);
-    thread::sleep_ms(500);
+    sleep_ms(500);
     assert_eq!(handle.get_connection_status(&host_id), ConnectionStatus::Stable);
     let client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
     assert_eq!(handle.get_connection_status(&client_id), ConnectionStatus::Pending);
-    thread::sleep_ms(500);
+    sleep_ms(500);
     assert_eq!(handle.get_connection_status(&client_id), ConnectionStatus::Stable);
 
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     handle.shutdown();
   }
@@ -260,11 +265,11 @@ mod test {
 
     // Start connection
     actor.execute();
-    thread::sleep_ms(500);
+    sleep_ms(500);
     let host_id = handle.new_host(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
+    sleep_ms(500);
     let client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     // Create a message
     let mut msg: Vec<u8> = Vec::with_capacity(5usize);
@@ -278,7 +283,7 @@ mod test {
 
     // tx/rx
     handle.send_raw(&host_client[0], msg.clone());
-    thread::sleep_ms(500);
+    sleep_ms(500);
     handle.process_events();
     let response = handle.get_messages_raw(&client_id);
 
@@ -296,11 +301,11 @@ mod test {
 
     // Start connection
     actor.execute();
-    thread::sleep_ms(500);
+    sleep_ms(500);
     let host_id = handle.new_host(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
+    sleep_ms(500);
     let client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
+    sleep_ms(500);
 
     // Create a message
     let mut msg: [f32; 12] = [0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32];
@@ -314,7 +319,7 @@ mod test {
 
     // tx/rx
     handle.send(&host_client[0], msg.clone());
-    thread::sleep_ms(500);
+    sleep_ms(500);
     handle.process_events();
     let response = handle.get_messages::<[f32; 12]>(&client_id);
 
@@ -332,11 +337,11 @@ mod test {
 
     // Start connection
     actor.execute();
-    thread::sleep_ms(500);
+    sleep_ms(500);
     let host_id = handle.new_host(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
-    let client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
-    thread::sleep_ms(500);
+    sleep_ms(500);
+    let _client_id = handle.new_duplex(ConnectionParameters::new("localhost", 8080), 0);
+    sleep_ms(500);
 
     handle.process_events();
     let new_connections = handle.get_connections(&host_id);

@@ -78,6 +78,7 @@ impl NetActor {
             self.connection_manager.get_channel_id(),
             SocketType::TCPClient,
           );
+          self.connection_manager.set_client(&host.into(), new_connection_id.into());
           let new_connection = Connection::new(new_client, new_connection_id);
           self
             .egress_sender
