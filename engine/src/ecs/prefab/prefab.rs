@@ -83,18 +83,6 @@ mod test {
     pub value2: f32,
   }
 
-  // #[test]
-  // fn test_can_cast_safely() {
-  //     let component_1 = Box::new(SomeComponent {value: 3u32});
-  //     let component_2 = Box::new(SomeComponent {value: 5u32});
-  //     unsafe {
-  //         let value_after_1 = cast_clone_ref::<SomeComponent>(&component_1).value;
-  //         let value_after_2 = cast_clone_ref::<SomeComponent>(&component_2).value;
-  //         assert_eq!(value_after_1, component_1.value);
-  //         assert_eq!(value_after_2, component_2.value);
-  //     }
-  // }
-
   #[test]
   fn test_component_cache() {
     let mut cache = ComponentCache::default();

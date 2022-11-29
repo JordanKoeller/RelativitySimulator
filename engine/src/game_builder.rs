@@ -5,7 +5,7 @@ use std::sync::RwLock;
 use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
-use crate::ecs::{systems::*, GuidMap, GuidRegistrySystem, Guid};
+use crate::ecs::{systems::*, GuidMap, GuidRegistrySystem, Guid, EntityTree};
 use crate::ecs::{EntityManager, PrefabBuilder, Sys, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
@@ -227,6 +227,7 @@ impl WorldBuilder {
     world.register::<TransformComponent>();
     world.register::<MeshComponent>();
     world.register::<EntityManager>();
+    world.register::<EntityTree>();
     world.register::<Guid>();
     world.insert(AssetLibrary::default());
     SystemUtilities::setup(&mut world);

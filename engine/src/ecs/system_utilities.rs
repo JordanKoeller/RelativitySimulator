@@ -10,6 +10,8 @@ use crate::ecs::{Guid, GuidMap, PrefabBuilder};
 use crate::events::{EventChannel, StatefulEventChannel};
 use crate::graphics::AssetLibrary;
 use crate::gui::{ControlPanel, ControlPanels};
+use crate::datastructures::{NTree};
+use super::EntityTreeBuilder;
 
 // Provides a common interface for accessing commonly used resources
 // All fields inside this should only be specified as `Read` or `ReadStorage` access.
@@ -29,8 +31,12 @@ impl<'a> SystemUtilities<'a> {
     &self.logger
   }
 
-  pub fn entity_builder(&self) -> LazyBuilder<'_> {
-    self.lazy_update.create_entity(&self.entities)
+  // pub fn entity_builder(&self) -> LazyBuilder<'_> {
+  //   self.lazy_update.create_entity(&self.entities)
+  // }
+
+  pub fn entity_builder(&self) -> NTree<EntityTreeBuilder<'_, '_>> {
+    EntityTreeBuilder::new(&self.entities, &self.lazy_update).into()
   }
 
   pub fn add_component<T: Component + Sync + Send>(&self, entity: &Entity, component: T) {
@@ -91,7 +97,7 @@ mod tests {
       if let Some(e) = self.ett {
         data.delete_entity(e);
       } else {
-        self.ett = Some(data.entity_builder().build());
+        self.ett = Some(data.entity_builder().consume());
       }
     }
   }

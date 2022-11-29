@@ -33,29 +33,26 @@ impl PrefabBuilder for ModelBuilder {
     let (meshes, mtl_results) =
       tobj::load_obj(&state.path, &tobj::GPU_LOAD_OPTIONS).expect(&format!("Could not load model {}", &state.path));
     let materials = mtl_results.expect(&format!("Could not load material  on model {}", state.path));
-    let mut entity_set = BitSet::new();
     let mut mesh_index = 0usize;
+    let mut builder = api.entity_builder();
     for t_mesh in meshes.iter() {
       mesh_index += 1;
       let mtl_id_opt = t_mesh.mesh.material_id;
-      let mut ett = api.entity_builder();
+      let ett = builder.spawn_child();
       let vai = api.get_or_create(&format!("{}_{}", state.path, mesh_index), || {
         self.build_mesh_component(&t_mesh.mesh, state.shading_strategy)
       });
       let mesh_component = MeshComponent::new(vai, api.get_shader("default_texture").unwrap());
-      ett = ett.with(mesh_component);
+      ett.with(mesh_component);
       if let Some(mtl_id) = mtl_id_opt {
         let material = self.build_material(&materials[mtl_id], &api, &state);
-        ett = ett.with(material)
-      }
+        ett.with(material);
+      };
       let mut transform = TransformComponent::identity();
       transform.push_translation(Vec3F::new(4f32, 4f32, 4f32));
-      ett = ett.with(transform);
-      let entity = ett.build();
-      entity_set.add(entity.id());
+      ett.with(transform);
     }
-    let entity_manager = EntityManager::from(entity_set);
-    api.entity_builder().with(entity_manager).build()
+    builder.consume()
   }
 }
 

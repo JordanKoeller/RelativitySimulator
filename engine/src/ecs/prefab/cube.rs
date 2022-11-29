@@ -62,7 +62,10 @@ impl PrefabBuilder for Cube {
     material.specular_texture(texture_id);
     let mut transform = TransformComponent::identity();
     transform.push_translation(state.position);
-    api.entity_builder().with(material).with(transform).with(mesh).build()
+    api
+      .entity_builder()
+      .and(|ett| ett.with(material).with(transform).with(mesh))
+      .consume()
   }
 }
 

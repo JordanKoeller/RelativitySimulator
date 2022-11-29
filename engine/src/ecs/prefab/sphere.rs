@@ -81,11 +81,8 @@ impl PrefabBuilder for Sphere {
     rigid_body.angular_velocity = rotation;
     api
       .entity_builder()
-      .with(material)
-      .with(transform)
-      .with(mesh)
-      .with(rigid_body)
-      .build()
+      .and(|ett| ett.with(material).with(transform).with(mesh).with(rigid_body))
+      .consume()
   }
 }
 

@@ -72,23 +72,24 @@ impl PrefabBuilder for ParticleBuilder {
     if !state.assert_complete() {
       panic!("Failed to build particle!");
     }
-    let mut builder = api
-      .entity_builder()
-      .with(Particle::new(state.lifetime.unwrap()))
-      .with(TransformComponent::new(
-        state.position.unwrap(),
-        Vec3F::zero(),
-        QuatF::zero(),
-      ))
-      .with(RigidBody::new(
-        state.velocity.unwrap(),
-        -Vec3F::unit_y(),
-        QuatF::zero(),
-        QuatF::zero(),
-      ));
+    let mut builder = api.entity_builder().and(|ett| {
+      ett
+        .with(Particle::new(state.lifetime.unwrap()))
+        .with(TransformComponent::new(
+          state.position.unwrap(),
+          Vec3F::zero(),
+          QuatF::zero(),
+        ))
+        .with(RigidBody::new(
+          state.velocity.unwrap(),
+          -Vec3F::unit_y(),
+          QuatF::zero(),
+          QuatF::zero(),
+        ))
+    });
     if state.gravity.is_some() {
-      builder = builder.with(Gravity);
+      builder.with(Gravity);
     }
-    builder.build()
+    builder.consume()
   }
 }

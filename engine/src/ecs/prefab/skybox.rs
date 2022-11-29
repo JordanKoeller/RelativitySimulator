@@ -50,7 +50,10 @@ impl PrefabBuilder for SkyboxBuilder {
     let mut material = MaterialComponent::default();
     material.unknown_uniform("skybox", Uniform::CubeMap(texture_id));
     let transform = TransformComponent::identity();
-    api.entity_builder().with(material).with(transform).with(mesh).build()
+    api
+      .entity_builder()
+      .and(|ett| ett.with(material).with(transform).with(mesh))
+      .consume()
   }
 }
 

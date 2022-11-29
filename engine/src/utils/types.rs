@@ -36,8 +36,38 @@ pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
 }
 
 
-/*
-The rest implements serialization on hidden types. These  should not be used outside of for serialize/deserialize!
-*/
+pub struct Swap<T: Sized> {
+  value: Option<T>
+}
 
+impl<T: Sized> Swap<T> {
+  pub fn new(value: T) -> Self {
+    Self {
+      value: Some(value),
+    }
+  }
+
+  pub fn swap_with<F: FnOnce(T) -> T>(&mut self, func: F) {
+    let value = self.value.take().unwrap();
+    let new_value = func(value);
+    self.value = Some(new_value);
+  }
+
+  pub fn unwrap(self) -> T {
+    self.value.unwrap()
+  }
+}
+
+impl<T: Sized> std::ops::Deref for Swap<T> {
+  type Target = T;
+  fn deref(&self) -> &Self::Target {
+      self.value.as_ref().unwrap()
+  }
+}
+
+impl<T: Sized> std::ops::DerefMut for Swap<T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+      self.value.as_mut().unwrap()
+  }
+}
 
