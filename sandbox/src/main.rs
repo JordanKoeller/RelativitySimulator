@@ -2,6 +2,7 @@
 extern crate engine;
 extern crate cgmath;
 extern crate specs;
+extern crate env_logger;
 
 mod components;
 mod prefabs;
@@ -16,6 +17,7 @@ use crate::prefabs::{Cube, CubeState};
 use crate::systems::{Multiplayer, PlayerController, SinSphere};
 
 fn main() {
+  env_logger::init();
   info!("App began!");
   let builder = engine::get_game_builder();
   info!("Got the builder");

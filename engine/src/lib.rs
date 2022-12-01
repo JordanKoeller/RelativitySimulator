@@ -19,8 +19,6 @@ extern crate specs;
 extern crate tobj;
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate env_logger;
 
 #[macro_use]
 extern crate derive_builder;
@@ -67,7 +65,6 @@ pub const SCR_WIDTH: u32 = 1920;
 pub const SCR_HEIGHT: u32 = 1080;
 
 pub fn get_game_builder<'a, 'b>() -> GameBuilder<'a, 'b> {
-  env_logger::init();
   let window = platform::Window::new(SCR_WIDTH, SCR_HEIGHT, "Special Relativity");
   GameBuilder::new(window)
 }

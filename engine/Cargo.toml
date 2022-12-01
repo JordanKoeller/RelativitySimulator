@@ -22,7 +22,6 @@ specs = { version = "*", features = ["specs-derive", "shred-derive"] }
 either = "1.6.1"
 crossbeam-queue = "0.3"
 log = "0.4.0"
-env_logger = "0.8.4"
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.1.2", features = ["v4", "fast-rng", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
