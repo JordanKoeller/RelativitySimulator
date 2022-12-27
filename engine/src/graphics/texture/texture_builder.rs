@@ -135,7 +135,7 @@ impl TextureBuilder {
         &self.color_space,
       );
       self.texture_id.set((texture_id, gl::TEXTURE_2D, filename.to_string()));
-      println!("Created texture from file {} to id {}", filename, texture_id);
+      info!("Created texture from file {} to id {}", filename, texture_id);
       Texture::new(self.texture_id, file_buffer)
     } else {
       let pixel_size = match self.format {

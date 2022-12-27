@@ -5,7 +5,7 @@ use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
 use serde::{Serialize, Deserialize};
 
-#[derive(Component, Debug, Clone, Serialize, Deserialize)]
+#[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]
 pub struct TransformComponent {
   pub translation: Vec3F,

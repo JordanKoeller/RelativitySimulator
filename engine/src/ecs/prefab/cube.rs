@@ -54,9 +54,6 @@ impl PrefabBuilder for Cube {
       TextureBuilder::default().with_file(&state.texture_filename)
     });
     let mut material = MaterialComponent::default();
-    // material.ambient(Vec3F::new(1f32, 1f32, 1f32));
-    // material.specular(Vec3F::new(1f32, 1f32, 1f32));
-    // material.diffuse(Vec3F::new(1f32, 1f32, 1f32));
     material.diffuse_texture(texture_id.clone());
     material.ambient_texture(texture_id.clone());
     material.specular_texture(texture_id);

@@ -15,7 +15,7 @@ use super::EntityTreeBuilder;
 
 // Provides a common interface for accessing commonly used resources
 // All fields inside this should only be specified as `Read` or `ReadStorage` access.
-// If mutation is used, please use interior mutability unless
+// If mutation is used, please use interior mutability
 #[derive(SystemData)]
 pub struct SystemUtilities<'a> {
   logger: Read<'a, Logger>,
@@ -31,9 +31,6 @@ impl<'a> SystemUtilities<'a> {
     &self.logger
   }
 
-  // pub fn entity_builder(&self) -> LazyBuilder<'_> {
-  //   self.lazy_update.create_entity(&self.entities)
-  // }
 
   pub fn entity_builder(&self) -> NTree<EntityTreeBuilder<'_, '_>> {
     EntityTreeBuilder::new(&self.entities, &self.lazy_update).into()

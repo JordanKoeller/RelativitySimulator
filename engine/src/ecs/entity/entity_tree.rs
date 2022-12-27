@@ -8,7 +8,7 @@ use std::rc::Rc;
 
 use crate::utils::{GetMutRef, MutRef};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct EntityTree {
   entities: BitSet,
 }
@@ -16,6 +16,10 @@ pub struct EntityTree {
 impl EntityTree {
   pub(crate) fn new(entities: BitSet) -> Self {
     Self { entities }
+  }
+
+  pub fn add(&mut self, entity: Entity) {
+    self.entities.add(entity.id());
   }
 }
 

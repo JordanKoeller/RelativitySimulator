@@ -8,7 +8,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use super::EntityTree;
-use crate::datastructures::{NTreeNode, ReducableTree};
+use crate::datastructures::{NTreeNode, ReducableTree, NTree};
 use crate::utils::{GetMutRef, MutRef, Ref, Swap};
 
 pub struct EntityTreeBuilder<'a, 'b: 'a> {
@@ -52,3 +52,5 @@ impl<'a, 'b: 'a> ReducableTree for EntityTreeBuilder<'a, 'b> {
       self.builder.unwrap().build()
   }
 }
+
+pub type EntityBuilder<'a, 'b> = NTree<EntityTreeBuilder<'a, 'b>>;

@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-  "sandbox",
+  "racer",
   "engine"
 ]

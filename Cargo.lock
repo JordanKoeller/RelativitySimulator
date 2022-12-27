@@ -876,6 +876,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "racer"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "engine",
+ "env_logger",
+ "specs",
+]
+
+[[package]]
 name = "rand"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1131,19 +1141,6 @@ name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
-
-[[package]]
-name = "sandbox"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "either",
- "engine",
- "env_logger",
- "serde",
- "serde_json",
- "specs",
-]
 
 [[package]]
 name = "scoped_threadpool"

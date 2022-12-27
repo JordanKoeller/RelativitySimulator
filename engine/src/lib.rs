@@ -33,7 +33,7 @@ extern crate lazy_static;
 #[macro_use]
 pub mod debug;
 pub mod common;
-mod datastructures;
+pub mod datastructures;
 pub mod ecs;
 pub mod events;
 mod game_builder;
