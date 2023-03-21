@@ -8,7 +8,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use super::EntityTree;
-use crate::datastructures::{NTreeNode, ReducableTree, NTree};
+use crate::datastructures::{NTree, NTreeNode, ReducableTree};
 use crate::utils::{GetMutRef, MutRef, Ref, Swap};
 
 pub struct EntityTreeBuilder<'a, 'b: 'a> {
@@ -22,7 +22,7 @@ impl<'a, 'b: 'a> EntityTreeBuilder<'a, 'b> {
     Self {
       entities,
       lazy_update,
-      builder: Swap::new(lazy_update.create_entity(&entities))
+      builder: Swap::new(lazy_update.create_entity(&entities)),
     }
   }
 
@@ -34,7 +34,7 @@ impl<'a, 'b: 'a> EntityTreeBuilder<'a, 'b> {
 
 impl<'a, 'b: 'a> NTreeNode for EntityTreeBuilder<'a, 'b> {
   fn spawn_child(&self) -> Self {
-      Self::new(&self.entities, &self.lazy_update)
+    Self::new(&self.entities, &self.lazy_update)
   }
 }
 
@@ -42,14 +42,14 @@ impl<'a, 'b: 'a> ReducableTree for EntityTreeBuilder<'a, 'b> {
   type Output = Entity;
 
   fn reduce<I: IntoIterator<Item = Self::Output>>(mut self, children: I) -> Self::Output {
-      let mut accumulator = BitSet::new();
-      for child in children {
-        accumulator.add(child.id());
-      }
-      if !accumulator.is_empty() {
-        self.with(EntityTree::new(accumulator));
-      }
-      self.builder.unwrap().build()
+    let mut accumulator = BitSet::new();
+    for child in children {
+      accumulator.add(child.id());
+    }
+    if !accumulator.is_empty() {
+      self.with(EntityTree::new(accumulator));
+    }
+    self.builder.unwrap().build()
   }
 }
 

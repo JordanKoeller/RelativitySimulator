@@ -1,13 +1,13 @@
-use engine::datastructures::{Graph, GraphVisitor, GraphWalker};
+use engine::datastructures::{Graph, GraphVisitor};
 use engine::graphics::Texture;
 use engine::utils::{Vec2F, Vec2U, RGB};
 
 use super::city_block::CityBlock;
-use super::renderable_blocks::{BuildingBlock, RoadBlock};
-use super::City;
+use super::renderable_blocks::RoadBlock;
 use super::RoadType;
+use super::{City, CityBlockType};
 
-pub(super) struct CityBuilder {
+pub struct CityBuilder {
   cells: Vec<CityBlock>,
   width: usize,
   height: usize,
@@ -61,7 +61,8 @@ impl CityBuilder {
    *     c. The city is completely enclosed.
    */
   pub fn is_valid(&self) -> bool {
-    let visitor = GraphVisitor::new(self);
+    let graph = CityBuilderGraph::new(self, CityBlockType::Road);
+    let visitor = GraphVisitor::new(&graph);
     self.is_enclosed() && !visitor.is_disjoint()
   }
 
@@ -122,32 +123,36 @@ impl CityBuilder {
       [Some(_), None, Some(_), Some(_)] => RoadType::SWNTee,
       [Some(_), Some(_), None, Some(_)] => RoadType::WNETee,
       [Some(_), Some(_), Some(_), Some(_)] => RoadType::Intersection,
-      _ => panic!("Invalid road_type!"),
+      [None, None, Some(_), None] => RoadType::Vertical,
+      [Some(_), None, None, None] => RoadType::Vertical,
+      [None, Some(_), None, None] => RoadType::Horizontal,
+      [None, None, None, Some(_)] => RoadType::Horizontal,
+      _ => panic!("Invalid road_type! {:?}", corners),
     }
   }
 
   /**
    * Builds a City object. If a City could not be built, returns None
    */
-  pub fn build(mut self) -> Option<City> {
+  pub fn build(self) -> Option<City> {
     if !self.is_valid() {
       return None;
     }
 
     let mut roads: Vec<RoadBlock> = Vec::new();
-    let mut buildings: Vec<BuildingBlock> = Vec::new();
 
-    let mut walker = GraphWalker::new(&self, |node| {
-      let road_type = self.road_type(node);
+    let roads_graph = CityBuilderGraph::new(&self, CityBlockType::Road);
+    let road_visitor = GraphVisitor::new(&roads_graph);
+
+    road_visitor.breadth_first_traverse().for_each(|node| {
+      let road_type = self.road_type(&node);
       roads.push(RoadBlock::new(Vec2F::new(node.x as f32, node.y as f32), road_type));
-      true
     });
 
-    if let Some(start) = self.nodes().next() {
-      walker.walk_bfs(start);
-    }
+    let buildings_graph = CityBuilderGraph::new(&self, CityBlockType::Building);
+    let building_walker = GraphVisitor::new(&buildings_graph);
 
-    Some(City::new(roads, buildings))
+    Some(City::new(roads, building_walker.disjoint_subgraphs().collect()))
   }
 }
 
@@ -169,7 +174,23 @@ impl std::ops::Index<&Vec2U> for CityBuilder {
   }
 }
 
-impl Graph for CityBuilder {
+pub struct CityBuilderGraph<'a> {
+  city: &'a CityBuilder,
+  block_type: CityBlockType,
+  width: usize,
+}
+
+impl<'a> CityBuilderGraph<'a> {
+  pub fn new(city: &'a CityBuilder, block_type: CityBlockType) -> Self {
+    Self {
+      city,
+      block_type,
+      width: city.width,
+    }
+  }
+}
+
+impl<'a> Graph for CityBuilderGraph<'a> {
   type Node = Vec2U;
 
   fn id(&self, node: &Self::Node) -> usize {
@@ -177,11 +198,16 @@ impl Graph for CityBuilder {
   }
 
   fn adjacent(&self, node: &Self::Node) -> Box<dyn Iterator<Item = Self::Node> + '_> {
-    Box::new(CityBuilderIterator::new_adjacent(node.x, node.y, &self))
+    Box::new(CityBuilderIterator::new_adjacent(
+      node.x,
+      node.y,
+      &self.city,
+      self.block_type,
+    ))
   }
 
   fn nodes(&self) -> Box<dyn Iterator<Item = Self::Node> + '_> {
-    Box::new(CityBuilderIterator::new(&self))
+    Box::new(CityBuilderIterator::new(&self.city, self.block_type))
   }
 
   fn len(&self) -> usize {
@@ -206,50 +232,53 @@ struct CityBuilderIterator<'a> {
   city_builder: &'a CityBuilder,
   ij: Vec2U,
   adjacent_only: u8,
+  block_type: CityBlockType,
 }
 
 impl<'a> CityBuilderIterator<'a> {
-  fn new(city: &'a CityBuilder) -> Self {
+  fn new(city: &'a CityBuilder, block_type: CityBlockType) -> Self {
     let mut ret = Self {
       city_builder: city,
       ij: Vec2U::new(0, 0),
       adjacent_only: 0,
+      block_type,
     };
-    ret.next_road(false);
+    ret.next_block(false);
     ret
   }
 
-  fn new_adjacent(i: usize, j: usize, city_builder: &'a CityBuilder) -> Self {
+  fn new_adjacent(i: usize, j: usize, city_builder: &'a CityBuilder, block_type: CityBlockType) -> Self {
     Self {
       city_builder,
       ij: Vec2U::new(i, j),
       adjacent_only: 1,
+      block_type,
     }
   }
 
-  fn if_road(&self, i: usize, j: usize) -> Option<Vec2U> {
-    if self.is_road(i, j) {
+  fn if_block_type(&self, i: usize, j: usize) -> Option<Vec2U> {
+    if self.is_block_type(i, j) {
       Some(Vec2U::new(i, j))
     } else {
       None
     }
   }
 
-  fn adjacent_road(&mut self) -> Option<Vec2U> {
+  fn adjacent_block(&mut self) -> Option<Vec2U> {
     while self.adjacent_only < 5 {
       let ret = match self.adjacent_only {
-        1 => self.if_road(self.ij.x + 1, self.ij.y),
-        2 => self.if_road(self.ij.x, self.ij.y + 1),
+        1 => self.if_block_type(self.ij.x + 1, self.ij.y),
+        2 => self.if_block_type(self.ij.x, self.ij.y + 1),
         3 => {
           if self.ij.x > 0 {
-            self.if_road(self.ij.x - 1, self.ij.y)
+            self.if_block_type(self.ij.x - 1, self.ij.y)
           } else {
             None
           }
         }
         4 => {
           if self.ij.y > 0 {
-            self.if_road(self.ij.x, self.ij.y - 1)
+            self.if_block_type(self.ij.x, self.ij.y - 1)
           } else {
             None
           }
@@ -264,16 +293,18 @@ impl<'a> CityBuilderIterator<'a> {
     None
   }
 
-  fn is_road(&self, i: usize, j: usize) -> bool {
-    i < self.city_builder.width && j < self.city_builder.height && self.city_builder[&[i, j]].is_road()
+  fn is_block_type(&self, i: usize, j: usize) -> bool {
+    i < self.city_builder.width
+      && j < self.city_builder.height
+      && self.city_builder[&[i, j]].is_block_type(self.block_type)
   }
 
   fn terminated(&self) -> bool {
     self.ij.y == self.city_builder.height
   }
 
-  fn next_road(&mut self, mut force_move: bool) {
-    while !self.terminated() && (force_move || !self.is_road(self.ij.x, self.ij.y)) {
+  fn next_block(&mut self, mut force_move: bool) {
+    while !self.terminated() && (force_move || !self.is_block_type(self.ij.x, self.ij.y)) {
       force_move = false;
       self.ij.x += 1;
       if self.ij.x == self.city_builder.width {
@@ -292,13 +323,13 @@ impl<'a> Iterator for CityBuilderIterator<'a> {
       0 => {
         if !self.terminated() {
           let ret = self.ij.clone();
-          self.next_road(true);
+          self.next_block(true);
           Some(ret)
         } else {
           None
         }
       }
-      _ => self.adjacent_road(),
+      _ => self.adjacent_block(),
     }
   }
 }
@@ -357,7 +388,8 @@ mod tests {
       vec![1, 1, 0, 0],
     ];
 
-    let grid = get_grid(grid_data.clone());
+    let graph = get_grid(grid_data.clone());
+    let grid = CityBuilderGraph::new(&graph, CityBlockType::Road);
 
     assert_set_eq(grid.adjacent(&Vec2U::new(2, 0)).collect(), &[Vec2U::new(2, 1)]);
     assert_set_eq(
@@ -441,17 +473,17 @@ mod tests {
           .collect()
       })
       .collect();
-
     CityBuilder::from(grid)
   }
 
   fn assert_nodes(grid_data: Vec<Vec<u8>>) {
     let grid = get_grid(grid_data.clone());
+    let graph = CityBuilderGraph::new(&grid, CityBlockType::Road);
 
     let expected_count: u8 = grid_data.iter().flat_map(|f| f.iter()).sum();
 
     let mut count = 0;
-    for coord in grid.nodes() {
+    for coord in graph.nodes() {
       assert_eq!(grid_data[coord.y][coord.x], 1);
       count += 1;
     }

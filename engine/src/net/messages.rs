@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpStream;
 
-use super::{Connection, GenericConnectionId, ConnectionParameters};
+use super::{Connection, ConnectionParameters, GenericConnectionId};
 
 #[derive(Debug, Clone)]
 pub struct Envelope {
@@ -26,12 +26,10 @@ impl Envelope {
   }
 }
 
-
-
 #[derive(Debug)]
 pub enum EgressMessage {
   NewConnection(Connection, GenericConnectionId), // New connection descriptor and its host connection's Id.
-  RxMessage(Envelope),                     // Data accepted over the wire and the connection Id.
+  RxMessage(Envelope),                            // Data accepted over the wire and the connection Id.
 }
 
 impl EgressMessage {

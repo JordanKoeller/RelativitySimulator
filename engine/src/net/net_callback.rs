@@ -17,11 +17,8 @@ pub struct HostContext {
 }
 
 impl HostContext {
-
   pub fn new(id: HostConnectionId) -> Self {
-    Self {
-      id: Some(id)
-    }
+    Self { id: Some(id) }
   }
 
   pub fn set_id(&mut self, id: HostConnectionId) {
@@ -29,7 +26,9 @@ impl HostContext {
   }
 
   pub fn on_connect<F>(&self, net_opt: &Option<NetActorHandle>, mut func: F)
-  where F: FnMut(DuplexConnectionId) -> () {
+  where
+    F: FnMut(DuplexConnectionId) -> (),
+  {
     if let Some(id) = self.id {
       if let Some(net) = net_opt {
         for cx in net.get_connections(&id).into_iter() {
@@ -40,18 +39,14 @@ impl HostContext {
   }
 }
 
-
 #[derive(Default)]
 pub struct DuplexContext {
   id: Option<DuplexConnectionId>,
 }
 
 impl DuplexContext {
-
   pub fn new(id: DuplexConnectionId) -> Self {
-    Self {
-      id: Some(id)
-    }
+    Self { id: Some(id) }
   }
 
   pub fn set_id(&mut self, id: DuplexConnectionId) {
@@ -59,7 +54,9 @@ impl DuplexContext {
   }
 
   pub fn on_connect<F>(&self, net_opt: &Option<NetActorHandle>, mut func: F)
-  where F: FnMut(DuplexConnectionId) -> () {
+  where
+    F: FnMut(DuplexConnectionId) -> (),
+  {
     if let Some(id) = self.id {
       if let Some(net) = net_opt {
         for msg in net.get_events(&id).into_iter() {

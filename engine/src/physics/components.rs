@@ -1,9 +1,9 @@
 use crate::utils::*;
-use cgmath::{prelude::*, Euler, Basis3};
+use cgmath::{prelude::*, Basis3, Euler};
 use cgmath::{Deg, Rad, Rotation3};
+use serde::{Deserialize, Serialize};
 use specs::prelude::*;
 use specs::{Component, NullStorage, VecStorage};
-use serde::{Serialize, Deserialize};
 
 #[derive(Component, Debug, Clone)]
 #[storage(VecStorage)]

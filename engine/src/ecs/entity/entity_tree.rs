@@ -41,7 +41,6 @@ impl Join for EntityTree {
   }
 }
 
-
 pub(crate) struct EntityTreeRootLabel;
 
 impl Component for EntityTreeRootLabel {

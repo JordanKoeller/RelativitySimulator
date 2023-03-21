@@ -5,7 +5,7 @@ use std::sync::RwLock;
 use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
-use crate::ecs::{systems::*, GuidMap, GuidRegistrySystem, Guid, EntityTree};
+use crate::ecs::{systems::*, EntityTree, Guid, GuidMap, GuidRegistrySystem};
 use crate::ecs::{EntityManager, PrefabBuilder, Sys, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;

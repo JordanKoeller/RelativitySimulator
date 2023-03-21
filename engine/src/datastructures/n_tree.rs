@@ -1,8 +1,8 @@
 use std::{
   borrow::{Borrow, BorrowMut},
-  cell::{RefCell, Ref, RefMut},
-  rc::Rc,
+  cell::{Ref, RefCell, RefMut},
   ops::{Deref, DerefMut},
+  rc::Rc,
 };
 
 use crate::utils::{GetMutRef, MutRef, Swap};
@@ -26,7 +26,7 @@ impl<T> NTree<T> {
     Self {
       children: Vec::new(),
       node_type: NodeType::Leaf,
-      value: Swap::new(value)
+      value: Swap::new(value),
     }
   }
 
@@ -49,7 +49,6 @@ impl<T> NTree<T> {
     self.value.swap_with(|v| func(v));
     self
   }
-
 }
 
 impl<T: NTreeNode> NTree<T> {
@@ -69,19 +68,19 @@ impl<T> Deref for NTree<T> {
   type Target = T;
 
   fn deref(&self) -> &Self::Target {
-      &self.value
+    &self.value
   }
 }
 
 impl<T> DerefMut for NTree<T> {
   fn deref_mut(&mut self) -> &mut Self::Target {
-      &mut self.value
+    &mut self.value
   }
 }
 
 impl<T: NTreeNode> From<T> for NTree<T> {
   fn from(value: T) -> Self {
-      NTree::new_root(value)
+    NTree::new_root(value)
   }
 }
 

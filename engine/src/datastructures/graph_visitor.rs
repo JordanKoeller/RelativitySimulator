@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::{
+  cell::RefCell,
+  collections::{HashMap, HashSet, VecDeque},
+};
 /**
  * Visitor pattern for an arbitrary graph-like datastructure.
  *
@@ -32,129 +35,109 @@ impl<'a, T: Graph> GraphVisitor<'a, T> {
   }
 
   pub fn is_disjoint(&self) -> bool {
-    // Node -> The subgraph it belongs to.
-    /*
-     * For each node:
-     *   start a dfs.
-     *   If the dfs encounters a node visited already, set the new
-     *     node's subgraph_id to equal the already-visited node's subgraph_id.
-     *
-     * If at the end there is only one subgraph_id for all nodes, then the graph is not disjoint
-     */
-
-    let mut walker = GraphWalker::new(self.graph, |_| false);
-
     if let Some(origin) = self.graph.nodes().next() {
-      walker.walk_bfs(origin);
+      let mut walker = GraphIterator::new(self.graph, origin, GraphTraversalOrdering::BreadthFirst);
+      walker.walk();
+      walker.visited.len() != self.graph.len()
+    } else {
+      false
     }
+  }
 
-    walker.visited.len() != self.graph.len()
-    // let mut subgraphs: HashMap<usize, usize> = HashMap::new();
+  pub fn disjoint_subgraphs(&self) -> impl Iterator<Item = Vec<T::Node>> + '_ {
+    let mut all_seen_nodes: HashSet<usize> = HashSet::new();
 
-    // for origin in self.graph.nodes() {
-    //   let subgraph_id = self.graph.id(origin);
-    //   if !subgraphs.contains_key(&subgraph_id) {
-    //     // We've never visited this node, ever. So start a new subgraph entry.
+    self.graph.nodes().filter_map(move |origin| {
+      if all_seen_nodes.contains(&self.graph.id(&origin)) {
+        None
+      } else {
+        Some(
+          GraphIterator::new(self.graph, origin, GraphTraversalOrdering::BreadthFirst)
+            .map(|node| {
+              all_seen_nodes.insert(self.graph.id(&node));
+              node
+            })
+            .collect(),
+        )
+      }
+    })
+  }
 
-    //     let mut walker = GraphWalker::new(self.graph, visitor);
-
-    //     walker.walk_dfs(origin);
-    //   }
-    // }
-
-    // let mut ids = None;
-
-    // for subgraph_id in subgraphs.values() {
-    //   if ids.is_none() {
-    //     ids = Some(subgraph_id);
-    //   } else {
-    //     if ids.unwrap() != subgraph_id {
-    //       return true;
-    //     }
-    //   }
-    // }
-
-    // false
+  pub fn breadth_first_traverse(&self) -> impl Iterator<Item = T::Node> + '_ {
+    let mut all_seen_nodes: HashSet<usize> = HashSet::default();
+    self
+      .graph
+      .nodes()
+      .filter_map(move |origin| {
+        if all_seen_nodes.contains(&self.graph.id(&origin)) {
+          None
+        } else {
+          let nodes: Vec<T::Node> = GraphIterator::new(self.graph, origin, GraphTraversalOrdering::BreadthFirst)
+            .map(|node| {
+              all_seen_nodes.insert(self.graph.id(&node));
+              node
+            })
+            .collect();
+          Some(nodes.into_iter())
+        }
+      })
+      .flatten()
   }
 }
 
 // Private helper definitions
-pub struct GraphWalker<'a, T, F>
-where
-  T: Graph,
-  F: FnMut(&T::Node) -> bool,
-{
-  visited: HashSet<usize>,
-  visitor: F,
-  graph: &'a T,
+enum GraphTraversalOrdering {
+  BreadthFirst,
+  DepthFirst,
 }
 
-impl<'a, T, F> GraphWalker<'a, T, F>
-where
-  T: Graph,
-  F: FnMut(&T::Node) -> bool,
-{
-  pub fn new(graph: &'a T, visitor: F) -> Self {
-    Self {
-      visited: HashSet::new(),
-      visitor,
+struct GraphIterator<'a, T: Graph> {
+  graph: &'a T,
+  deque: VecDeque<T::Node>,
+  visited: HashSet<usize>,
+  ordering: GraphTraversalOrdering,
+}
+
+impl<'a, T: Graph> GraphIterator<'a, T> {
+  fn new(graph: &'a T, start: T::Node, ordering: GraphTraversalOrdering) -> Self {
+    let mut ret = Self {
       graph,
+      deque: VecDeque::new(),
+      visited: HashSet::default(),
+      ordering,
+    };
+    ret.visited.insert(ret.graph.id(&start));
+    ret.deque.push_back(start);
+    ret
+  }
+
+  fn next_elem(&mut self) -> Option<T::Node> {
+    match self.ordering {
+      GraphTraversalOrdering::BreadthFirst => self.deque.pop_front(),
+      GraphTraversalOrdering::DepthFirst => self.deque.pop_back(),
     }
   }
 
-  // Walk the graph, applying the visitor function to each node.
-  pub fn walk_dfs(&mut self, start: T::Node) {
-    if self.visited.contains(&self.graph.id(&start)) {
-      return;
-    }
+  fn walk(&mut self) {
+    while let Some(_) = self.next() {}
+  }
+}
 
-    let mut stack = VecDeque::<T::Node>::new();
+impl<'a, T: Graph> Iterator for GraphIterator<'a, T> {
+  type Item = T::Node;
 
-    stack.push_back(start);
-
-    while !stack.is_empty() {
-      let origin = stack.pop_back().unwrap();
-
-      self.visited.insert(self.graph.id(&origin));
-      if self.visit(&origin) {
-        return;
-      }
-
-      for adjacent in self.graph.adjacent(&origin) {
+  fn next(&mut self) -> Option<Self::Item> {
+    if let Some(top) = self.next_elem() {
+      self.visited.insert(self.graph.id(&top));
+      for adjacent in self.graph.adjacent(&top) {
         if !self.visited.contains(&self.graph.id(&adjacent)) {
-          stack.push_back(adjacent);
+          self.deque.push_back(adjacent);
         }
       }
+      Some(top)
+    } else {
+      None
     }
-  }
-
-  pub fn walk_bfs(&mut self, start: T::Node) {
-    if self.visited.contains(&self.graph.id(&start)) {
-      return;
-    }
-
-    let mut queue = VecDeque::<T::Node>::new();
-
-    queue.push_back(start);
-
-    while !queue.is_empty() {
-      let origin = queue.pop_front().unwrap();
-
-      self.visited.insert(self.graph.id(&origin));
-      if self.visit(&origin) {
-        return;
-      }
-
-      for adjacent in self.graph.adjacent(&origin) {
-        if !self.visited.contains(&self.graph.id(&adjacent)) {
-          queue.push_back(adjacent);
-        }
-      }
-    }
-  }
-
-  fn visit(&mut self, node: &T::Node) -> bool {
-    (self.visitor)(node)
   }
 }
 
@@ -184,16 +167,16 @@ mod tests {
     }
 
     /** Given a particular node n, return an iterator of all nodes accessible from the n. */
-    fn adjacent(&self, node: &Self::Node) -> Box<dyn Iterator<Item = Self::Node> + '_> {
+    fn adjacent(&self, node: &Self::Node) -> Box<dyn Iterator<Item = Self::Node>> {
       let mut nodes: Vec<usize> = self.edges[*node].clone();
       nodes.remove(0);
       Box::from(nodes.into_iter())
     }
 
     /** Return an iterator of all Nodes in the graph */
-    fn nodes(&self) -> Box<dyn Iterator<Item = Self::Node> + '_> {
-      let indices = self.edges.iter().map(|e| e[0]);
-      Box::from(indices)
+    fn nodes(&self) -> Box<dyn Iterator<Item = Self::Node>> {
+      let indices: Vec<usize> = self.edges.iter().map(|e| e[0]).collect();
+      Box::from(indices.into_iter())
     }
 
     /** Returns the number of nodes in the graph */
@@ -203,17 +186,17 @@ mod tests {
   }
 
   #[test]
-  fn disjoint_notDisjoint_success() {
+  fn disjoint_not_disjoint_success() {
     assert_disjoint(vec![vec![1, 3], vec![2, 3], vec![0, 3], vec![]], false);
   }
 
   #[test]
-  fn disjoint_empty_returnsFalse() {
+  fn disjoint_empty_returns_false() {
     assert_disjoint(vec![], false);
   }
 
   #[test]
-  fn disjoint_isDisjoint_success() {
+  fn disjoint_is_disjoint_success() {
     assert_disjoint(vec![vec![2], vec![], vec![0]], true)
   }
 

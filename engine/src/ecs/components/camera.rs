@@ -97,9 +97,6 @@ impl Camera {
 
   pub fn facing_matrix(&self) -> [f32; 3] {
     let facing = self.front();
-    return [
-      facing.x, facing.y, facing.z,
-    ]
-
+    return [facing.x, facing.y, facing.z];
   }
 }

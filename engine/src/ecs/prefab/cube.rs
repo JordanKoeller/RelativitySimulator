@@ -1,19 +1,27 @@
+use cgmath::prelude::*;
+use specs::prelude::*;
 use std::ops::Deref;
 
 use crate::ecs::{ComponentCache, PrefabBuilder, SystemUtilities};
 use crate::graphics::{
-  Assets, AttributeType, BufferConfig, BufferLayout, DataBufferBuilder, IndexBufferBuilder, MaterialComponent,
-  MeshComponent, ShaderBuilder, TextureBuilder, VertexArrayBuilder,
+  Assets, AttributeType, BufferConfig, BufferLayout, ColorSpace, DataBufferBuilder, HydratedBuilderStep,
+  IndexBufferBuilder, MaterialComponent, MeshBufferBuilder, MeshBuilder, MeshComponent, ShaderBuilder, ShadingStrategy,
+  TextureBuilder, VertexArrayBuilder,
 };
 use crate::physics::TransformComponent;
 use crate::physics::{Collision, CollisionSummary};
-use crate::utils::{swizzle_down, swizzle_up, Mat3F, Vec3F, Vec4F};
+use crate::utils::{swizzle_down, swizzle_up, DegF, Mat3F, QuatF, Vec3F, Vec4F};
 use specs::prelude::*;
 use specs::{Component, VecStorage};
 
+#[derive(Builder)]
+#[builder(pattern = "owned")]
 pub struct CubeState {
   texture_filename: String,
   position: Vec3F,
+  rotation: Vec3F,
+  scale: Vec3F,
+  faces: Vec<CubeFace>,
 }
 
 impl CubeState {
@@ -21,44 +29,49 @@ impl CubeState {
     Self {
       texture_filename: filename.to_string(),
       position,
+      rotation: Vec3F::zero(),
+      scale: Vec3F::new(1f32, 1f32, 1f32),
+      faces: CubeFace::all().into(),
     }
   }
 }
 
 #[derive(Default)]
-pub struct Cube {
-  cache: ComponentCache,
-}
+pub struct Cube;
+
 impl PrefabBuilder for Cube {
   type PrefabState = CubeState;
+
   fn build<'a>(&mut self, api: &SystemUtilities<'a>, state: Self::PrefabState) -> Entity {
-    let mesh = self.cache.get_or(|| {
-      let shader_id = api.get_shader("default_texture").unwrap();
-      let vai = api.assets().get_or_create("cube", || {
-        VertexArrayBuilder::default()
-          .with_index_buffer(IndexBufferBuilder::default().with_data(TEXTURE_CUBE_INDICES.to_vec()))
-          .with_vertex_buffer(
-            DataBufferBuilder::default()
-              .with_data(TEXTURE_CUBE_VERTICES.to_vec())
-              .with_layout(BufferLayout::new(vec![
-                AttributeType::Float3,
-                AttributeType::Float3,
-                AttributeType::Float2,
-              ]))
-              .with_config(BufferConfig::static_vbo()),
-          )
-      });
-      MeshComponent::new(vai, shader_id)
-    });
-    let texture_id = api.assets().get_or_create(&state.texture_filename, || {
-      TextureBuilder::default().with_file(&state.texture_filename)
-    });
+    let mesh_builder = self.build_cube_mesh(&state);
+    let mesh_builder: VertexArrayBuilder = mesh_builder.into();
+    let vai = api.get_else("cube", mesh_builder);
+    let mesh = MeshComponent::new(vai, api.get_shader("default_texture").unwrap());
     let mut material = MaterialComponent::default();
-    material.diffuse_texture(texture_id.clone());
-    material.ambient_texture(texture_id.clone());
-    material.specular_texture(texture_id);
+    material.diffuse_texture(
+      api.get_else(
+        &state.texture_filename,
+        TextureBuilder::default()
+          .with_color_space(ColorSpace::SRGB)
+          .with_file(&state.texture_filename),
+      ),
+    );
+    material.specular_texture(api.get_else(
+      &state.texture_filename,
+      TextureBuilder::default().with_file(&state.texture_filename),
+    ));
+    // material.normal_texture(api.get_else(
+    //   &state.normal_file,
+    //   TextureBuilder::default().with_file(&state.normal_file),
+    // ));
     let mut transform = TransformComponent::identity();
+    let rotation = QuatF::from_angle_x(cgmath::Deg(state.rotation.x))
+      * QuatF::from_angle_y(cgmath::Deg(state.rotation.y))
+      * QuatF::from_angle_z(cgmath::Deg(state.rotation.z));
+    transform.push_scale(state.scale);
+    transform.push_rotation(&rotation);
     transform.push_translation(state.position);
+
     api
       .entity_builder()
       .and(|ett| ett.with(material).with(transform).with(mesh))
@@ -66,299 +79,110 @@ impl PrefabBuilder for Cube {
   }
 }
 
-pub static TEXTURE_CUBE_VERTICES: [f32; 288] = [
-  // positions                 // normals                // texture coords
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.3333333f32,
-  0.25f32,
-  0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.6666666f32,
-  0.25f32,
-  0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.6666666f32,
-  0.50f32, // FRONT
-  0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.6666666f32,
-  0.50f32,
-  -0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.3333333f32,
-  0.50f32,
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  0.0f32,
-  -1.0f32,
-  0.3333333f32,
-  0.25f32,
-  -0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.3333333f32,
-  1.0f32,
-  0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.6666666f32,
-  1.0f32,
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.6666666f32,
-  0.75f32, // BACK
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.6666666f32,
-  0.75f32,
-  -0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.3333333f32,
-  0.75f32,
-  -0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  0.0f32,
-  1.0f32,
-  0.3333333f32,
-  1.0f32,
-  -0.5f32,
-  0.5f32,
-  0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.5f32, // B
-  -0.5f32,
-  0.5f32,
-  -0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.75f32, // A
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.75f32, // C RIGHT
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.75f32, // C
-  -0.5f32,
-  -0.5f32,
-  0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.5f32, // D
-  -0.5f32,
-  0.5f32,
-  0.5f32,
-  -1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.5f32, // B
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.5f32, // B
-  0.5f32,
-  0.5f32,
-  -0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.75f32, // A
-  0.5f32,
-  -0.5f32,
-  -0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.75f32, // C LEFT
-  0.5f32,
-  -0.5f32,
-  -0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.75f32, // C
-  0.5f32,
-  -0.5f32,
-  0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.0000000f32,
-  0.5f32, // D
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  1.0f32,
-  0.0f32,
-  0.0f32,
-  0.33333333f32,
-  0.5f32, // B
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.25f32,
-  0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.25f32,
-  0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.0f32, // BOTTOM
-  0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.0f32,
-  -0.5f32,
-  -0.5f32,
-  0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.0f32,
-  -0.5f32,
-  -0.5f32,
-  -0.5f32,
-  0.0f32,
-  -1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.25f32,
-  -0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.75f32,
-  0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.75f32,
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.6666666f32,
-  0.5f32, // TOP
-  -0.5f32,
-  0.5f32,
-  0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.5f32,
-  -0.5f32,
-  0.5f32,
-  -0.5f32,
-  0.0f32,
-  1.0f32,
-  0.0f32,
-  0.3333333f32,
-  0.75f32,
-];
+impl Cube {
+  fn build_cube_mesh(&self, state: &CubeState) -> MeshBufferBuilder<HydratedBuilderStep> {
+    let mut builder = MeshBuilder::default()
+      .with_shading_strategy(ShadingStrategy::PerFace)
+      .next();
 
-pub static TEXTURE_CUBE_INDICES: [u32; 36] = [
-  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-  32, 33, 34, 35,
+    for face in state.faces.iter() {
+      let coords = face.coords();
+      for i in 0..6 {
+        let ii = i * 5;
+        builder.push_vertex_flat(
+          coords[ii],
+          coords[ii + 1],
+          coords[ii + 2],
+          coords[ii + 3],
+          coords[ii + 4],
+        );
+      }
+    }
+
+    builder.next()
+  }
+}
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+pub enum CubeFace {
+  North,
+  East,
+  South,
+  West,
+  Top,
+  Bottom,
+}
+
+impl CubeFace {
+  pub fn all() -> [CubeFace; 6] {
+    [
+      Self::North,
+      Self::East,
+      Self::South,
+      Self::West,
+      Self::Top,
+      Self::Bottom,
+    ]
+  }
+
+  pub fn cardinal_directions() -> [CubeFace; 4] {
+    [Self::North, Self::East, Self::South, Self::West]
+  }
+
+  pub fn coords(&self) -> &[f32] {
+    match self {
+      Self::North => &CUBE_VERTICES[0..30],
+      Self::East => &CUBE_VERTICES[90..120],
+      Self::South => &CUBE_VERTICES[30..60],
+      Self::West => &CUBE_VERTICES[60..90],
+      Self::Top => &CUBE_VERTICES[120..150],
+      Self::Bottom => &CUBE_VERTICES[150..180],
+    }
+  }
+}
+
+pub static CUBE_VERTICES: [f32; 180] = [
+  // positions          // normals           // texture coords
+  //Back face
+  -0.5, -0.5, -0.5, 0.0, 0.0, // Bottom-left
+  0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+  0.5, -0.5, -0.5, 1.0, 0.0, // bottom-right
+  0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+  -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-left
+  -0.5, 0.5, -0.5, 0.0, 1.0, // top-left
+  // Front face
+  -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-left
+  0.5, -0.5, 0.5, 1.0, 0.0, // bottom-right
+  0.5, 0.5, 0.5, 1.0, 1.0, // top-right
+  0.5, 0.5, 0.5, 1.0, 1.0, // top-right
+  -0.5, 0.5, 0.5, 0.0, 1.0, // top-left
+  -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-left
+  // Left face
+  -0.5, 0.5, 0.5, 1.0, 0.0, // top-right
+  -0.5, 0.5, -0.5, 1.0, 1.0, // top-left
+  -0.5, -0.5, -0.5, 0.0, 1.0, // bottom-left
+  -0.5, -0.5, -0.5, 0.0, 1.0, // bottom-left
+  -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-right
+  -0.5, 0.5, 0.5, 1.0, 0.0, // top-right
+  // Right face
+  0.5, 0.5, 0.5, 1.0, 0.0, // top-left
+  0.5, -0.5, -0.5, 0.0, 1.0, // bottom-right
+  0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+  0.5, -0.5, -0.5, 0.0, 1.0, // bottom-right
+  0.5, 0.5, 0.5, 1.0, 0.0, // top-left
+  0.5, -0.5, 0.5, 0.0, 0.0, // bottom-left
+  // Top face
+  -0.5, 0.5, -0.5, 0.0, 1.0, // top-left
+  0.5, 0.5, 0.5, 1.0, 0.0, // bottom-right
+  0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+  0.5, 0.5, 0.5, 1.0, 0.0, // bottom-right
+  -0.5, 0.5, -0.5, 0.0, 1.0, // top-left
+  -0.5, 0.5, 0.5, 0.0, 0.0, // bottom-left
+  // Bottom face
+  -0.5, -0.5, -0.5, 0.0, 1.0, // top-right
+  0.5, -0.5, -0.5, 1.0, 1.0, // top-left
+  0.5, -0.5, 0.5, 1.0, 0.0, // bottom-left
+  0.5, -0.5, 0.5, 1.0, 0.0, // bottom-left
+  -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-right
+  -0.5, -0.5, -0.5, 0.0, 1.0, // top-right
 ];

@@ -15,6 +15,10 @@ impl<'a> WorldProxy<'a> {
   pub fn utilities(&self) -> SystemUtilities<'_> {
     self.world.system_data()
   }
+
+  pub fn api(&self) -> SystemUtilities<'_> {
+    self.world.system_data()
+  }
 }
 
 impl<'a> Deref for WorldProxy<'a> {

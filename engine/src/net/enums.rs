@@ -1,6 +1,5 @@
+use super::{Connection, ConnectionParameters, Envelope, GenericConnectionId};
 use tokio::net::TcpStream;
-use super::{GenericConnectionId, Envelope, Connection, ConnectionParameters};
-
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum SocketType {
@@ -32,12 +31,11 @@ pub(crate) enum ActorMessage {
     stream: TcpStream,
     connection: Connection,
   }, // The host accepted your connection. Set up Tx/Rx.
-  ConnectTo(Connection),        // Request a connection as a client to a server
-  SendMessage(Envelope),        // Message To Send, and connection Id
+  ConnectTo(Connection),               // Request a connection as a client to a server
+  SendMessage(Envelope),               // Message To Send, and connection Id
   DropConnection(GenericConnectionId), // Drop connection with id
-  Shutdown,                     // Shutdown the networking actor
+  Shutdown,                            // Shutdown the networking actor
 }
-
 
 #[derive(Debug, Clone)]
 pub enum NetEvent {

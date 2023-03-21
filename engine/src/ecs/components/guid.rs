@@ -20,7 +20,7 @@ impl Component for Guid {
   type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-pub struct  GuidMap(HashMap<Guid, Entity>);
+pub struct GuidMap(HashMap<Guid, Entity>);
 
 impl GuidMap {
   pub fn get(&self, guid: &Guid) -> Option<&Entity> {
@@ -42,7 +42,7 @@ impl GuidMap {
 
 impl Default for GuidMap {
   fn default() -> Self {
-      Self(HashMap::new())
+    Self(HashMap::new())
   }
 }
 
@@ -52,11 +52,7 @@ pub struct GuidRegistrySystem {
 }
 
 impl<'a> System<'a> for GuidRegistrySystem {
-  type SystemData = (
-    Write<'a, GuidMap>,
-    ReadStorage<'a, Guid>,
-    Entities<'a>,
-  );
+  type SystemData = (Write<'a, GuidMap>, ReadStorage<'a, Guid>, Entities<'a>);
 
   fn run(&mut self, (mut guid_map, s_guid, s_ent): Self::SystemData) {
     let mut deleted = specs::hibitset::BitSet::new();
@@ -65,11 +61,11 @@ impl<'a> System<'a> for GuidRegistrySystem {
       match evt {
         ComponentEvent::Inserted(id) => {
           added.add(*id);
-        },
+        }
         ComponentEvent::Removed(id) => {
           deleted.add(*id);
-        },
-        ComponentEvent::Modified(_) => {},
+        }
+        ComponentEvent::Modified(_) => {}
       }
     }
     for (guid, entity, _added) in (&s_guid, &s_ent, added).join() {
@@ -85,4 +81,3 @@ impl<'a> System<'a> for GuidRegistrySystem {
     self.receiver_id = Some(world.system_data::<WriteStorage<'_, Guid>>().register_reader());
   }
 }
-

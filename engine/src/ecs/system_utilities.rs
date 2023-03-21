@@ -5,13 +5,13 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use specs::prelude::*;
 use specs::world::LazyBuilder;
 
+use super::EntityTreeBuilder;
+use crate::datastructures::NTree;
 use crate::debug::Logger;
 use crate::ecs::{Guid, GuidMap, PrefabBuilder};
 use crate::events::{EventChannel, StatefulEventChannel};
 use crate::graphics::AssetLibrary;
 use crate::gui::{ControlPanel, ControlPanels};
-use crate::datastructures::{NTree};
-use super::EntityTreeBuilder;
 
 // Provides a common interface for accessing commonly used resources
 // All fields inside this should only be specified as `Read` or `ReadStorage` access.
@@ -30,7 +30,6 @@ impl<'a> SystemUtilities<'a> {
   pub fn log(&self) -> &Logger {
     &self.logger
   }
-
 
   pub fn entity_builder(&self) -> NTree<EntityTreeBuilder<'_, '_>> {
     EntityTreeBuilder::new(&self.entities, &self.lazy_update).into()

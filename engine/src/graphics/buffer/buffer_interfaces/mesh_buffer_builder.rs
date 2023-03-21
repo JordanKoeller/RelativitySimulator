@@ -315,6 +315,7 @@ impl<T: MeshBuildStep> MeshBufferBuilder<T> {
           .normalize();
       }
     }
+    self.vertices.shrink_to_fit();
     self.consume()
   }
 

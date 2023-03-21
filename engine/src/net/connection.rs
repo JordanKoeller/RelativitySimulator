@@ -1,7 +1,7 @@
 use specs::{Component, VecStorage};
 
+use super::{ConnectionId, GenericConnectionId, SocketType};
 use crate::events::ReceiverId;
-use super::{GenericConnectionId, ConnectionId, SocketType};
 
 #[derive(Debug, Clone)]
 pub struct Connection {
@@ -45,7 +45,6 @@ impl ConnectionParameters {
       port,
     }
   }
-
 
   pub fn to_connection(self, connection_id: GenericConnectionId) -> Connection {
     Connection {

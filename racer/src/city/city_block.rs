@@ -4,7 +4,7 @@ use engine::utils::RGB;
 /// First define Structs and parsing
 ////////////////////////////////////
 #[derive(Eq, PartialEq, Debug)]
-pub(super) enum CityBlock {
+pub enum CityBlock {
   Road {
     elevation: u8,
   },
@@ -23,10 +23,25 @@ impl CityBlock {
       false
     }
   }
+
+  pub fn is_block_type(&self, block_type: CityBlockType) -> bool {
+    let want_block = match block_type {
+      CityBlockType::Road => true,
+      CityBlockType::Building => false,
+    };
+    let is_block = self.is_road();
+    want_block == is_block
+  }
+}
+
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+pub enum CityBlockType {
+  Road,
+  Building,
 }
 
 #[derive(Eq, PartialEq, Debug)]
-pub(super) struct BuildingShape {
+pub struct BuildingShape {
   pub north: WallInterpolation,
   pub east: WallInterpolation,
   pub south: WallInterpolation,
@@ -34,7 +49,7 @@ pub(super) struct BuildingShape {
 }
 
 #[derive(Eq, PartialEq, Debug)]
-pub(super) enum WallInterpolation {
+pub enum WallInterpolation {
   JAGGED,   // Encode 00
   LINEAR,   // Encode 01
   CIRCULAR, // Encode 10

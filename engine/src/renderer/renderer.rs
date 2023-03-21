@@ -172,10 +172,9 @@ impl Renderer {
     self
       .common_uniforms
       .insert("debug_line_length".to_string(), Uniform::Float(0.1));
-    self.common_uniforms.insert(
-      "light_position".to_string(),
-      Uniform::Vec3(Vec3F::new(200.0, 200.0, -200.0)),
-    );
+    self
+      .common_uniforms
+      .insert("light_position".to_string(), Uniform::Vec3(Vec3F::new(0.0, -1.0, 0.0)));
   }
 
   pub fn process_events(&mut self, chanel: &mut StatelessEventChannel<WindowEvent>) {

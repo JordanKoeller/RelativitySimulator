@@ -62,7 +62,6 @@ impl Default for AssetLibrary {
 }
 
 impl AssetLibrary {
-  
   pub fn flush_all(&mut self) {
     self.shaders.flush();
     self.textures.flush();

@@ -2,16 +2,18 @@ use cgmath;
 use cgmath::One;
 // use cgmath::prelude::*;
 use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
-use std::ops::{Deref, DerefMut};
 
 pub type Vec2F = cgmath::Vector2<f32>;
 pub type Vec2I = cgmath::Vector2<i32>;
 pub type Vec2U = cgmath::Vector2<usize>;
 
 pub type Vec3F = cgmath::Vector3<f32>;
+pub type Vec3I = cgmath::Vector3<i32>;
+pub type Vec3U = cgmath::Vector3<usize>;
 pub type Vec4F = cgmath::Vector4<f32>;
 pub type Mat4F = cgmath::Matrix4<f32>;
 pub type Mat3F = cgmath::Matrix3<f32>;
@@ -37,16 +39,13 @@ pub fn getSyncMutRef<T>(v: T) -> SyncMutRef<T> {
   Arc::new(Mutex::new(v))
 }
 
-
 pub struct Swap<T: Sized> {
-  value: Option<T>
+  value: Option<T>,
 }
 
 impl<T: Sized> Swap<T> {
   pub fn new(value: T) -> Self {
-    Self {
-      value: Some(value),
-    }
+    Self { value: Some(value) }
   }
 
   pub fn swap_with<F: FnOnce(T) -> T>(&mut self, func: F) {
@@ -63,13 +62,12 @@ impl<T: Sized> Swap<T> {
 impl<T: Sized> std::ops::Deref for Swap<T> {
   type Target = T;
   fn deref(&self) -> &Self::Target {
-      self.value.as_ref().unwrap()
+    self.value.as_ref().unwrap()
   }
 }
 
 impl<T: Sized> std::ops::DerefMut for Swap<T> {
   fn deref_mut(&mut self) -> &mut Self::Target {
-      self.value.as_mut().unwrap()
+    self.value.as_mut().unwrap()
   }
 }
-
