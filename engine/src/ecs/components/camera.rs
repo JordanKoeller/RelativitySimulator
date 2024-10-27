@@ -64,6 +64,10 @@ impl Camera {
     self.position += delta;
   }
 
+  pub fn set_translation(&mut self, pos: Vec3F) {
+    self.position = pos;
+  }
+
   pub fn push_rotation(&mut self, delta: cgmath::Euler<cgmath::Rad<f32>>) {
     self.euler_angles = cgmath::Euler::new(
       self.euler_angles.x + delta.x,

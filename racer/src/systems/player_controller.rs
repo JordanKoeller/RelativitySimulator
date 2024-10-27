@@ -5,15 +5,19 @@ use engine::ecs::components::{Camera, EventReceiver, Player};
 use engine::ecs::{MonoBehavior, SystemUtilities, WorldProxy};
 use engine::events::{Event, EventChannel, EventPayload, KeyCode, StatelessEventChannel, WindowEvent};
 use engine::gui::{widgets::*, ControlPanelBuilder, SystemDebugger};
-use engine::physics::TransformComponent;
+use engine::physics::{RigidBody, TransformComponent};
 use engine::utils::Vec3F;
+
+use crate::relativity::{Relativity, RelativityParameters};
 
 #[derive(SystemData)]
 pub struct PlayerControllerSystemData<'a> {
   player: ReadStorage<'a, Player>,
-  camera: WriteStorage<'a, Camera>,
-  transform: WriteStorage<'a, TransformComponent>,
-  event_receiver: ReadStorage<'a, EventReceiver>,
+  cam: WriteStorage<'a, Camera>,
+  mv: WriteStorage<'a, TransformComponent>,
+  relativity_s: ReadStorage<'a, RelativityParameters>,
+  rigid: WriteStorage<'a, RigidBody>,
+  event_s: ReadStorage<'a, EventReceiver>,
   event_channel: Write<'a, StatelessEventChannel<WindowEvent>>,
 }
 
@@ -37,13 +41,31 @@ impl<'a> MonoBehavior<'a> for PlayerController {
       let panel = self.get_write_panel(&api);
       self.sensitivity_scalar = panel.get_float("Mouse Sensitivity");
     }
-    for (_p, camera, events, transform) in (&s.player, &mut s.camera, &s.event_receiver, &mut s.transform).join() {
+    for (_p, camera, events, transform, rigid, relativity) in (
+      &s.player,
+      &mut s.cam,
+      &s.event_s,
+      &mut s.mv,
+      &mut s.rigid,
+      &s.relativity_s,
+    )
+      .join()
+    {
       let mut delta = Vec3F::zero();
+      let mut acc = Vec3F::zero();
       s.event_channel.for_each(&events.0, |evt| match evt.code {
-        Event::KeyDown(KeyCode::W) => delta += camera.front().normalize_to(0.04f32),
-        Event::KeyDown(KeyCode::A) => delta -= camera.right().normalize_to(0.04f32),
-        Event::KeyDown(KeyCode::S) => delta -= camera.front().normalize_to(0.04f32),
-        Event::KeyDown(KeyCode::D) => delta += camera.right().normalize_to(0.04f32),
+        Event::KeyDown(KeyCode::W) => {
+          acc += Relativity::three_acceleration(&camera.front().normalize_to(0.4f32), relativity, rigid)
+        }
+        Event::KeyDown(KeyCode::A) => {
+          acc -= Relativity::three_acceleration(&camera.right().normalize_to(0.4f32), relativity, rigid)
+        }
+        Event::KeyDown(KeyCode::S) => {
+          acc -= Relativity::three_acceleration(&camera.front().normalize_to(0.4f32), relativity, rigid)
+        }
+        Event::KeyDown(KeyCode::D) => {
+          acc += Relativity::three_acceleration(&camera.right().normalize_to(0.4f32), relativity, rigid)
+        }
         Event::KeyDown(KeyCode::LeftShift) => delta -= Vec3F::unit_y().normalize_to(0.04f32),
         Event::KeyDown(KeyCode::Space) => delta += Vec3F::unit_y().normalize_to(0.04f32),
         Event::MouseMoved => {
@@ -64,10 +86,10 @@ impl<'a> MonoBehavior<'a> for PlayerController {
           evt
         ),
       });
-      camera.push_translation(delta);
-      transform.translation = camera.position();
+      transform.push_translation(delta);
+      rigid.acceleration = acc;
       let mut panel = self.get_write_panel(&api);
-      panel.set_str("Player Position", to_string!(camera.position()));
+      panel.set_str("Player Position", to_string!(transform.translation));
       panel.set_str("Player Facing", to_string!(camera.front()));
     }
   }
@@ -87,16 +109,18 @@ impl<'a> MonoBehavior<'a> for PlayerController {
         WindowEvent::new(Event::MouseMoved),
       ]))
     };
-    let camera = Camera::new(Vec3F::new(4f32, 4f32, 2f32), Vec3F::new(0f32, 0f32, 1f32));
     let mut transform = TransformComponent::identity();
-    let guid = world.utilities().get_guid();
+    let camera = Camera::new(Vec3F::new(4f32, 4f32, 2f32), Vec3F::new(0f32, 0f32, 1f32));
     transform.push_translation(camera.position());
+    let guid = world.utilities().get_guid();
     world
       .create_entity()
       .with(Player)
       .with(camera)
       .with(receiver)
       .with(transform)
+      .with(RelativityParameters::with_c(10f32))
+      .with(RigidBody::default())
       .with(guid)
       .build();
   }

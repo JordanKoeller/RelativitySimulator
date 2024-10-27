@@ -5,7 +5,7 @@ use std::sync::RwLock;
 use std::time::Duration;
 
 use crate::debug::DebugMetricsSystem;
-use crate::ecs::{systems::*, EntityTree, Guid, GuidMap, GuidRegistrySystem};
+use crate::ecs::{systems::*, EntityTree, Guid, GuidMap, GuidRegistrySystem, MonoBehavior};
 use crate::ecs::{EntityManager, PrefabBuilder, Sys, SystemUtilities, WorldProxy};
 use crate::events::{Event, EventChannel, KeyCode, ReceiverId, StatelessEventChannel, WindowEvent};
 use crate::game_loop::GameLoop;
@@ -108,6 +108,23 @@ impl<'a, 'b> GameBuilder<'a, 'b> {
     self.dispatcher_builder.add(system, name, dep);
     self
   }
+
+  pub fn with_behavior_type<M>(mut self, name: &str, dep: &[&str]) -> Self
+  where
+    M: for<'c> MonoBehavior<'c> + Send + Default + 'a,
+  {
+    self.dispatcher_builder.add(Sys::<M>::default(), name, dep);
+    self
+  }
+
+  pub fn with_behavior<M>(mut self, mono_behavior: M, name: &str, dep: &[&str]) -> Self
+  where
+    M: for<'c> MonoBehavior<'c> + Send + 'a,
+  {
+    self.dispatcher_builder.add(Sys::new(mono_behavior), name, dep);
+    self
+  }
+
 
   pub fn with_local_system<T>(mut self, system: T) -> Self
   where

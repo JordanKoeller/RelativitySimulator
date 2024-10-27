@@ -1,5 +1,6 @@
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
+use crate::ecs::Camera;
 use crate::physics::{CanCollide, Collision, CollisionQueue, CollisionSummary};
 use crate::utils::*;
 use cgmath::prelude::*;
@@ -18,6 +19,7 @@ pub struct MotionSystem;
 impl<'a> System<'a> for MotionSystem {
   type SystemData = (
     WriteStorage<'a, TransformComponent>,
+    WriteStorage<'a, Camera>,
     WriteStorage<'a, RigidBody>,
     ReadStorage<'a, CanCollide>,
     ReadStorage<'a, Gravity>,
@@ -28,20 +30,23 @@ impl<'a> System<'a> for MotionSystem {
 
   fn run(
     &mut self,
-    (mut transform_s, mut rigid_storage, collidable_storage, gravity_storage, drag_storage, _colliders_storage, dt): Self::SystemData,
+    (mut transform_s, mut camera_s, mut rigid_s, collidable_s, gravity_s, drag_s, _colliders_s, dt): Self::SystemData,
   ) {
     for (transform, _collidable, rigid_body, gravity, drag) in (
       &mut transform_s,
-      (&collidable_storage).maybe(),
-      &mut rigid_storage,
-      (&gravity_storage).maybe(),
-      (&drag_storage).maybe(),
+      (&collidable_s).maybe(),
+      &mut rigid_s,
+      (&gravity_s).maybe(),
+      (&drag_s).maybe(),
     )
       .join()
     {
       self.compute_kinematics(rigid_body, gravity, drag, dt.dt_f32());
       self.push_frame_update(rigid_body, transform, dt.dt_f32());
       rigid_body.reset_acceleration();
+    }
+    for (transform, camera) in (&transform_s, &mut camera_s).join() {
+      camera.set_translation(transform.translation);
     }
   }
 }

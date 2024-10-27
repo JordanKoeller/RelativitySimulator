@@ -3,7 +3,7 @@ use specs::prelude::*;
 use crate::ecs::{SystemUtilities, WorldProxy};
 use crate::events::ReceiverId;
 
-pub trait MonoBehavior<'a> {
+pub trait MonoBehavior<'a>: Sized {
   type SystemData: specs::SystemData<'a>;
 
   #[allow(unused_variables)]
@@ -14,6 +14,7 @@ pub trait MonoBehavior<'a> {
 
   #[allow(unused_variables)]
   fn destroy(&mut self, api: SystemUtilities<'a>, resources: Self::SystemData) {}
+
 }
 
 pub struct Sys<M>
@@ -21,7 +22,6 @@ where
   for<'a> M: MonoBehavior<'a>,
 {
   mono_behavior: M,
-  receiver_id: Option<ReceiverId>,
 }
 
 impl<'a, M> System<'a> for Sys<M>
@@ -48,7 +48,6 @@ where
   fn default() -> Self {
     Self {
       mono_behavior: M::default(),
-      receiver_id: None,
     }
   }
 }
@@ -60,7 +59,6 @@ where
   pub fn new(mono_behavior: M) -> Self {
     Self {
       mono_behavior,
-      receiver_id: None,
     }
   }
 }
